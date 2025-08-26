@@ -1,0 +1,137 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Task List Management with Specialized Agents
+
+Guidelines for managing task lists in markdown files to track progress on completing a PRD using coordinated specialized agents.
+
+## Specialized Agent System
+
+This project uses a coordinated team of specialized agents that work together to create a system greater than its individual parts:
+
+### Agent Roles and Responsibilities
+
+#### @agent-project-organizer
+- **Role**: Master coordinator and task optimization specialist
+- **Responsibilities**: Sequence tasks, manage dependencies, coordinate agent handoffs, ensure quality gates
+- **Use when**: Starting new phases, resolving blockers, optimizing workflow, or coordinating multiple agents
+
+#### @agent-project-setup-specialist
+- **Role**: Infrastructure and project initialization expert
+- **Tasks**: 1.1-1.9 (Project Setup and Infrastructure)
+- **Use when**: Setting up Next.js, TypeScript, Docker, testing frameworks, or initial project configuration
+
+#### @agent-supabase-integration
+- **Role**: Database and backend services specialist
+- **Tasks**: 2.1-2.9 (Supabase Integration and Database Configuration)
+- **Use when**: Configuring Supabase, database schema, authentication settings, or backend services
+
+#### Authentication System Agent (see `agents/authentication-system-agent.md`)
+- **Role**: Security and authentication logic specialist
+- **Tasks**: 3.1-3.11 (Authentication System Implementation)
+- **Use when**: Implementing NextAuth.js, security features, session management, or authentication flows
+
+#### @agent-ui-component-developer
+- **Role**: Frontend component and user interface specialist
+- **Tasks**: 4.1-4.14 (User Interface and Components Development)
+- **Use when**: Building React components, forms, responsive design, or frontend features
+
+#### @agent-testing-specialist
+- **Role**: Quality assurance and test implementation expert
+- **Tasks**: 5.1-5.14 (Testing Implementation and Documentation)
+- **Use when**: Writing tests, ensuring coverage, or validating functionality
+
+## Agent Coordination Strategy
+
+### Execution Phases
+1. **Foundation Phase**: Project Setup Specialist creates infrastructure
+2. **Backend Phase**: Supabase Integration sets up database and auth
+3. **Security Phase**: Authentication System Agent implements auth logic
+4. **Frontend Phase**: UI Component Developer builds interface (can run parallel with phase 3)
+5. **Validation Phase**: Testing Specialist validates throughout (continuous TDD)
+
+### Integration Points
+- **Phase Gates**: Each major phase requires completion before next begins
+- **Handoff Protocol**: Agents must validate their outputs work with dependent agents
+- **Quality Checkpoints**: Testing Specialist validates at each integration point
+- **Coordination Reviews**: Project Organizer ensures alignment and resolves conflicts
+
+## Task Implementation Protocol
+
+### Agent-Aware Task Management
+- **Agent Assignment**: Each task section (1.0-5.0) maps to specific agents
+- **Dependency Management**: Agents must complete prerequisite tasks before dependent agents proceed
+- **Parallel Execution**: UI and Authentication work can run concurrently where dependencies allow
+- **Integration Validation**: Test integration between agent deliverables at each checkpoint
+
+### Completion Protocol
+1. When you finish a **sub-task**, immediately mark it as completed by changing `[ ]` to `[x]`
+2. **Agent Handoff**: Notify dependent agents when prerequisites are complete
+3. If **all** subtasks underneath a parent task are `[x]`, mark the **parent task** as completed
+4. **Integration Testing**: Validate that completed work integrates with other agent deliverables
+5. Start working on the next task immediately, coordinating with other active agents
+
+### Agent Collaboration Rules
+- **Communication**: Update task list with integration notes and dependencies
+- **Quality Gates**: Each agent must validate their work meets success criteria before handoff
+- **Conflict Resolution**: Use @agent-project-organizer to resolve conflicts between agents
+- **Shared Resources**: Coordinate access to shared files and configurations
+- **Documentation**: Each agent documents their deliverables for other agents
+
+## Task List Maintenance
+
+### Multi-Agent Updates
+1. **Update the task list as you work:**
+   - Mark tasks and subtasks as completed (`[x]`) per the protocol above
+   - Add integration checkpoints and dependencies discovered during work
+   - Note any blockers or issues that affect other agents
+
+2. **Agent Coordination Notes:**
+   - Add notes about handoffs between agents
+   - Document integration requirements and validation steps
+   - Track dependencies and prerequisites for each phase
+
+3. **Maintain the "Relevant Files" section:**
+   - List every file created or modified by each agent
+   - Give each file a one-line description of its purpose
+   - Note which agent is responsible for maintaining each file
+
+## AI Instructions for Agent Coordination
+
+When working with specialized agents and task lists:
+
+### Before Starting Work
+1. **Check Dependencies**: Ensure prerequisite agents have completed their tasks
+2. **Validate Integration Points**: Confirm previous agent outputs are available and functional
+3. **Coordinate with Active Agents**: Check if other agents are working on related tasks
+4. **Review Success Criteria**: Understand what constitutes completion for your agent's tasks
+
+### During Implementation
+1. **Follow Agent Specialization**: Use the appropriate agent for each task category
+2. **Maintain Agent Boundaries**: Respect each agent's domain expertise and responsibilities  
+3. **Document Integration Requirements**: Note how your work connects with other agents
+4. **Validate Continuously**: Test integration with other agent deliverables
+
+### After Completing Tasks
+1. **Update Task List**: Mark completed tasks and note any new dependencies discovered
+2. **Integration Testing**: Validate your deliverables work with other agent outputs
+3. **Handoff Communication**: Clearly communicate completion status to dependent agents
+4. **Quality Validation**: Ensure work meets both individual and system-wide success criteria
+
+### Agent Coordination Best Practices
+- **Start with @agent-project-organizer** for complex multi-agent workflows
+- **Respect Agent Expertise**: Don't duplicate work across agent domains
+- **Integration First**: Always consider how your work affects other agents
+- **Document Dependencies**: Make agent relationships and handoffs explicit
+- **Validate End-to-End**: Test that the complete system works, not just individual components
+
+## Success Metrics
+
+The coordinated agent system succeeds when:
+- All individual agent tasks are completed successfully
+- Integration between agent deliverables is seamless  
+- The final system demonstrates emergent properties beyond individual agent contributions
+- Quality standards (test coverage, security, accessibility) are met system-wide
+- Documentation enables future developers to understand and extend the coordinated system
