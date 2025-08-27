@@ -1,0 +1,262 @@
+'use client'
+
+import React, { ReactNode, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { Loader2, Shield, AlertCircle } from 'lucide-react'
+import { Button } from './ui/button'
+import Link from 'next/link'
+
+interface ProtectedRouteProps {
+  children: ReactNode
+  fallback?: ReactNode
+  redirectTo?: string
+  requireVerified?: boolean
+  allowedRoles?: string[]
+  className?: string
+}
+
+export function ProtectedRoute({
+  children,
+  fallback,
+  redirectTo = '/login',
+  requireVerified = false,
+  allowedRoles,
+  className = '',
+}: ProtectedRouteProps) {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const [isRedirecting, setIsRedirecting] = useState(false)
+
+  useEffect(() => {
+    if (status === 'loading') return
+
+    if (!session) {
+      setIsRedirecting(true)
+      // Add current URL as redirect parameter
+      const currentUrl = window.location.pathname + window.location.search
+      const redirectUrl = `${redirectTo}${redirectTo.includes('?') ? '&' : '?'}redirect=${encodeURIComponent(currentUrl)}`
+      router.push(redirectUrl)
+      return
+    }
+
+    // Check if email verification is required
+    if (requireVerified && !session.user?.emailVerified) {
+      setIsRedirecting(true)
+      router.push('/verify-email')
+      return
+    }
+
+    // Check role-based access
+    if (allowedRoles && allowedRoles.length > 0) {
+      const userRole = (session.user as any)?.role
+      if (!userRole || !allowedRoles.includes(userRole)) {
+        setIsRedirecting(true)
+        router.push('/unauthorized')
+        return
+      }
+    }
+  }, [session, status, router, redirectTo, requireVerified, allowedRoles])
+
+  // Loading state
+  if (status === 'loading' || isRedirecting) {
+    if (fallback) {
+      return <>{fallback}</>
+    }
+
+    return (
+      <div className={`min-h-screen flex items-center justify-center bg-gray-50 ${className}`}>
+        <div className="max-w-md w-full bg-white rounded-lg shadow-md border p-8 text-center space-y-4">
+          <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" aria-hidden="true" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold text-gray-900">
+              {isRedirecting ? 'Redirecting...' : 'Loading...'}
+            </h2>
+            <p className="text-gray-600">
+              {isRedirecting 
+                ? 'Please wait while we redirect you'
+                : 'Please wait while we verify your access'
+              }
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Not authenticated
+  if (!session) {
+    if (fallback) {
+      return <>{fallback}</>
+    }
+
+    return (
+      <div className={`min-h-screen flex items-center justify-center bg-gray-50 ${className}`}>
+        <div className="max-w-md w-full bg-white rounded-lg shadow-md border p-8 text-center space-y-6">
+          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+            <Shield className="w-8 h-8 text-red-600" aria-hidden="true" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold text-gray-900">Authentication Required</h2>
+            <p className="text-gray-600">
+              You need to be signed in to access this page.
+            </p>
+          </div>
+          <div className="space-y-3">
+            <Button asChild className="w-full">
+              <Link href={redirectTo}>Sign In</Link>
+            </Button>
+            <Link
+              href="/"
+              className="block text-sm text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+            >
+              Go back home
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Email verification required but not verified
+  if (requireVerified && !session.user?.emailVerified) {
+    if (fallback) {
+      return <>{fallback}</>
+    }
+
+    return (
+      <div className={`min-h-screen flex items-center justify-center bg-gray-50 ${className}`}>
+        <div className="max-w-md w-full bg-white rounded-lg shadow-md border p-8 text-center space-y-6">
+          <div className="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
+            <AlertCircle className="w-8 h-8 text-yellow-600" aria-hidden="true" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold text-gray-900">Email Verification Required</h2>
+            <p className="text-gray-600">
+              Please verify your email address to access this page. Check your inbox for the verification link.
+            </p>
+          </div>
+          <div className="space-y-3">
+            <Button asChild className="w-full">
+              <Link href="/verify-email">Verify Email</Link>
+            </Button>
+            <Link
+              href="/dashboard"
+              className="block text-sm text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+            >
+              Back to dashboard
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Role-based access control
+  if (allowedRoles && allowedRoles.length > 0) {
+    const userRole = (session.user as any)?.role
+    if (!userRole || !allowedRoles.includes(userRole)) {
+      if (fallback) {
+        return <>{fallback}</>
+      }
+
+      return (
+        <div className={`min-h-screen flex items-center justify-center bg-gray-50 ${className}`}>
+          <div className="max-w-md w-full bg-white rounded-lg shadow-md border p-8 text-center space-y-6">
+            <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+              <Shield className="w-8 h-8 text-red-600" aria-hidden="true" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold text-gray-900">Access Denied</h2>
+              <p className="text-gray-600">
+                You don't have permission to access this page. Contact an administrator if you believe this is an error.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <Button asChild className="w-full" variant="outline">
+                <Link href="/dashboard">Back to Dashboard</Link>
+              </Button>
+              <Link
+                href="/"
+                className="block text-sm text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+              >
+                Go back home
+              </Link>
+            </div>
+          </div>
+        </div>
+      )
+    }
+  }
+
+  // All checks passed - render children
+  return <div className={className}>{children}</div>
+}
+
+// Higher Order Component version
+export function withAuth<P extends object>(
+  WrappedComponent: React.ComponentType<P>,
+  options: Omit<ProtectedRouteProps, 'children'> = {}
+) {
+  const AuthenticatedComponent = (props: P) => {
+    return (
+      <ProtectedRoute {...options}>
+        <WrappedComponent {...props} />
+      </ProtectedRoute>
+    )
+  }
+
+  AuthenticatedComponent.displayName = `withAuth(${WrappedComponent.displayName || WrappedComponent.name})`
+
+  return AuthenticatedComponent
+}
+
+// Hook for getting protected route status
+export function useProtectedRoute(options: Omit<ProtectedRouteProps, 'children'> = {}) {
+  const { data: session, status } = useSession()
+  const [isAuthorized, setIsAuthorized] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (status === 'loading') {
+      setIsLoading(true)
+      return
+    }
+
+    setIsLoading(false)
+
+    if (!session) {
+      setIsAuthorized(false)
+      setError('Authentication required')
+      return
+    }
+
+    if (options.requireVerified && !session.user?.emailVerified) {
+      setIsAuthorized(false)
+      setError('Email verification required')
+      return
+    }
+
+    if (options.allowedRoles && options.allowedRoles.length > 0) {
+      const userRole = (session.user as any)?.role
+      if (!userRole || !options.allowedRoles.includes(userRole)) {
+        setIsAuthorized(false)
+        setError('Insufficient permissions')
+        return
+      }
+    }
+
+    setIsAuthorized(true)
+    setError(null)
+  }, [session, status, options.requireVerified, options.allowedRoles])
+
+  return {
+    isAuthorized,
+    isLoading,
+    error,
+    session,
+  }
+}

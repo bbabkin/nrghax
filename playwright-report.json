@@ -1,0 +1,222 @@
+{
+  "config": {
+    "configFile": "/home/coder/code/mine/nrghax/playwright.config.ts",
+    "rootDir": "/home/coder/code/mine/nrghax/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "playwright-report.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "playwright-results.xml"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/home/coder/code/mine/nrghax/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/coder/code/mine/nrghax/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/coder/code/mine/nrghax/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/home/coder/code/mine/nrghax/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/coder/code/mine/nrghax/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/home/coder/code/mine/nrghax/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/coder/code/mine/nrghax/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "/home/coder/code/mine/nrghax/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/coder/code/mine/nrghax/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "/home/coder/code/mine/nrghax/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.0",
+    "workers": 4,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:3003",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "quick-test.spec.ts",
+      "file": "quick-test.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "capture login page",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 140,
+                  "error": {
+                    "message": "Error: Playwright Test did not expect test.use() to be called here.\nMost common reasons include:\n- You are calling test.use() in a configuration file.\n- You are calling test.use() in a file that is imported by the configuration file.\n- You have two different versions of @playwright/test. This usually happens\n  when one of the dependencies in your package.json depends on @playwright/test.",
+                    "stack": "Error: Playwright Test did not expect test.use() to be called here.\nMost common reasons include:\n- You are calling test.use() in a configuration file.\n- You are calling test.use() in a file that is imported by the configuration file.\n- You have two different versions of @playwright/test. This usually happens\n  when one of the dependencies in your package.json depends on @playwright/test.\n    at /home/coder/code/mine/nrghax/tests/quick-test.spec.ts:4:8",
+                    "location": {
+                      "file": "/home/coder/code/mine/nrghax/tests/quick-test.spec.ts",
+                      "column": 8,
+                      "line": 4
+                    },
+                    "snippet": "  2 |\n  3 | test('capture login page', async ({ page }) => {\n> 4 |   test.use({\n    |        ^\n  5 |     ignoreHTTPSErrors: true,\n  6 |   });\n  7 |   "
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/home/coder/code/mine/nrghax/tests/quick-test.spec.ts",
+                        "column": 8,
+                        "line": 4
+                      },
+                      "message": "Error: Playwright Test did not expect test.use() to be called here.\nMost common reasons include:\n- You are calling test.use() in a configuration file.\n- You are calling test.use() in a file that is imported by the configuration file.\n- You have two different versions of @playwright/test. This usually happens\n  when one of the dependencies in your package.json depends on @playwright/test.\n\n  2 |\n  3 | test('capture login page', async ({ page }) => {\n> 4 |   test.use({\n    |        ^\n  5 |     ignoreHTTPSErrors: true,\n  6 |   });\n  7 |   \n    at /home/coder/code/mine/nrghax/tests/quick-test.spec.ts:4:8"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-08-27T18:57:05.452Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/coder/code/mine/nrghax/test-results/quick-test-capture-login-page-chromium/test-failed-1.png"
+                    },
+                    {
+                      "name": "video",
+                      "contentType": "video/webm",
+                      "path": "/home/coder/code/mine/nrghax/test-results/quick-test-capture-login-page-chromium/video.webm"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/home/coder/code/mine/nrghax/tests/quick-test.spec.ts",
+                    "column": 8,
+                    "line": 4
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "1f46ff5a1b762fbf0870-af70dba12a770e65e31e",
+          "file": "quick-test.spec.ts",
+          "line": 3,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-08-27T18:57:01.512Z",
+    "duration": 4166.592,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}
