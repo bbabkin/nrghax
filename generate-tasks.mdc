@@ -19,40 +19,152 @@ To guide an AI assistant in creating a detailed, step-by-step task list in Markd
 
 1.  **Receive PRD Reference:** The user points the AI to a specific PRD file
 2.  **Analyze PRD:** The AI reads and analyzes the functional requirements, user stories, and other sections of the specified PRD.
-3.  **Phase 1: Generate Parent Tasks:** Based on the PRD analysis, create the file and generate the main, high-level tasks required to implement the feature. Use your judgement on how many high-level tasks to use. It's likely to be about 5. Present these tasks to the user in the specified format (without sub-tasks yet). Inform the user: "I have generated the high-level tasks based on the PRD. Ready to generate the sub-tasks? Respond with 'Go' to proceed."
-4.  **Wait for Confirmation:** Pause and wait for the user to respond with "Go".
-5.  **Phase 2: Generate Sub-Tasks:** Once the user confirms, break down each parent task into smaller, actionable sub-tasks necessary to complete the parent task. Ensure sub-tasks logically follow from the parent task and cover the implementation details implied by the PRD.
-6.  **Identify Relevant Files:** Based on the tasks and PRD, identify potential files that will need to be created or modified. List these under the `Relevant Files` section, including corresponding test files if applicable.
-7.  **Generate Final Output:** Combine the parent tasks, sub-tasks, relevant files, and notes into the final Markdown structure.
-8.  **Save Task List:** Save the generated document in the `/tasks/` directory with the filename `tasks-[prd-file-name].md`, where `[prd-file-name]` matches the base name of the input PRD file (e.g., if the input was `prd-user-profile-editing.md`, the output is `tasks-prd-user-profile-editing.md`).
+3.  **Extract User Stories:** Identify all user stories from the PRD and prepare test scenarios for each.
+4.  **Plan TDD Approach:** Determine if TDD is appropriate for this feature based on complexity, security requirements, and business criticality.
+5.  **Phase 1: Generate Test-First Tasks:** Create the file and generate TDD-focused parent tasks:
+    - Test setup and fixtures
+    - Writing tests first (Red phase)
+    - Implementation tasks (Green phase)
+    - Refactoring tasks (Refactor phase)
+    Present these to the user and inform: "I have generated the high-level TDD tasks based on the PRD. Ready to generate the detailed sub-tasks and test scenarios? Respond with 'Go' to proceed."
+6.  **Wait for Confirmation:** Pause and wait for the user to respond with "Go".
+7.  **Phase 2: Generate Detailed Tasks:** Once confirmed:
+    - Create detailed test scenarios for each user story
+    - Generate E2E test flows for critical journeys
+    - Break down each parent task into TDD-focused sub-tasks
+    - Ensure tests are written BEFORE implementation tasks
+8.  **Identify Test & Implementation Files:** List all files including:
+    - Test files (unit, integration, E2E) - marked as "WRITE FIRST"
+    - Implementation files
+    - Test fixtures and utilities
+9.  **Generate Final Output:** Combine everything into the TDD-structured Markdown format.
+10. **Save Task List:** Save the document in `/tasks/` with filename `tasks-[prd-file-name].md`.
 
 ## Output Format
 
 The generated task list _must_ follow this structure:
 
 ```markdown
+# Task List: [Feature Name]
+
+## Test-Driven Development (TDD) Approach
+
+### Why TDD for This Feature
+[Brief explanation of why TDD is recommended, e.g., complex business logic, security-critical, high user impact]
+
+### TDD Workflow
+1. **Red Phase**: Write failing tests for each user story
+2. **Green Phase**: Implement minimal code to make tests pass  
+3. **Refactor Phase**: Improve code quality while keeping tests green
+
+## User Stories & Test Scenarios
+
+### User Story 1: [Title from PRD]
+**As a** [user type], **I want to** [action], **so that** [benefit]
+
+#### Acceptance Criteria:
+- [Criteria 1 from PRD]
+- [Criteria 2 from PRD]
+
+#### Test Scenarios:
+- **Happy Path**: [Description]
+  - Given: [Initial state]
+  - When: [User action]
+  - Then: [Expected outcome]
+  
+- **Edge Case**: [Description]
+  - Given: [Initial state]
+  - When: [Edge action]
+  - Then: [Expected handling]
+  
+- **Error Case**: [Description]
+  - Given: [Initial state]
+  - When: [Invalid action]
+  - Then: [Error response]
+
+[Repeat for each user story from PRD]
+
+## E2E Test Flows
+
+### Critical User Journey 1: [Name]
+**Path**: [Start] → [Action 1] → [Action 2] → [End]
+**Test File**: `tests/e2e/[feature]/[journey].spec.ts`
+```typescript
+test.describe('[Journey Name]', () => {
+  test('should [expected behavior]', async ({ page }) => {
+    // Setup
+    // Actions
+    // Assertions
+  });
+});
+```
+
 ## Relevant Files
 
-- `path/to/potential/file1.ts` - Brief description of why this file is relevant (e.g., Contains the main component for this feature).
-- `path/to/file1.test.ts` - Unit tests for `file1.ts`.
-- `path/to/another/file.tsx` - Brief description (e.g., API route handler for data submission).
-- `path/to/another/file.test.tsx` - Unit tests for `another/file.tsx`.
-- `lib/utils/helpers.ts` - Brief description (e.g., Utility functions needed for calculations).
-- `lib/utils/helpers.test.ts` - Unit tests for `helpers.ts`.
+### Test Files (Write First - TDD!)
+- `src/components/[feature]/[Component].test.tsx` - Unit tests (WRITE FIRST)
+- `src/app/api/[feature]/route.test.ts` - API tests (WRITE FIRST)
+- `tests/e2e/[feature]/[flow].spec.ts` - E2E tests (WRITE FIRST)
+- `tests/integration/[feature].test.ts` - Integration tests (WRITE FIRST)
 
-### Notes
+### Implementation Files (Write After Tests)
+- `src/components/[feature]/[Component].tsx` - Main component
+- `src/app/api/[feature]/route.ts` - API endpoint
+- `src/lib/[feature]/utils.ts` - Utility functions
 
-- Unit tests should typically be placed alongside the code files they are testing (e.g., `MyComponent.tsx` and `MyComponent.test.tsx` in the same directory).
-- Use `npx jest [optional/path/to/test/file]` to run tests. Running without a path executes all tests found by the Jest configuration.
+### Test Support Files
+- `tests/fixtures/[feature]-data.ts` - Test data and mocks
+- `tests/utils/[feature]-helpers.ts` - Test utilities
+
+## Testing Requirements
+
+### Coverage Targets
+- Minimum 80% code coverage overall
+- 100% coverage for security functions
+- All user stories must have tests
+
+### Test Commands
+```bash
+# TDD Development (watch mode)
+npm test -- --watch
+
+# Run all tests
+npm test
+
+# Run with coverage
+npm test -- --coverage
+
+# Run E2E tests
+npm run test:e2e
+```
 
 ## Tasks
 
-- [ ] 1.0 Parent Task Title
-  - [ ] 1.1 [Sub-task description 1.1]
-  - [ ] 1.2 [Sub-task description 1.2]
-- [ ] 2.0 Parent Task Title
-  - [ ] 2.1 [Sub-task description 2.1]
-- [ ] 3.0 Parent Task Title (may not require sub-tasks if purely structural or configuration)
+### Phase 0: Test Foundation (Setup)
+- [ ] 0.1 Create test fixtures and mock data
+- [ ] 0.2 Set up test utilities and helpers
+- [ ] 0.3 Configure test environment
+
+### Phase 1: Red (Write Failing Tests)
+- [ ] 1.0 Write Unit Tests
+  - [ ] 1.1 Component tests (should fail)
+  - [ ] 1.2 Utility function tests (should fail)
+- [ ] 2.0 Write Integration Tests
+  - [ ] 2.1 API route tests (should fail)
+  - [ ] 2.2 Database tests (should fail)
+- [ ] 3.0 Write E2E Tests
+  - [ ] 3.1 User journey tests (should fail)
+
+### Phase 2: Green (Implementation)
+- [ ] 4.0 [Implementation Task]
+  - [ ] 4.1 Make [specific test] pass
+  - [ ] 4.2 Make [another test] pass
+
+### Phase 3: Refactor (Improve)
+- [ ] 5.0 Code Quality
+  - [ ] 5.1 Refactor for readability
+  - [ ] 5.2 Optimize performance
+  - [ ] 5.3 Ensure tests still pass
 ```
 
 ## Interaction Model
@@ -61,4 +173,22 @@ The process explicitly requires a pause after generating parent tasks to get use
 
 ## Target Audience
 
-Assume the primary reader of the task list is a **junior developer** who will implement the feature.
+Assume the primary reader of the task list is a **junior developer** who will implement the feature using Test-Driven Development (TDD) methodology. The task list should:
+- Clearly explain WHY we write tests first
+- Provide concrete test examples
+- Guide through the Red-Green-Refactor cycle
+- Include all necessary test commands
+- Emphasize the importance of test coverage
+
+## Best Practices to Follow
+
+1. **Always Write Tests First**: Tests define the expected behavior before implementation
+2. **One Test at a Time**: Focus on making one test pass before writing the next
+3. **Minimal Implementation**: Write just enough code to make tests pass
+4. **Refactor Safely**: Improve code only when all tests are green
+5. **Test Independence**: Each test should run independently without relying on others
+6. **Clear Test Names**: Test names should describe what is being tested and expected outcome
+7. **AAA Pattern**: Arrange-Act-Assert structure for all tests
+8. **Mock External Dependencies**: Isolate units being tested
+9. **Test User Behavior**: Focus on testing what users do, not implementation details
+10. **Continuous Integration**: All tests must pass before merging
