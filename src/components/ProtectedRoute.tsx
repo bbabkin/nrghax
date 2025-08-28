@@ -40,12 +40,7 @@ export function ProtectedRoute({
       return
     }
 
-    // Check if email verification is required
-    if (requireVerified && !session.user?.emailVerified) {
-      setIsRedirecting(true)
-      router.push('/verify-email')
-      return
-    }
+    // Email verification check removed - NextAuth session doesn't include emailVerified
 
     // Check role-based access
     if (allowedRoles && allowedRoles.length > 0) {
@@ -120,39 +115,7 @@ export function ProtectedRoute({
     )
   }
 
-  // Email verification required but not verified
-  if (requireVerified && !session.user?.emailVerified) {
-    if (fallback) {
-      return <>{fallback}</>
-    }
-
-    return (
-      <div className={`min-h-screen flex items-center justify-center bg-gray-50 ${className}`}>
-        <div className="max-w-md w-full bg-white rounded-lg shadow-md border p-8 text-center space-y-6">
-          <div className="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
-            <AlertCircle className="w-8 h-8 text-yellow-600" aria-hidden="true" />
-          </div>
-          <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-gray-900">Email Verification Required</h2>
-            <p className="text-gray-600">
-              Please verify your email address to access this page. Check your inbox for the verification link.
-            </p>
-          </div>
-          <div className="space-y-3">
-            <Button asChild className="w-full">
-              <Link href="/verify-email">Verify Email</Link>
-            </Button>
-            <Link
-              href="/dashboard"
-              className="block text-sm text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
-            >
-              Back to dashboard
-            </Link>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // Email verification check removed - NextAuth session doesn't include emailVerified
 
   // Role-based access control
   if (allowedRoles && allowedRoles.length > 0) {
@@ -171,7 +134,7 @@ export function ProtectedRoute({
             <div className="space-y-2">
               <h2 className="text-xl font-semibold text-gray-900">Access Denied</h2>
               <p className="text-gray-600">
-                You don't have permission to access this page. Contact an administrator if you believe this is an error.
+                You don&apos;t have permission to access this page. Contact an administrator if you believe this is an error.
               </p>
             </div>
             <div className="space-y-3">
@@ -234,11 +197,7 @@ export function useProtectedRoute(options: Omit<ProtectedRouteProps, 'children'>
       return
     }
 
-    if (options.requireVerified && !session.user?.emailVerified) {
-      setIsAuthorized(false)
-      setError('Email verification required')
-      return
-    }
+    // Email verification check removed - NextAuth session doesn't include emailVerified
 
     if (options.allowedRoles && options.allowedRoles.length > 0) {
       const userRole = (session.user as any)?.role

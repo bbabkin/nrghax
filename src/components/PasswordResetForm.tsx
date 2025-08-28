@@ -136,7 +136,7 @@ export function PasswordResetForm({ className = '' }: PasswordResetFormProps) {
             <div className="space-y-2">
               <h1 className="text-2xl font-bold text-gray-900">Check your email</h1>
               <p className="text-gray-600">
-                We've sent password reset instructions to{' '}
+                We&apos;ve sent password reset instructions to{' '}
                 <span className="font-medium text-gray-900">{emailSent}</span>
               </p>
             </div>
@@ -145,7 +145,7 @@ export function PasswordResetForm({ className = '' }: PasswordResetFormProps) {
               <div className="flex items-start space-x-2">
                 <Mail className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="text-sm text-blue-700 space-y-1">
-                  <p className="font-medium">What's next?</p>
+                  <p className="font-medium">What&apos;s next?</p>
                   <ul className="space-y-1 text-xs">
                     <li>• Check your email inbox (and spam folder)</li>
                     <li>• Click the reset link in the email</li>
@@ -172,7 +172,7 @@ export function PasswordResetForm({ className = '' }: PasswordResetFormProps) {
           <div className="space-y-3">
             <div className="text-center space-y-2">
               <p className="text-sm text-gray-500">
-                Didn't receive the email? Check your spam folder or
+                Didn&apos;t receive the email? Check your spam folder or
               </p>
               <Button
                 variant="outline"
@@ -212,7 +212,7 @@ export function PasswordResetForm({ className = '' }: PasswordResetFormProps) {
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold text-gray-900">Reset your password</h1>
           <p className="text-gray-600">
-            Enter your email address and we'll send you a link to reset your password
+            Enter your email address and we&apos;ll send you a link to reset your password
           </p>
         </div>
 
@@ -261,7 +261,7 @@ export function PasswordResetForm({ className = '' }: PasswordResetFormProps) {
               </p>
             ) : (
               <p id="email-help" className="text-xs text-gray-500">
-                We'll send password reset instructions to this email
+                We&apos;ll send password reset instructions to this email
               </p>
             )}
           </div>

@@ -129,7 +129,7 @@ function ResetPasswordContent() {
                 <ul className="space-y-1 text-xs">
                   <li>• Reset links expire after 1 hour for security</li>
                   <li>• Each link can only be used once</li>
-                  <li>• Check your spam folder if you don't see the email</li>
+                  <li>• Check your spam folder if you don&apos;t see the email</li>
                   <li>• Contact support if you continue having issues</li>
                 </ul>
               </div>

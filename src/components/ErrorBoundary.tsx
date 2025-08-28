@@ -39,7 +39,7 @@ export class ErrorBoundary extends Component<Props, State> {
     }
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo)
     
     // Log error to monitoring service
@@ -108,7 +108,7 @@ Please describe what you were doing when this error occurred.
     window.open(`mailto:support@example.com?subject=${subject}&body=${body}`)
   }
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
         return this.props.fallback
@@ -128,7 +128,7 @@ Please describe what you were doing when this error occurred.
                 Something went wrong
               </h1>
               <p className="text-gray-600">
-                We're sorry, but an unexpected error has occurred. This has been logged and we'll look into it.
+                We&apos;re sorry, but an unexpected error has occurred. This has been logged and we&apos;ll look into it.
               </p>
             </div>
 
@@ -351,11 +351,15 @@ export function withErrorBoundary<P extends object>(
   fallback?: ReactNode,
   onError?: (error: Error, errorInfo: ErrorInfo) => void
 ) {
-  const WrappedComponent = (props: P) => (
-    <ErrorBoundary fallback={fallback} onError={onError}>
-      <Component {...props} />
-    </ErrorBoundary>
-  )
+  const WrappedComponent = (props: P) => {
+    const errorBoundaryProps: Props = {
+      children: <Component {...props} />,
+      ...(fallback !== undefined && { fallback }),
+      ...(onError !== undefined && { onError })
+    }
+    
+    return <ErrorBoundary {...errorBoundaryProps} />
+  }
   
   WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`
   

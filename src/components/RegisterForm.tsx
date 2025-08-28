@@ -156,12 +156,12 @@ export function RegisterForm({ className = '' }: RegisterFormProps) {
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-gray-900">Check your email</h1>
             <p className="text-gray-600">
-              We've sent a verification link to your email address. Please click the link to activate your account.
+              We&apos;ve sent a verification link to your email address. Please click the link to activate your account.
             </p>
           </div>
           <div className="space-y-3">
             <p className="text-sm text-gray-500">
-              Didn't receive the email? Check your spam folder or try again in a few minutes.
+              Didn&apos;t receive the email? Check your spam folder or try again in a few minutes.
             </p>
             <Button
               variant="outline"

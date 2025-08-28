@@ -278,7 +278,7 @@ export function LoginForm({ redirectUrl = '/dashboard', className = '' }: LoginF
 
         {/* Sign Up Link */}
         <div className="text-center text-sm">
-          <span className="text-gray-600">Don't have an account? </span>
+          <span className="text-gray-600">Don&apos;t have an account? </span>
           <Link
             href="/register"
             className="text-blue-600 hover:text-blue-500 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"

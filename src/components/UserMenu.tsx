@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from './ui/button'
 import {
   DropdownMenu,
@@ -91,10 +92,12 @@ export function UserMenu({
           >
             {/* Avatar */}
             {session.user?.image ? (
-              <img
+              <Image
                 src={session.user.image}
-                alt={`${userDisplayName}'s avatar`}
-                className="w-6 h-6 rounded-full object-cover"
+                alt={`${userDisplayName}&apos;s avatar`}
+                width={24}
+                height={24}
+                className="rounded-full object-cover"
               />
             ) : (
               <div 
@@ -124,10 +127,12 @@ export function UserMenu({
           <DropdownMenuLabel>
             <div className="flex items-center space-x-3 py-1">
               {session.user?.image ? (
-                <img
+                <Image
                   src={session.user.image}
-                  alt={`${userDisplayName}'s avatar`}
-                  className="w-10 h-10 rounded-full object-cover"
+                  alt={`${userDisplayName}&apos;s avatar`}
+                  width={40}
+                  height={40}
+                  className="rounded-full object-cover"
                 />
               ) : (
                 <div 
@@ -231,7 +236,7 @@ export function UserMenuMobile({
       <div className={`space-y-1 ${className}`}>
         <Link
           href="/login"
-          onClick={onMenuItemClick}
+          {...(onMenuItemClick && { onClick: onMenuItemClick })}
           className="text-gray-900 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           role="menuitem"
         >
@@ -239,7 +244,7 @@ export function UserMenuMobile({
         </Link>
         <Link
           href="/register"
-          onClick={onMenuItemClick}
+          {...(onMenuItemClick && { onClick: onMenuItemClick })}
           className="bg-blue-600 text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           role="menuitem"
         >
@@ -270,10 +275,12 @@ export function UserMenuMobile({
       <div className="px-3 py-2 border-b border-gray-200">
         <div className="flex items-center space-x-3">
           {session.user?.image ? (
-            <img
+            <Image
               src={session.user.image}
-              alt={`${userDisplayName}'s avatar`}
-              className="w-8 h-8 rounded-full object-cover"
+              alt={`${userDisplayName}&apos;s avatar`}
+              width={32}
+              height={32}
+              className="rounded-full object-cover"
             />
           ) : (
             <div 
@@ -297,7 +304,7 @@ export function UserMenuMobile({
       {/* Menu Items */}
       <Link
         href="/dashboard"
-        onClick={onMenuItemClick}
+        {...(onMenuItemClick && { onClick: onMenuItemClick })}
         className="text-gray-900 hover:text-gray-700 flex items-center px-3 py-2 rounded-md text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         role="menuitem"
       >
@@ -307,7 +314,7 @@ export function UserMenuMobile({
 
       <Link
         href="/profile"
-        onClick={onMenuItemClick}
+        {...(onMenuItemClick && { onClick: onMenuItemClick })}
         className="text-gray-900 hover:text-gray-700 flex items-center px-3 py-2 rounded-md text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         role="menuitem"
       >
@@ -317,7 +324,7 @@ export function UserMenuMobile({
 
       <Link
         href="/settings"
-        onClick={onMenuItemClick}
+        {...(onMenuItemClick && { onClick: onMenuItemClick })}
         className="text-gray-900 hover:text-gray-700 flex items-center px-3 py-2 rounded-md text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         role="menuitem"
       >

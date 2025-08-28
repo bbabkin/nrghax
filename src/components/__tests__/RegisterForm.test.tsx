@@ -20,9 +20,11 @@ jest.mock('../ui/button', () => ({
   Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
 }))
 
-jest.mock('../ui/input', () => ({
-  Input: React.forwardRef((props: any, ref: any) => <input {...props} ref={ref} />),
-}))
+jest.mock('../ui/input', () => {
+  const MockInput = React.forwardRef((props: any, ref: any) => <input {...props} ref={ref} />)
+  MockInput.displayName = 'MockInput'
+  return { Input: MockInput }
+})
 
 jest.mock('../ui/label', () => ({
   Label: ({ children, ...props }: any) => <label {...props}>{children}</label>,

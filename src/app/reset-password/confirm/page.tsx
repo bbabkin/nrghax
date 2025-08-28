@@ -386,7 +386,7 @@ function ResetPasswordConfirmContent() {
             <div className="text-sm text-blue-700">
               <h3 className="font-medium mb-1">Security Notice</h3>
               <p className="text-xs">
-                After updating your password, you'll need to sign in again with your new credentials.
+                After updating your password, you&apos;ll need to sign in again with your new credentials.
                 This reset link will expire and cannot be used again.
               </p>
             </div>

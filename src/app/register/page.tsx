@@ -129,7 +129,7 @@ function RegisterContent() {
               <div className="text-sm text-blue-700 space-y-2">
                 <h3 className="font-medium">What happens next?</h3>
                 <ul className="space-y-1 text-xs">
-                  <li>• We'll send a verification email to your inbox</li>
+                  <li>• We&apos;ll send a verification email to your inbox</li>
                   <li>• Click the verification link to activate your account</li>
                   <li>• Sign in with your email and password</li>
                   <li>• Start using your account immediately</li>

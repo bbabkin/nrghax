@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import Image from 'next/image'
 import { 
   Calendar,
   Shield,
@@ -57,10 +58,10 @@ function DashboardContent() {
   const stats = [
     {
       title: 'Account Status',
-      value: user?.emailVerified ? 'Verified' : 'Unverified',
-      icon: user?.emailVerified ? CheckCircle2 : AlertCircle,
-      color: user?.emailVerified ? 'text-green-600' : 'text-yellow-600',
-      bgColor: user?.emailVerified ? 'bg-green-50' : 'bg-yellow-50'
+      value: 'Active',
+      icon: CheckCircle2,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50'
     },
     {
       title: 'Login Method',
@@ -113,10 +114,10 @@ function DashboardContent() {
       color: 'text-green-600'
     },
     {
-      action: user?.emailVerified ? 'Email verified' : 'Email verification pending',
+      action: 'Account created',
       timestamp: 'Just now',
       icon: Mail,
-      color: user?.emailVerified ? 'text-green-600' : 'text-yellow-600'
+      color: 'text-green-600'
     },
     {
       action: 'First login',
@@ -136,16 +137,18 @@ function DashboardContent() {
               {getGreeting()}, {firstName}! 👋
             </h1>
             <p className="text-blue-100 text-lg">
-              Welcome to your dashboard. Here's what's happening with your account.
+              Welcome to your dashboard. Here&apos;s what&apos;s happening with your account.
             </p>
           </div>
           
           {user?.image && (
             <div className="mt-4 md:mt-0">
-              <img
+              <Image
                 src={user.image}
-                alt={`${firstName}'s avatar`}
-                className="w-16 h-16 rounded-full border-4 border-white/20"
+                alt={`${firstName}&apos;s avatar`}
+                width={64}
+                height={64}
+                className="rounded-full border-4 border-white/20"
               />
             </div>
           )}
@@ -169,28 +172,6 @@ function DashboardContent() {
         ))}
       </div>
 
-      {/* Email Verification Alert */}
-      {!user?.emailVerified && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-          <div className="flex items-start space-x-3">
-            <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <h3 className="text-sm font-medium text-yellow-800">
-                Email Verification Required
-              </h3>
-              <p className="text-sm text-yellow-700 mt-1">
-                Please verify your email address to access all features and ensure account security.
-                Check your inbox for the verification link.
-              </p>
-              <div className="mt-3">
-                <Button variant="outline" size="sm" className="text-yellow-800 border-yellow-300 hover:bg-yellow-100">
-                  Resend Verification Email
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Quick Actions */}
@@ -275,7 +256,7 @@ function DashboardContent() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { title: 'Complete Profile', progress: user?.name ? 100 : 50, description: 'Add your personal information' },
-            { title: 'Verify Email', progress: user?.emailVerified ? 100 : 0, description: 'Confirm your email address' },
+            { title: 'Account Active', progress: 100, description: 'Your account is active' },
             { title: 'Security Setup', progress: 50, description: 'Enable two-factor authentication' },
             { title: 'Explore Features', progress: 25, description: 'Discover what you can do' }
           ].map((item, index) => (
