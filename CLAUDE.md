@@ -67,6 +67,13 @@ This project uses a coordinated team of specialized agents. ALWAYS use the appro
 - **Tasks**: 5.1-5.14 (Testing Implementation and Documentation)
 - **Use when**: Implementing tests or ensuring quality standards
 
+#### @agent-deployment-devops-specialist
+- **Role**: Deployment and DevOps specialist
+- **Responsibilities**: Production deployments, CI/CD pipelines, containerization, cloud platforms, monitoring
+- **Critical**: NEVER exposes secrets, ALWAYS validates configurations, implements proper rollback strategies
+- **Tasks**: Environment setup, build optimization, deployment execution, monitoring setup
+- **Use when**: Deploying to production, setting up CI/CD, configuring cloud infrastructure
+
 ## Agent Coordination Strategy
 
 The agents work together following this optimized execution order:
@@ -75,6 +82,7 @@ The agents work together following this optimized execution order:
 3. **Security Phase**: Authentication System Agent (NextAuth & security)
 4. **Frontend Phase**: UI Component Developer (can run parallel with phase 3)
 5. **Validation Phase**: Testing Specialist (runs continuously with TDD)
+6. **Deployment Phase**: Deployment DevOps Specialist (production release)
 
 **Key Principles**:
 - Each agent builds upon the previous agents' work
