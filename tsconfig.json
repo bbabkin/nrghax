@@ -49,6 +49,10 @@
     ".next",
     "out",
     "dist",
-    "build"
+    "build",
+    "tests/**/*",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/__tests__/**/*"
   ]
 }

@@ -1,41 +1,68 @@
-<testsuites id="" name="" tests="1" failures="1" skipped="0" errors="0" time="4.166592">
-<testsuite name="quick-test.spec.ts" timestamp="2025-08-27T18:57:05.152Z" hostname="chromium" tests="1" failures="1" skipped="0" time="0.14" errors="0">
-<testcase name="capture login page" classname="quick-test.spec.ts" time="0.14">
-<failure message="quick-test.spec.ts:3:5 capture login page" type="FAILURE">
-<![CDATA[  [chromium] › quick-test.spec.ts:3:5 › capture login page ─────────────────────────────────────────
-
-    Error: Playwright Test did not expect test.use() to be called here.
-    Most common reasons include:
-    - You are calling test.use() in a configuration file.
-    - You are calling test.use() in a file that is imported by the configuration file.
-    - You have two different versions of @playwright/test. This usually happens
-      when one of the dependencies in your package.json depends on @playwright/test.
-
-      2 |
-      3 | test('capture login page', async ({ page }) => {
-    > 4 |   test.use({
-        |        ^
-      5 |     ignoreHTTPSErrors: true,
-      6 |   });
-      7 |   
-        at /home/coder/code/mine/nrghax/tests/quick-test.spec.ts:4:8
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/quick-test-capture-login-page-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/quick-test-capture-login-page-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-]]>
-</failure>
+<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="8.499716999999999">
+<testsuite name="admin-debug-flow.spec.ts" timestamp="2025-08-29T21:50:55.486Z" hostname="chromium" tests="1" failures="0" skipped="0" time="7.992" errors="0">
+<testcase name="Admin Page Debug Session Investigation › capture debug panel information on admin page" classname="admin-debug-flow.spec.ts" time="7.992">
 <system-out>
-<![CDATA[
-[[ATTACHMENT|test-results/quick-test-capture-login-page-chromium/test-failed-1.png]]
+<![CDATA[Step 1: Navigating to admin page directly...
+Current URL after navigation: https://localhost:3002/login?callbackUrl=https%3A%2F%2Flocalhost%3A3002%2Fadmin
+ISSUE DETECTED: Redirected to login page - session not detected!
+Attempting to login with test credentials...
+Navigating to admin page after login...
+Waiting for debug panel to appear...
 
-[[ATTACHMENT|test-results/quick-test-capture-login-page-chromium/video.webm]]
+Screenshots saved to ./screenshots/ directory
+Review the screenshots to analyze session data discrepancies
+
+[[ATTACHMENT|test-results/admin-debug-flow-Admin-Pag-749b3-l-information-on-admin-page-chromium/test-finished-1.png]]
 ]]>
 </system-out>
+<system-err>
+<![CDATA[Failed to find debug panel: page.waitForSelector: Timeout 5000ms exceeded.
+Call log:
+[2m  - waiting for locator('text=DEBUG PANEL') to be visible[22m
+
+    at [90m/home/coder/code/mine/nrghax/[39mtests/admin-debug-flow.spec.ts:72:18 {
+  name: [32m'TimeoutError'[39m,
+  [[32mSymbol(step)[39m]: {
+    location: {
+      file: [32m'/home/coder/code/mine/nrghax/tests/admin-debug-flow.spec.ts'[39m,
+      line: [33m72[39m,
+      column: [33m18[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m"Wait for selector locator('text=DEBUG PANEL')"[39m,
+    apiName: [32m'page.waitForSelector'[39m,
+    params: { selector: [32m'text=DEBUG PANEL'[39m, timeout: [33m5000[39m },
+    group: [90mundefined[39m,
+    stepId: [32m'pw:api@45'[39m,
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@45'[39m,
+      _title: [32m"Wait for selector locator('text=DEBUG PANEL')"[39m,
+      _parentStep: [90mundefined[39m,
+      skip: [36m[Function (anonymous)][39m
+    },
+    recoverFromStepError: [36m[AsyncFunction: recoverFromStepError][39m,
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1756504263714[39m,
+    error: {
+      message: [32m'TimeoutError: page.waitForSelector: Timeout 5000ms exceeded.\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m"\x1B[2m  - waiting for locator('text=DEBUG PANEL') to be visible\x1B[22m\n"[39m,
+      stack: [32m'TimeoutError: page.waitForSelector: Timeout 5000ms exceeded.\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m"\x1B[2m  - waiting for locator('text=DEBUG PANEL') to be visible\x1B[22m\n"[39m +
+        [32m'\n'[39m +
+        [32m'    at /home/coder/code/mine/nrghax/tests/admin-debug-flow.spec.ts:72:18'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+]]>
+</system-err>
 </testcase>
 </testsuite>
 </testsuites>

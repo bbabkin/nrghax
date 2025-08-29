@@ -1,0 +1,13 @@
+{
+  "timestamp": "2025-08-29T03:29:45.139Z",
+  "testsRun": "chromium",
+  "screenshotsGenerated": 0,
+  "flows": [
+    "registration",
+    "login",
+    "password-reset",
+    "responsive",
+    "accessibility",
+    "oauth"
+  ]
+}

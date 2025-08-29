@@ -125,98 +125,108 @@
     "version": "1.55.0",
     "workers": 4,
     "webServer": {
-      "command": "npm run dev",
-      "url": "http://localhost:3003",
+      "command": "npm run dev:https",
+      "url": "https://localhost:3002",
       "reuseExistingServer": true,
-      "timeout": 120000
+      "timeout": 120000,
+      "ignoreHTTPSErrors": true
     }
   },
   "suites": [
     {
-      "title": "quick-test.spec.ts",
-      "file": "quick-test.spec.ts",
+      "title": "admin-debug-flow.spec.ts",
+      "file": "admin-debug-flow.spec.ts",
       "column": 0,
       "line": 0,
-      "specs": [
+      "specs": [],
+      "suites": [
         {
-          "title": "capture login page",
-          "ok": false,
-          "tags": [],
-          "tests": [
+          "title": "Admin Page Debug Session Investigation",
+          "file": "admin-debug-flow.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
             {
-              "timeout": 30000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "chromium",
-              "projectName": "chromium",
-              "results": [
+              "title": "capture debug panel information on admin page",
+              "ok": true,
+              "tags": [],
+              "tests": [
                 {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
-                  "status": "failed",
-                  "duration": 140,
-                  "error": {
-                    "message": "Error: Playwright Test did not expect test.use() to be called here.\nMost common reasons include:\n- You are calling test.use() in a configuration file.\n- You are calling test.use() in a file that is imported by the configuration file.\n- You have two different versions of @playwright/test. This usually happens\n  when one of the dependencies in your package.json depends on @playwright/test.",
-                    "stack": "Error: Playwright Test did not expect test.use() to be called here.\nMost common reasons include:\n- You are calling test.use() in a configuration file.\n- You are calling test.use() in a file that is imported by the configuration file.\n- You have two different versions of @playwright/test. This usually happens\n  when one of the dependencies in your package.json depends on @playwright/test.\n    at /home/coder/code/mine/nrghax/tests/quick-test.spec.ts:4:8",
-                    "location": {
-                      "file": "/home/coder/code/mine/nrghax/tests/quick-test.spec.ts",
-                      "column": 8,
-                      "line": 4
-                    },
-                    "snippet": "  2 |\n  3 | test('capture login page', async ({ page }) => {\n> 4 |   test.use({\n    |        ^\n  5 |     ignoreHTTPSErrors: true,\n  6 |   });\n  7 |   "
-                  },
-                  "errors": [
-                    {
-                      "location": {
-                        "file": "/home/coder/code/mine/nrghax/tests/quick-test.spec.ts",
-                        "column": 8,
-                        "line": 4
-                      },
-                      "message": "Error: Playwright Test did not expect test.use() to be called here.\nMost common reasons include:\n- You are calling test.use() in a configuration file.\n- You are calling test.use() in a file that is imported by the configuration file.\n- You have two different versions of @playwright/test. This usually happens\n  when one of the dependencies in your package.json depends on @playwright/test.\n\n  2 |\n  3 | test('capture login page', async ({ page }) => {\n> 4 |   test.use({\n    |        ^\n  5 |     ignoreHTTPSErrors: true,\n  6 |   });\n  7 |   \n    at /home/coder/code/mine/nrghax/tests/quick-test.spec.ts:4:8"
-                    }
-                  ],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2025-08-27T18:57:05.452Z",
+                  "timeout": 30000,
                   "annotations": [],
-                  "attachments": [
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
                     {
-                      "name": "screenshot",
-                      "contentType": "image/png",
-                      "path": "/home/coder/code/mine/nrghax/test-results/quick-test-capture-login-page-chromium/test-failed-1.png"
-                    },
-                    {
-                      "name": "video",
-                      "contentType": "video/webm",
-                      "path": "/home/coder/code/mine/nrghax/test-results/quick-test-capture-login-page-chromium/video.webm"
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7992,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Step 1: Navigating to admin page directly...\n"
+                        },
+                        {
+                          "text": "Current URL after navigation: https://localhost:3002/login?callbackUrl=https%3A%2F%2Flocalhost%3A3002%2Fadmin\n"
+                        },
+                        {
+                          "text": "ISSUE DETECTED: Redirected to login page - session not detected!\n"
+                        },
+                        {
+                          "text": "Attempting to login with test credentials...\n"
+                        },
+                        {
+                          "text": "Navigating to admin page after login...\n"
+                        },
+                        {
+                          "text": "Waiting for debug panel to appear...\n"
+                        },
+                        {
+                          "text": "\nScreenshots saved to ./screenshots/ directory\n"
+                        },
+                        {
+                          "text": "Review the screenshots to analyze session data discrepancies\n"
+                        }
+                      ],
+                      "stderr": [
+                        {
+                          "text": "Failed to find debug panel: page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=DEBUG PANEL') to be visible\u001b[22m\n\n    at \u001b[90m/home/coder/code/mine/nrghax/\u001b[39mtests/admin-debug-flow.spec.ts:72:18 {\n  name: \u001b[32m'TimeoutError'\u001b[39m,\n  [\u001b[32mSymbol(step)\u001b[39m]: {\n    location: {\n      file: \u001b[32m'/home/coder/code/mine/nrghax/tests/admin-debug-flow.spec.ts'\u001b[39m,\n      line: \u001b[33m72\u001b[39m,\n      column: \u001b[33m18\u001b[39m\n    },\n    category: \u001b[32m'pw:api'\u001b[39m,\n    title: \u001b[32m\"Wait for selector locator('text=DEBUG PANEL')\"\u001b[39m,\n    apiName: \u001b[32m'page.waitForSelector'\u001b[39m,\n    params: { selector: \u001b[32m'text=DEBUG PANEL'\u001b[39m, timeout: \u001b[33m5000\u001b[39m },\n    group: \u001b[90mundefined\u001b[39m,\n    stepId: \u001b[32m'pw:api@45'\u001b[39m,\n    boxedStack: \u001b[90mundefined\u001b[39m,\n    steps: [],\n    attachmentIndices: [],\n    info: TestStepInfoImpl {\n      annotations: [],\n      _testInfo: \u001b[36m[TestInfoImpl]\u001b[39m,\n      _stepId: \u001b[32m'pw:api@45'\u001b[39m,\n      _title: \u001b[32m\"Wait for selector locator('text=DEBUG PANEL')\"\u001b[39m,\n      _parentStep: \u001b[90mundefined\u001b[39m,\n      skip: \u001b[36m[Function (anonymous)]\u001b[39m\n    },\n    recoverFromStepError: \u001b[36m[AsyncFunction: recoverFromStepError]\u001b[39m,\n    complete: \u001b[36m[Function: complete]\u001b[39m,\n    endWallTime: \u001b[33m1756504263714\u001b[39m,\n    error: {\n      message: \u001b[32m'TimeoutError: page.waitForSelector: Timeout 5000ms exceeded.\\n'\u001b[39m +\n        \u001b[32m'Call log:\\n'\u001b[39m +\n        \u001b[32m\"\\x1B[2m  - waiting for locator('text=DEBUG PANEL') to be visible\\x1B[22m\\n\"\u001b[39m,\n      stack: \u001b[32m'TimeoutError: page.waitForSelector: Timeout 5000ms exceeded.\\n'\u001b[39m +\n        \u001b[32m'Call log:\\n'\u001b[39m +\n        \u001b[32m\"\\x1B[2m  - waiting for locator('text=DEBUG PANEL') to be visible\\x1B[22m\\n\"\u001b[39m +\n        \u001b[32m'\\n'\u001b[39m +\n        \u001b[32m'    at /home/coder/code/mine/nrghax/tests/admin-debug-flow.spec.ts:72:18'\u001b[39m,\n      cause: \u001b[90mundefined\u001b[39m\n    }\n  }\n}\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2025-08-29T21:50:55.806Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/coder/code/mine/nrghax/test-results/admin-debug-flow-Admin-Pag-749b3-l-information-on-admin-page-chromium/test-finished-1.png"
+                        }
+                      ]
                     }
                   ],
-                  "errorLocation": {
-                    "file": "/home/coder/code/mine/nrghax/tests/quick-test.spec.ts",
-                    "column": 8,
-                    "line": 4
-                  }
+                  "status": "expected"
                 }
               ],
-              "status": "unexpected"
+              "id": "2f42998ca2345961b7f5-d49e5411aaeb0d1a8118",
+              "file": "admin-debug-flow.spec.ts",
+              "line": 12,
+              "column": 7
             }
-          ],
-          "id": "1f46ff5a1b762fbf0870-af70dba12a770e65e31e",
-          "file": "quick-test.spec.ts",
-          "line": 3,
-          "column": 5
+          ]
         }
       ]
     }
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-08-27T18:57:01.512Z",
-    "duration": 4166.592,
-    "expected": 0,
+    "startTime": "2025-08-29T21:50:55.426Z",
+    "duration": 8499.716999999999,
+    "expected": 1,
     "skipped": 0,
-    "unexpected": 1,
+    "unexpected": 0,
     "flaky": 0
   }
 }

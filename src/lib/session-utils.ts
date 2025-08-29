@@ -5,6 +5,7 @@ import type { Session, User } from "next-auth"
 
 // Extended user type with profile information
 export interface ExtendedUser extends User {
+  role: 'user' | 'admin' | 'super_admin' // Required for admin functionality
   profile?: {
     id: string
     email: string
@@ -51,6 +52,7 @@ export async function getExtendedSession(): Promise<ExtendedSession | null> {
       ...session,
       user: {
         ...session.user,
+        role: (session.user as any).role || 'user', // Ensure role is present
         profile
       }
     }

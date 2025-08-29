@@ -1,0 +1,28 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/session-debug.spec.ts:4:7 › Session Debug Investigation › investigate client-server session mismatch
+[1A[2K[chromium] › tests/session-debug.spec.ts:4:7 › Session Debug Investigation › investigate client-server session mismatch
+📍 Step 1: Checking current session state
+
+[1A[2KCurrent URL after dashboard visit: https://localhost:3002/login?redirect=%2Fdashboard
+
+[1A[2K❌ Redirected to login - session not recognized on client
+
+[1A[2K📍 Step 2: Logging in with Google OAuth
+
+[1A[2K  1) [chromium] › tests/session-debug.spec.ts:4:7 › Session Debug Investigation › investigate client-server session mismatch 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/session-debug-Session-Debu-a3a6b-ent-server-session-mismatch-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/session-debug-Session-Debu-a3a6b-ent-server-session-mismatch-chromium/error-context.md
+
+
+[1A[2K  1 failed
+    [chromium] › tests/session-debug.spec.ts:4:7 › Session Debug Investigation › investigate client-server session mismatch 
+
+[36m  Serving HTML report at http://localhost:9323. Press Ctrl+C to quit.[39m

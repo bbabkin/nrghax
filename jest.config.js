@@ -14,6 +14,10 @@ const customJestConfig = {
     '!src/**/*.d.ts',
     '!src/**/*.stories.{js,jsx,ts,tsx}',
     '!src/types/**/*',
+    // Exclude test utilities from coverage
+    '!tests/**/*',
+    // Include admin-specific files in coverage
+    'src/**/admin/**/*.{js,jsx,ts,tsx}',
   ],
   coverageThreshold: {
     global: {
@@ -26,6 +30,9 @@ const customJestConfig = {
   testMatch: [
     '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
     '<rootDir>/src/**/*.(test|spec).{js,jsx,ts,tsx}',
+    // Include admin-specific unit tests
+    '<rootDir>/src/**/admin/**/__tests__/**/*.{js,jsx,ts,tsx}',
+    '<rootDir>/src/**/admin/**/*.(test|spec).{js,jsx,ts,tsx}',
   ],
   testPathIgnorePatterns: [
     '<rootDir>/.next/',
@@ -38,10 +45,22 @@ const customJestConfig = {
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@/tests/(.*)$': '<rootDir>/tests/$1',
     '^next-auth$': '<rootDir>/src/__mocks__/next-auth.js',
     '^next-auth/(.*)$': '<rootDir>/src/__mocks__/next-auth/$1.js',
+    // Add path mappings for test utilities
+    '^tests/fixtures/(.*)$': '<rootDir>/tests/fixtures/$1',
+    '^tests/utils/(.*)$': '<rootDir>/tests/utils/$1',
+    '^tests/mocks/(.*)$': '<rootDir>/tests/mocks/$1',
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+  // Global test setup and teardown
+  globalSetup: '<rootDir>/tests/setup/globalSetup.js',
+  globalTeardown: '<rootDir>/tests/setup/globalTeardown.js',
+  // Test environment configuration
+  testTimeout: 30000, // Increase timeout for integration tests
+  // Ensure tests run sequentially to avoid conflicts with shared mocked data
+  maxWorkers: 1,
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

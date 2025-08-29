@@ -255,7 +255,7 @@ describe('RegisterForm', () => {
       render(<RegisterForm />)
 
       const passwordInput = screen.getByLabelText(/^password/i)
-      await user.type(passwordInput, 'Test')
+      await user.type(passwordInput, 'abc')
       
       await waitFor(() => {
         expect(screen.getByText('Weak')).toBeInTheDocument()
@@ -268,20 +268,20 @@ describe('RegisterForm', () => {
 
       const passwordInput = screen.getByLabelText(/^password/i)
       
-      // Weak password
-      await user.type(passwordInput, 'test123')
+      // Weak password (only lowercase, short = 25 points)
+      await user.type(passwordInput, 'abc')
       await waitFor(() => {
         expect(screen.getByText('Weak')).toBeInTheDocument()
       })
 
-      // Medium password
+      // Medium password (lowercase + numbers + short = 50 points)
       await user.clear(passwordInput)
-      await user.type(passwordInput, 'Test123')
+      await user.type(passwordInput, 'test123')
       await waitFor(() => {
         expect(screen.getByText('Medium')).toBeInTheDocument()
       })
 
-      // Strong password
+      // Strong password (lowercase + uppercase + numbers + length >= 8 = 100 points)
       await user.clear(passwordInput)
       await user.type(passwordInput, 'Test123A')
       await waitFor(() => {
@@ -304,14 +304,14 @@ describe('RegisterForm', () => {
       render(<RegisterForm />)
 
       const passwordInput = screen.getByLabelText(/^password/i)
-      const toggleButton = screen.getByRole('button', { name: /show password/i })
+      const toggleButton = screen.getByRole('button', { name: /^show password$/i })
 
       expect(passwordInput).toHaveAttribute('type', 'password')
       
       await user.click(toggleButton)
       
       expect(passwordInput).toHaveAttribute('type', 'text')
-      expect(screen.getByRole('button', { name: /hide password/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /^hide password$/i })).toBeInTheDocument()
     })
 
     it('toggles confirm password visibility when eye icon is clicked', async () => {

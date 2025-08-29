@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
-import { Menu, X, User, LogOut, Home, Shield } from 'lucide-react'
+import { Menu, X, User, LogOut, Home, Shield, Users, Settings } from 'lucide-react'
 
 export function Navbar() {
   const { data: session, status } = useSession()
@@ -66,14 +66,26 @@ export function Navbar() {
               </Link>
               
               {session && (
-                <Link
-                  href="/dashboard"
-                  className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                  aria-label="Go to dashboard"
-                >
-                  <Shield className="inline w-4 h-4 mr-1" aria-hidden="true" />
-                  Dashboard
-                </Link>
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    aria-label="Go to dashboard"
+                  >
+                    <Shield className="inline w-4 h-4 mr-1" aria-hidden="true" />
+                    Dashboard
+                  </Link>
+                  {((session.user as any)?.role === 'admin' || (session.user as any)?.role === 'super_admin') && (
+                    <Link
+                      href="/admin"
+                      className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      aria-label="Admin dashboard"
+                    >
+                      <Users className="inline w-4 h-4 mr-1" aria-hidden="true" />
+                      Admin
+                    </Link>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -116,6 +128,14 @@ export function Navbar() {
                       Dashboard
                     </Link>
                   </DropdownMenuItem>
+                  {((session.user as any)?.role === 'admin' || (session.user as any)?.role === 'super_admin') && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin" className="cursor-pointer">
+                        <Users className="mr-2 h-4 w-4" aria-hidden="true" />
+                        Admin
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={handleLogout}
@@ -180,15 +200,28 @@ export function Navbar() {
           </Link>
           
           {session && (
-            <Link
-              href="/dashboard"
-              onClick={closeMobileMenu}
-              className="text-gray-900 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              role="menuitem"
-            >
-              <Shield className="inline w-4 h-4 mr-2" aria-hidden="true" />
-              Dashboard
-            </Link>
+            <>
+              <Link
+                href="/dashboard"
+                onClick={closeMobileMenu}
+                className="text-gray-900 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                role="menuitem"
+              >
+                <Shield className="inline w-4 h-4 mr-2" aria-hidden="true" />
+                Dashboard
+              </Link>
+              {((session.user as any)?.role === 'admin' || (session.user as any)?.role === 'super_admin') && (
+                <Link
+                  href="/admin"
+                  onClick={closeMobileMenu}
+                  className="text-gray-900 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  role="menuitem"
+                >
+                  <Users className="inline w-4 h-4 mr-2" aria-hidden="true" />
+                  Admin
+                </Link>
+              )}
+            </>
           )}
           
           <div className="border-t pt-2">

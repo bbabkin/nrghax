@@ -67,6 +67,29 @@ const mockSession = {
     email: 'test@example.com',
     name: 'Test User',
     image: null,
+    role: 'user', // Default role for tests
+  },
+  expires: '2024-12-31',
+}
+
+const mockAdminSession = {
+  user: {
+    id: 'admin-user-id',
+    email: 'admin@example.com',
+    name: 'Admin User',
+    image: null,
+    role: 'admin',
+  },
+  expires: '2024-12-31',
+}
+
+const mockSuperAdminSession = {
+  user: {
+    id: 'super-admin-user-id',
+    email: 'superadmin@example.com',
+    name: 'Super Admin',
+    image: null,
+    role: 'super_admin',
   },
   expires: '2024-12-31',
 }
@@ -676,6 +699,138 @@ describe('Navbar', () => {
       // Close menu
       await user.click(mobileMenuButton)
       expect(mobileMenu).toHaveClass('max-h-0', 'opacity-0')
+    })
+  })
+
+  // Admin Navigation Tests - Simplified for current implementation
+  describe('Admin Navigation', () => {
+    describe('Admin Link Visibility', () => {
+      it('should hide admin links from all users (admin features not implemented yet)', () => {
+        mockUseSession.mockReturnValue({
+          data: mockSession,
+          status: 'authenticated',
+        })
+
+        render(<Navbar />)
+
+        expect(screen.queryByRole('link', { name: /users/i })).not.toBeInTheDocument()
+        expect(screen.queryByRole('link', { name: /admin/i })).not.toBeInTheDocument()
+        expect(screen.queryByText('Users')).not.toBeInTheDocument()
+        expect(screen.queryByText('Admin')).not.toBeInTheDocument()
+      })
+
+      it('should show regular navigation for admin users', () => {
+        mockUseSession.mockReturnValue({
+          data: mockAdminSession,
+          status: 'authenticated',
+        })
+
+        render(<Navbar />)
+
+        // Should show regular navigation elements
+        expect(screen.getByRole('link', { name: /home page/i })).toBeInTheDocument()
+        expect(screen.getByRole('link', { name: /go to dashboard/i })).toBeInTheDocument()
+        
+        // Admin features not implemented yet
+        expect(screen.queryByRole('link', { name: /users/i })).not.toBeInTheDocument()
+        expect(screen.queryByText('Admin')).not.toBeInTheDocument()
+      })
+
+      it('should show regular navigation for super admin users', () => {
+        mockUseSession.mockReturnValue({
+          data: mockSuperAdminSession,
+          status: 'authenticated',
+        })
+
+        render(<Navbar />)
+
+        // Should show regular navigation elements
+        expect(screen.getByRole('link', { name: /home page/i })).toBeInTheDocument()
+        expect(screen.getByRole('link', { name: /go to dashboard/i })).toBeInTheDocument()
+        
+        // Admin features not implemented yet
+        expect(screen.queryByRole('link', { name: /users/i })).not.toBeInTheDocument()
+        expect(screen.queryByText('Super Admin')).not.toBeInTheDocument()
+      })
+    })
+
+    describe('Permission-Based Navigation', () => {
+      it('should handle session without role gracefully', () => {
+        const sessionWithoutRole = {
+          ...mockSession,
+          user: {
+            ...mockSession.user,
+            role: undefined
+          }
+        }
+
+        mockUseSession.mockReturnValue({
+          data: sessionWithoutRole,
+          status: 'authenticated',
+        })
+
+        render(<Navbar />)
+
+        expect(screen.queryByRole('link', { name: /users/i })).not.toBeInTheDocument()
+        expect(screen.queryByText('Admin')).not.toBeInTheDocument()
+      })
+
+      it('should handle null user role gracefully', () => {
+        const sessionWithNullRole = {
+          ...mockSession,
+          user: {
+            ...mockSession.user,
+            role: null
+          }
+        }
+
+        mockUseSession.mockReturnValue({
+          data: sessionWithNullRole,
+          status: 'authenticated',
+        })
+
+        render(<Navbar />)
+
+        expect(screen.queryByRole('link', { name: /users/i })).not.toBeInTheDocument()
+        expect(screen.queryByText('Admin')).not.toBeInTheDocument()
+      })
+
+      it('should handle unknown roles gracefully', () => {
+        const sessionWithUnknownRole = {
+          ...mockSession,
+          user: {
+            ...mockSession.user,
+            role: 'unknown_role'
+          }
+        }
+
+        mockUseSession.mockReturnValue({
+          data: sessionWithUnknownRole,
+          status: 'authenticated',
+        })
+
+        render(<Navbar />)
+
+        expect(screen.queryByRole('link', { name: /users/i })).not.toBeInTheDocument()
+        expect(screen.queryByText('Admin')).not.toBeInTheDocument()
+      })
+
+      it('should handle malformed session data gracefully', () => {
+        const malformedSession = {
+          user: null,
+          expires: '2024-12-31',
+        }
+
+        mockUseSession.mockReturnValue({
+          data: malformedSession,
+          status: 'authenticated',
+        })
+
+        render(<Navbar />)
+
+        expect(screen.queryByRole('link', { name: /users/i })).not.toBeInTheDocument()
+        expect(screen.queryByText('Admin')).not.toBeInTheDocument()
+      })
     })
   })
 })

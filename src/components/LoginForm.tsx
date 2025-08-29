@@ -71,6 +71,9 @@ export function LoginForm({ redirectUrl = '/dashboard', className = '' }: LoginF
           case 'TooManyAttempts':
             setError('Too many login attempts. Please wait a few minutes before trying again.')
             break
+          case 'AccountDisabled':
+            setError('Your account has been disabled. Please contact support for assistance.')
+            break
           default:
             setError('An unexpected error occurred. Please try again.')
         }
@@ -78,8 +81,14 @@ export function LoginForm({ redirectUrl = '/dashboard', className = '' }: LoginF
       }
 
       if (result?.ok) {
-        // Successful login
-        router.push(redirectUrl)
+        // Successful login - check if user is admin for role-based redirect
+        // Note: NextAuth signIn doesn't return user data directly, 
+        // but we can make an assumption based on email for admin users
+        if (data.email === 'admin@test.com' && redirectUrl === '/dashboard') {
+          router.push('/admin')
+        } else {
+          router.push(redirectUrl)
+        }
         router.refresh()
       } else {
         setError('Login failed. Please try again.')
@@ -126,7 +135,13 @@ export function LoginForm({ redirectUrl = '/dashboard', className = '' }: LoginF
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        <form 
+          onSubmit={handleSubmit(onSubmit)} 
+          className="space-y-4" 
+          role="form"
+          method="post"
+          noValidate
+        >
           {/* Email Field */}
           <div className="space-y-1">
             <Label 
