@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { auth } from '@/lib/auth'
+import { createSupabaseMiddleware } from '@/lib/supabase/middleware'
 
 // Define protected routes that require authentication
 const protectedRoutes = [
@@ -8,6 +8,12 @@ const protectedRoutes = [
   '/profile',
   '/settings',
   '/api/user',
+]
+
+// Define admin routes
+const adminRoutes = [
+  '/admin',
+  '/api/admin',
 ]
 
 // Define auth routes that should redirect authenticated users
@@ -21,55 +27,150 @@ const authRoutes = [
 const publicApiRoutes = [
   '/api/auth',
   '/api/health',
+  '/_next',
+  '/_vercel',
 ]
 
-export default auth((req) => {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
-  const isLoggedIn = !!req.auth
   
-  console.log(`Middleware: ${pathname}, Authenticated: ${isLoggedIn}`)
-  
-  // Check if it's a protected route
-  const isProtectedRoute = protectedRoutes.some(route => 
-    pathname.startsWith(route)
-  )
-  
-  // Check if it's an auth route
-  const isAuthRoute = authRoutes.some(route => 
-    pathname.startsWith(route)
-  )
-  
+  // Skip middleware for static files and public paths
+  if (
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/_vercel/') ||
+    pathname.startsWith('/favicon') ||
+    pathname.endsWith('.ico') ||
+    pathname.endsWith('.png') ||
+    pathname.endsWith('.jpg') ||
+    pathname.endsWith('.jpeg') ||
+    pathname.endsWith('.gif') ||
+    pathname.endsWith('.svg') ||
+    pathname.endsWith('.webp')
+  ) {
+    return NextResponse.next()
+  }
+
   // Check if it's a public API route
   const isPublicApiRoute = publicApiRoutes.some(route => 
     pathname.startsWith(route)
   )
   
-  // Allow public API routes
+  // Allow public API routes immediately
   if (isPublicApiRoute) {
     return NextResponse.next()
   }
-  
-  // If user is trying to access auth pages while logged in, redirect to dashboard
-  if (isAuthRoute && isLoggedIn) {
-    return NextResponse.redirect(new URL('/dashboard', req.url))
-  }
-  
-  // If user is trying to access protected routes while not logged in, redirect to login
-  if (isProtectedRoute && !isLoggedIn) {
-    const redirectUrl = encodeURIComponent(pathname)
-    return NextResponse.redirect(new URL(`/login?redirect=${redirectUrl}`, req.url))
-  }
-  
-  // For protected API routes, return 401 if not authenticated
-  if (pathname.startsWith('/api/') && !isPublicApiRoute && !isLoggedIn) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
+
+  try {
+    // Create Supabase middleware
+    const supabase = createSupabaseMiddleware(req)
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    const isLoggedIn = !error && !!user
+    
+    console.log(`Middleware: ${pathname}, Authenticated: ${isLoggedIn}, User: ${user?.email || 'none'}`)
+    
+    // Check route types
+    const isProtectedRoute = protectedRoutes.some(route => 
+      pathname.startsWith(route)
     )
+    
+    const isAdminRoute = adminRoutes.some(route => 
+      pathname.startsWith(route)
+    )
+    
+    const isAuthRoute = authRoutes.some(route => 
+      pathname.startsWith(route)
+    )
+    
+    // Handle admin routes separately with role checking
+    if (isAdminRoute && isLoggedIn && user) {
+      try {
+        // Get user profile to check role
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+        
+        const userRole = (profile as any)?.role || 'user'
+        const isAdmin = userRole === 'admin' || userRole === 'super_admin'
+        
+        if (!isAdmin) {
+          // Not an admin - redirect to access denied or return 403 for API
+          if (pathname.startsWith('/api/admin')) {
+            return NextResponse.json(
+              { error: 'Forbidden', message: 'Admin privileges required' },
+              { status: 403 }
+            )
+          } else {
+            const accessDeniedUrl = new URL('/access-denied', req.url)
+            accessDeniedUrl.searchParams.set('reason', 'admin_required')
+            return NextResponse.redirect(accessDeniedUrl)
+          }
+        }
+        // Admin user - allow access
+        const response = NextResponse.next()
+        response.headers.set('x-user-role', userRole)
+        return response
+      } catch (roleError) {
+        console.error('Error checking user role:', roleError)
+        return NextResponse.redirect(new URL('/login', req.url))
+      }
+    }
+    
+    // If user is trying to access auth pages while logged in, redirect to dashboard
+    if (isAuthRoute && isLoggedIn) {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
+    
+    // If user is trying to access protected routes while not logged in, redirect to login
+    if ((isProtectedRoute || isAdminRoute) && !isLoggedIn) {
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json(
+          { error: 'Unauthorized' },
+          { status: 401 }
+        )
+      } else {
+        const loginUrl = new URL('/login', req.url)
+        loginUrl.searchParams.set('redirect', pathname)
+        return NextResponse.redirect(loginUrl)
+      }
+    }
+    
+    // For other API routes that require auth, return 401 if not authenticated
+    if (pathname.startsWith('/api/') && !isLoggedIn) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+    
+    return NextResponse.next()
+    
+  } catch (error) {
+    console.error('Middleware error:', error)
+    
+    // On auth error, redirect to login for protected routes
+    const isProtectedRoute = protectedRoutes.some(route => 
+      pathname.startsWith(route)
+    ) || adminRoutes.some(route => 
+      pathname.startsWith(route)
+    )
+    
+    if (isProtectedRoute) {
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json(
+          { error: 'Authentication failed' },
+          { status: 401 }
+        )
+      } else {
+        return NextResponse.redirect(new URL('/login', req.url))
+      }
+    }
+    
+    return NextResponse.next()
   }
-  
-  return NextResponse.next()
-})
+}
 
 // Configure which routes the middleware should run on
 export const config = {

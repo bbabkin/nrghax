@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       }
       
       // Check rate limit by email as well
-      const emailIdentifier = getRequestIdentifier(request, result.data.email)
+      const emailIdentifier = getRequestIdentifier(request, result.data.email as string)
       const emailRateLimitResult = checkRateLimit(emailIdentifier, 'PASSWORD_RESET')
       if (!emailRateLimitResult.allowed) {
         return NextResponse.json(
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       }
       
       // Generate reset token
-      const resetResult = await generatePasswordResetToken(result.data.email)
+      const resetResult = await generatePasswordResetToken(result.data.email as string)
       
       return NextResponse.json(resetResult, { 
         status: resetResult.success ? 200 : 400 

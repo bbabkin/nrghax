@@ -1,6 +1,5 @@
-import { Session } from 'next-auth';
 import { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 // Permission types
 export enum Permission {
@@ -245,35 +244,40 @@ export function validateBulkOperation(
 }
 
 /**
- * Check permissions from session object
+ * Check permissions from user profile
  */
-export function checkSessionPermission(
-  session: Session | null,
+export function checkUserPermission(
+  userProfile: { role: string } | null,
   permission: Permission
 ): boolean {
-  if (!session?.user) return false;
+  if (!userProfile) return false;
   
-  const userRole = (session.user as any).role || 'user';
-  return hasPermission(userRole, permission);
+  return hasPermission(userProfile.role, permission);
 }
 
 /**
- * Check permissions from request token
+ * Check permissions from request using Supabase auth
  */
 export async function checkRequestPermission(
   request: NextRequest,
   permission: Permission
 ): Promise<boolean> {
   try {
-    const token = await getToken({ 
-      req: request, 
-      secret: process.env.NEXTAUTH_SECRET! 
-    });
+    const supabase = createSupabaseServerClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
 
-    if (!token) return false;
+    if (error || !user) return false;
 
-    const userRole = token.role as string || 'user';
-    return hasPermission(userRole, permission);
+    // Get user profile
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile) return false;
+
+    return hasPermission((profile as any).role, permission);
   } catch (error) {
     console.error('Error checking request permission:', error);
     return false;

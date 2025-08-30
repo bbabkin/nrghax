@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { useSession } from 'next-auth/react'
+import { useUser } from '@/hooks/useUser'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -22,9 +22,9 @@ import {
 } from 'lucide-react'
 
 function DashboardContent() {
-  const { data: session, status } = useSession()
+  const { user, loading } = useUser()
 
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div className="animate-pulse space-y-6">
         <div className="h-8 bg-gray-200 rounded w-1/3"></div>
@@ -40,7 +40,6 @@ function DashboardContent() {
     )
   }
 
-  const user = session?.user
   const firstName = user?.name?.split(' ')[0] || 'User'
   const joinDate = new Date().toLocaleDateString('en-US', { 
     year: 'numeric', 
@@ -65,7 +64,7 @@ function DashboardContent() {
     },
     {
       title: 'Login Method',
-      value: user?.image ? 'OAuth' : 'Email',
+      value: user?.avatar_url ? 'OAuth' : 'Email',
       icon: Shield,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50'
@@ -141,10 +140,10 @@ function DashboardContent() {
             </p>
           </div>
           
-          {user?.image && (
+          {user?.avatar_url && (
             <div className="mt-4 md:mt-0">
               <Image
-                src={user.image}
+                src={user.avatar_url}
                 alt={`${firstName}&apos;s avatar`}
                 width={64}
                 height={64}

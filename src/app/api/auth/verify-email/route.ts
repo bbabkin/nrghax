@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       }
       
       // Additional rate limit by email
-      const emailIdentifier = getRequestIdentifier(request, result.data.email)
+      const emailIdentifier = getRequestIdentifier(request, result.data.email as string)
       const emailRateLimitResult = checkRateLimit(emailIdentifier, 'EMAIL_VERIFICATION')
       if (!emailRateLimitResult.allowed) {
         return NextResponse.json(
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
       }
       
       // Resend verification email
-      const resendResult = await resendVerificationEmail(result.data.email)
+      const resendResult = await resendVerificationEmail(result.data.email as string)
       
       return NextResponse.json(resendResult, { 
         status: resendResult.success ? 200 : 400 

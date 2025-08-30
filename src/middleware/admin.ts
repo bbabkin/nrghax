@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { createAuditLog, AuditAction, AuditLogEntry } from '@/lib/admin/audit';
 
 // Admin-only routes that require admin privileges
@@ -23,14 +23,12 @@ export async function adminMiddleware(request: NextRequest) {
   }
 
   try {
-    // Get the user token
-    const token = await getToken({ 
-      req: request, 
-      secret: process.env.NEXTAUTH_SECRET! 
-    });
+    // Get the user from Supabase
+    const supabase = createSupabaseServerClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
 
-    // If no token, redirect to login
-    if (!token) {
+    // If no user, redirect to login
+    if (error || !user) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('callbackUrl', request.url);
       
@@ -51,15 +49,21 @@ export async function adminMiddleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    // Check if user has admin role
-    const userRole = token.role as string;
+    // Get user profile to check role
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    const userRole = profile?.role || 'user';
     const isAdmin = userRole === 'admin' || userRole === 'super_admin';
 
     if (!isAdmin) {
       // Log unauthorized access attempt
       await createAuditLog({
-        userId: token.sub as string,
-        userEmail: token.email as string,
+        userId: user.id,
+        userEmail: user.email || 'unknown',
         action: AuditAction.UNAUTHORIZED_ACCESS,
         details: {
           attemptedResource: pathname,
@@ -91,8 +95,8 @@ export async function adminMiddleware(request: NextRequest) {
     // User is authenticated and has admin role, allow access
     // Log successful admin access for audit trail
     await createAuditLog({
-      userId: token.sub as string,
-      userEmail: token.email as string,
+      userId: user.id,
+      userEmail: user.email || 'unknown',
       action: AuditAction.ADMIN_LOGIN,
       details: {
         accessedResource: pathname,
@@ -105,8 +109,8 @@ export async function adminMiddleware(request: NextRequest) {
 
     // Add user info to headers for downstream use
     const response = NextResponse.next();
-    response.headers.set('x-admin-id', token.sub as string);
-    response.headers.set('x-admin-email', token.email as string);
+    response.headers.set('x-admin-id', user.id);
+    response.headers.set('x-admin-email', user.email || 'unknown');
     response.headers.set('x-admin-role', userRole);
 
     return response;
@@ -161,19 +165,24 @@ export async function checkAdminPermission(request: NextRequest): Promise<{
   error?: string;
 }> {
   try {
-    const token = await getToken({ 
-      req: request, 
-      secret: process.env.NEXTAUTH_SECRET! 
-    });
+    const supabase = createSupabaseServerClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
 
-    if (!token) {
+    if (error || !user) {
       return {
         isAuthorized: false,
         error: 'No authentication token'
       };
     }
 
-    const userRole = token.role as string;
+    // Get user profile to check role
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    const userRole = profile?.role || 'user';
     const isAdmin = userRole === 'admin' || userRole === 'super_admin';
 
     if (!isAdmin) {
@@ -186,8 +195,8 @@ export async function checkAdminPermission(request: NextRequest): Promise<{
     return {
       isAuthorized: true,
       user: {
-        id: token.sub as string,
-        email: token.email as string,
+        id: user.id,
+        email: user.email || 'unknown',
         role: userRole
       }
     };

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useSession, signOut } from 'next-auth/react'
+import { useAuth } from '@/components/auth/AuthProvider'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from './ui/button'
@@ -33,10 +33,10 @@ export function UserMenu({
   align = 'end', 
   sideOffset = 4 
 }: UserMenuProps) {
-  const { data: session, status } = useSession()
+  const { user, loading, signOut: authSignOut } = useAuth()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div className={`animate-pulse ${className}`}>
         <div className="h-9 w-24 bg-gray-200 rounded-md"></div>
@@ -44,7 +44,7 @@ export function UserMenu({
     )
   }
 
-  if (!session) {
+  if (!user) {
     return (
       <div className={`flex items-center space-x-2 ${className}`}>
         <Button variant="ghost" asChild>
@@ -60,7 +60,8 @@ export function UserMenu({
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true)
-      await signOut({ callbackUrl: '/' })
+      await authSignOut()
+      window.location.href = '/'
     } catch (error) {
       console.error('Logout failed:', error)
     } finally {
@@ -68,8 +69,8 @@ export function UserMenu({
     }
   }
 
-  const userDisplayName = session.user?.name || session.user?.email || 'User'
-  const userEmail = session.user?.email || ''
+  const userDisplayName = user?.user_metadata?.name || user?.email || 'User'
+  const userEmail = user?.email || ''
   
   // Get initials for avatar fallback
   const getInitials = (name: string) => {
@@ -91,9 +92,9 @@ export function UserMenu({
             aria-label="User menu"
           >
             {/* Avatar */}
-            {session.user?.image ? (
+            {user?.user_metadata?.avatar_url ? (
               <Image
-                src={session.user.image}
+                src={user.user_metadata?.avatar_url}
                 alt={`${userDisplayName}&apos;s avatar`}
                 width={24}
                 height={24}
@@ -126,9 +127,9 @@ export function UserMenu({
           {/* User Info Header */}
           <DropdownMenuLabel>
             <div className="flex items-center space-x-3 py-1">
-              {session.user?.image ? (
+              {user?.user_metadata?.avatar_url ? (
                 <Image
-                  src={session.user.image}
+                  src={user.user_metadata?.avatar_url}
                   alt={`${userDisplayName}&apos;s avatar`}
                   width={40}
                   height={40}
@@ -220,10 +221,10 @@ export function UserMenuMobile({
   className?: string
   onMenuItemClick?: () => void
 }) {
-  const { data: session, status } = useSession()
+  const { user, loading, signOut: authSignOut } = useAuth()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div className={`animate-pulse px-3 py-2 ${className}`}>
         <div className="h-8 w-20 bg-gray-200 rounded"></div>
@@ -231,7 +232,7 @@ export function UserMenuMobile({
     )
   }
 
-  if (!session) {
+  if (!user) {
     return (
       <div className={`space-y-1 ${className}`}>
         <Link
@@ -258,7 +259,8 @@ export function UserMenuMobile({
     try {
       setIsLoggingOut(true)
       onMenuItemClick?.()
-      await signOut({ callbackUrl: '/' })
+      await authSignOut()
+      window.location.href = '/'
     } catch (error) {
       console.error('Logout failed:', error)
     } finally {
@@ -266,17 +268,17 @@ export function UserMenuMobile({
     }
   }
 
-  const userDisplayName = session.user?.name || session.user?.email || 'User'
-  const userEmail = session.user?.email || ''
+  const userDisplayName = user?.user_metadata?.name || user?.email || 'User'
+  const userEmail = user?.email || ''
 
   return (
     <div className={`space-y-1 ${className}`}>
       {/* User Info */}
       <div className="px-3 py-2 border-b border-gray-200">
         <div className="flex items-center space-x-3">
-          {session.user?.image ? (
+          {user?.user_metadata?.avatar_url ? (
             <Image
-              src={session.user.image}
+              src={user.user_metadata?.avatar_url}
               alt={`${userDisplayName}&apos;s avatar`}
               width={32}
               height={32}

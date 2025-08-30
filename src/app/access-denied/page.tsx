@@ -74,9 +74,20 @@ function AccessDeniedContent() {
         </div>
 
         {/* Help */}
-        <div className="mt-8 text-xs text-gray-400">
-          <p>Error Code: 403 - Forbidden</p>
-          <p>Timestamp: {new Date().toISOString()}</p>
+        <div className="mt-8 pt-6 border-t border-gray-100">
+          <p className="text-sm text-gray-600 mb-3">
+            Need help? Contact our support team:
+          </p>
+          <a 
+            href="mailto:support@example.com" 
+            className="text-blue-600 hover:text-blue-500 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+          >
+            support@example.com
+          </a>
+          <div className="mt-4 text-xs text-gray-400 space-y-1">
+            <p>Error Code: 403 - Forbidden</p>
+            <p>Timestamp: {new Date().toISOString()}</p>
+          </div>
         </div>
       </div>
     </div>

@@ -48,7 +48,7 @@ const registrationHandler = async (request: NextRequest) => {
     
     // Reset rate limit on successful registration
     if (registrationResult.success) {
-      const identifier = getRequestIdentifier(request, result.data.email)
+      const identifier = getRequestIdentifier(request, result.data.email as string)
       resetRateLimit(identifier, 'REGISTRATION')
     }
     

@@ -1,10 +1,11 @@
--- Seed data for local development and testing
--- This file is automatically run after database reset
+-- Seed data for Supabase Auth testing with role-based access control
+-- Test users with different roles for comprehensive testing
 
--- Insert test users for development
--- NOTE: These are for local development only and should never be used in production
+-- Clear existing data first
+TRUNCATE TABLE public.user_profiles CASCADE;
+TRUNCATE TABLE auth.users CASCADE;
 
--- Test user 1: Email/password user
+-- Test user 1: Regular user (role: user)
 INSERT INTO auth.users (
     instance_id,
     id,
@@ -25,16 +26,16 @@ INSERT INTO auth.users (
     recovery_token
 ) VALUES (
     '00000000-0000-0000-0000-000000000000',
-    '11111111-1111-1111-1111-111111111111',
+    'a0000000-0000-0000-0000-000000000001',
     'authenticated',
     'authenticated',
-    'test@example.com',
+    'regular@example.com',
     crypt('password123', gen_salt('bf')),
     NOW(),
     NOW(),
     NOW(),
     '{"provider": "email", "providers": ["email"]}',
-    '{"name": "Test User"}',
+    '{"name": "Regular User"}',
     NOW(),
     NOW(),
     '',
@@ -43,7 +44,7 @@ INSERT INTO auth.users (
     ''
 );
 
--- Test user 2: Another email/password user
+-- Test user 2: Admin user (role: admin)
 INSERT INTO auth.users (
     instance_id,
     id,
@@ -64,16 +65,16 @@ INSERT INTO auth.users (
     recovery_token
 ) VALUES (
     '00000000-0000-0000-0000-000000000000',
-    '22222222-2222-2222-2222-222222222222',
+    'b0000000-0000-0000-0000-000000000002',
     'authenticated',
     'authenticated',
-    'john.doe@example.com',
-    crypt('securepass456', gen_salt('bf')),
+    'admin@example.com',
+    crypt('password123', gen_salt('bf')),
     NOW(),
     NOW(),
     NOW(),
     '{"provider": "email", "providers": ["email"]}',
-    '{"name": "John Doe", "full_name": "John Doe"}',
+    '{"name": "Admin User"}',
     NOW(),
     NOW(),
     '',
@@ -82,28 +83,77 @@ INSERT INTO auth.users (
     ''
 );
 
--- Insert corresponding user profiles
--- Note: These will be automatically created by the trigger, but we can insert them manually for testing
+-- Test user 3: Super admin user (role: super_admin)
+INSERT INTO auth.users (
+    instance_id,
+    id,
+    aud,
+    role,
+    email,
+    encrypted_password,
+    email_confirmed_at,
+    recovery_sent_at,
+    last_sign_in_at,
+    raw_app_meta_data,
+    raw_user_meta_data,
+    created_at,
+    updated_at,
+    confirmation_token,
+    email_change,
+    email_change_token_new,
+    recovery_token
+) VALUES (
+    '00000000-0000-0000-0000-000000000000',
+    'c0000000-0000-0000-0000-000000000003',
+    'authenticated',
+    'authenticated',
+    'super_admin@example.com',
+    crypt('password123', gen_salt('bf')),
+    NOW(),
+    NOW(),
+    NOW(),
+    '{"provider": "email", "providers": ["email"]}',
+    '{"name": "Super Admin User"}',
+    NOW(),
+    NOW(),
+    '',
+    '',
+    '',
+    ''
+);
 
-INSERT INTO public.user_profiles (id, email, name, created_at, updated_at)
+-- Insert corresponding user profiles with roles
+-- The trigger will create basic profiles, then we update the roles
+INSERT INTO public.user_profiles (id, email, name, role, created_at, updated_at)
 VALUES 
     (
-        '11111111-1111-1111-1111-111111111111',
-        'test@example.com',
-        'Test User',
+        'a0000000-0000-0000-0000-000000000001',
+        'regular@example.com',
+        'Regular User',
+        'user',
         NOW(),
         NOW()
     ),
     (
-        '22222222-2222-2222-2222-222222222222',
-        'john.doe@example.com',
-        'John Doe',
+        'b0000000-0000-0000-0000-000000000002',
+        'admin@example.com',
+        'Admin User',
+        'admin',
+        NOW(),
+        NOW()
+    ),
+    (
+        'c0000000-0000-0000-0000-000000000003',
+        'super_admin@example.com',
+        'Super Admin User',
+        'super_admin',
         NOW(),
         NOW()
     )
 ON CONFLICT (id) DO UPDATE SET
     email = EXCLUDED.email,
     name = EXCLUDED.name,
+    role = EXCLUDED.role,
     updated_at = NOW();
 
 -- Insert test identities for auth.users
@@ -117,25 +167,35 @@ INSERT INTO auth.identities (
     updated_at
 ) VALUES 
     (
-        'test@example.com',
-        '11111111-1111-1111-1111-111111111111',
-        '{"sub": "11111111-1111-1111-1111-111111111111", "email": "test@example.com"}',
+        'regular@example.com',
+        'a0000000-0000-0000-0000-000000000001',
+        '{"sub": "a0000000-0000-0000-0000-000000000001", "email": "regular@example.com"}',
         'email',
         NOW(),
         NOW(),
         NOW()
     ),
     (
-        'john.doe@example.com',
-        '22222222-2222-2222-2222-222222222222',
-        '{"sub": "22222222-2222-2222-2222-222222222222", "email": "john.doe@example.com"}',
+        'admin@example.com',
+        'b0000000-0000-0000-0000-000000000002',
+        '{"sub": "b0000000-0000-0000-0000-000000000002", "email": "admin@example.com"}',
+        'email',
+        NOW(),
+        NOW(),
+        NOW()
+    ),
+    (
+        'super_admin@example.com',
+        'c0000000-0000-0000-0000-000000000003',
+        '{"sub": "c0000000-0000-0000-0000-000000000003", "email": "super_admin@example.com"}',
         'email',
         NOW(),
         NOW(),
         NOW()
     );
 
--- Seed data completed successfully for local development
--- Users can now log in with:
--- Email: test@example.com, Password: password123
--- Email: john.doe@example.com, Password: securepass456
+-- Seed data completed successfully for role-based testing
+-- Test users can now log in with:
+-- Email: regular@example.com, Password: password123 (role: user)
+-- Email: admin@example.com, Password: password123 (role: admin)
+-- Email: super_admin@example.com, Password: password123 (role: super_admin)

@@ -2,7 +2,7 @@
 
 import React, { ReactNode, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { useUser } from '@/hooks/useUser'
 import { Loader2, Shield, AlertCircle } from 'lucide-react'
 import { Button } from './ui/button'
 import Link from 'next/link'
@@ -24,14 +24,14 @@ export function ProtectedRoute({
   allowedRoles,
   className = '',
 }: ProtectedRouteProps) {
-  const { data: session, status } = useSession()
+  const { user, loading } = useUser()
   const router = useRouter()
   const [isRedirecting, setIsRedirecting] = useState(false)
 
   useEffect(() => {
-    if (status === 'loading') return
+    if (loading) return
 
-    if (!session) {
+    if (!user) {
       setIsRedirecting(true)
       // Add current URL as redirect parameter
       const currentUrl = window.location.pathname + window.location.search
@@ -40,21 +40,19 @@ export function ProtectedRoute({
       return
     }
 
-    // Email verification check removed - NextAuth session doesn't include emailVerified
-
     // Check role-based access
     if (allowedRoles && allowedRoles.length > 0) {
-      const userRole = (session.user as any)?.role
+      const userRole = user?.role
       if (!userRole || !allowedRoles.includes(userRole)) {
         setIsRedirecting(true)
-        router.push('/unauthorized')
+        router.push('/access-denied?reason=insufficient_permissions')
         return
       }
     }
-  }, [session, status, router, redirectTo, requireVerified, allowedRoles])
+  }, [user, loading, router, redirectTo, requireVerified, allowedRoles])
 
   // Loading state
-  if (status === 'loading' || isRedirecting) {
+  if (loading || isRedirecting) {
     if (fallback) {
       return <>{fallback}</>
     }
@@ -82,7 +80,7 @@ export function ProtectedRoute({
   }
 
   // Not authenticated
-  if (!session) {
+  if (!user) {
     if (fallback) {
       return <>{fallback}</>
     }
@@ -119,7 +117,7 @@ export function ProtectedRoute({
 
   // Role-based access control
   if (allowedRoles && allowedRoles.length > 0) {
-    const userRole = (session.user as any)?.role
+    const userRole = user?.role
     if (!userRole || !allowedRoles.includes(userRole)) {
       if (fallback) {
         return <>{fallback}</>
@@ -178,29 +176,27 @@ export function withAuth<P extends object>(
 
 // Hook for getting protected route status
 export function useProtectedRoute(options: Omit<ProtectedRouteProps, 'children'> = {}) {
-  const { data: session, status } = useSession()
+  const { user, loading } = useUser()
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (status === 'loading') {
+    if (loading) {
       setIsLoading(true)
       return
     }
 
     setIsLoading(false)
 
-    if (!session) {
+    if (!user) {
       setIsAuthorized(false)
       setError('Authentication required')
       return
     }
 
-    // Email verification check removed - NextAuth session doesn't include emailVerified
-
     if (options.allowedRoles && options.allowedRoles.length > 0) {
-      const userRole = (session.user as any)?.role
+      const userRole = user?.role
       if (!userRole || !options.allowedRoles.includes(userRole)) {
         setIsAuthorized(false)
         setError('Insufficient permissions')
@@ -210,12 +206,12 @@ export function useProtectedRoute(options: Omit<ProtectedRouteProps, 'children'>
 
     setIsAuthorized(true)
     setError(null)
-  }, [session, status, options.requireVerified, options.allowedRoles])
+  }, [user, loading, options.requireVerified, options.allowedRoles])
 
   return {
     isAuthorized,
     isLoading,
     error,
-    session,
+    user,
   }
 }

@@ -44,7 +44,7 @@ export async function registerUser(data: z.infer<typeof registerSchema>) {
     const { data: existingUser, error: checkError } = await supabaseAdmin
       .from('user_profiles')
       .select('id')
-      .eq('email', validatedData.email.toLowerCase())
+      .eq('email', (validatedData.email as string).toLowerCase())
       .single()
     
     if (existingUser) {
@@ -73,8 +73,8 @@ export async function registerUser(data: z.infer<typeof registerSchema>) {
       .from('user_profiles')
       .insert({
         id: userId,
-        email: validatedData.email.toLowerCase(),
-        name: validatedData.name || null,
+        email: (validatedData.email as string).toLowerCase(),
+        name: (validatedData.name as string) || null,
         password_hash: hashedPassword,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),

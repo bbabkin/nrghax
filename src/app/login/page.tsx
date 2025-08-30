@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { LoginForm } from '@/components/LoginForm'
+import { AuthForm } from '@/components/auth/AuthForm'
 import { AlertCircle, Loader2 } from 'lucide-react'
 
 interface LoginPageProps {
@@ -68,7 +68,12 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
             </div>
           }
         >
-          <LoginForm redirectUrl={redirectUrl} />
+          <AuthForm 
+            view="sign_in" 
+            redirectTo={redirectUrl}
+            showLinks={true}
+            providers={['google', 'discord']}
+          />
         </Suspense>
         
         {/* Help Text */}

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { signIn } from 'next-auth/react'
+import { useAuth } from '@/components/auth/AuthProvider'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -32,6 +32,7 @@ interface LoginFormProps {
 
 export function LoginForm({ redirectUrl = '/dashboard', className = '' }: LoginFormProps) {
   const router = useRouter()
+  const { signIn, signInWithGoogle } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -51,51 +52,27 @@ export function LoginForm({ redirectUrl = '/dashboard', className = '' }: LoginF
       setIsLoading(true)
       setError(null)
 
-      const result = await signIn('credentials', {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        switch (result.error) {
-          case 'CredentialsSignin':
-            setError('Invalid email or password. Please check your credentials and try again.')
-            break
-          case 'EmailNotVerified':
-            setError('Please verify your email address before logging in. Check your inbox for the verification link.')
-            break
-          case 'UserNotFound':
-            setError('No account found with this email address. Please sign up first.')
-            break
-          case 'TooManyAttempts':
-            setError('Too many login attempts. Please wait a few minutes before trying again.')
-            break
-          case 'AccountDisabled':
-            setError('Your account has been disabled. Please contact support for assistance.')
-            break
-          default:
-            setError('An unexpected error occurred. Please try again.')
-        }
-        return
-      }
-
-      if (result?.ok) {
-        // Successful login - check if user is admin for role-based redirect
-        // Note: NextAuth signIn doesn't return user data directly, 
-        // but we can make an assumption based on email for admin users
-        if (data.email === 'admin@test.com' && redirectUrl === '/dashboard') {
-          router.push('/admin')
-        } else {
-          router.push(redirectUrl)
-        }
-        router.refresh()
-      } else {
-        setError('Login failed. Please try again.')
-      }
-    } catch (error) {
+      const result = await signIn(data.email, data.password)
+      
+      // Successful login - redirect to desired URL
+      router.push(redirectUrl)
+    } catch (error: any) {
       console.error('Login error:', error)
-      setError('An unexpected error occurred. Please try again.')
+      
+      // Handle Supabase auth errors
+      if (error?.message) {
+        if (error.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password. Please check your credentials and try again.')
+        } else if (error.message.includes('Email not confirmed')) {
+          setError('Please verify your email address before logging in. Check your inbox for the verification link.')
+        } else if (error.message.includes('too many requests')) {
+          setError('Too many login attempts. Please wait a few minutes before trying again.')
+        } else {
+          setError(error.message)
+        }
+      } else {
+        setError('An unexpected error occurred. Please try again.')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -104,7 +81,7 @@ export function LoginForm({ redirectUrl = '/dashboard', className = '' }: LoginF
   const handleGoogleSignIn = async () => {
     try {
       setError(null)
-      await signIn('google', { callbackUrl: redirectUrl })
+      await signInWithGoogle()
     } catch (error) {
       console.error('Google sign-in error:', error)
       setError('Google sign-in failed. Please try again.')

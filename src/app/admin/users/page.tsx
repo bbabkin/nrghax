@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useUser } from '@/hooks/useUser';
 import Link from 'next/link';
 import { 
   Users, 
@@ -40,12 +40,7 @@ interface UserListResponse {
 
 export default function AdminUsersPage() {
   const router = useRouter();
-  const { data: session, status } = useSession({
-    required: true,
-    onUnauthenticated() {
-      router.push('/login?callbackUrl=/admin/users');
-    },
-  });
+  const { user, loading: authLoading } = useUser();
 
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,21 +94,26 @@ export default function AdminUsersPage() {
   };
 
   useEffect(() => {
-    if (session) {
+    if (user) {
       fetchUsers();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, pagination.page, searchTerm, roleFilter]);
+  }, [user, pagination.page, searchTerm, roleFilter]);
 
   useEffect(() => {
-    // Check admin role on client side
-    if (session) {
-      const userRole = (session.user as any)?.role;
-      if (userRole !== 'admin' && userRole !== 'super_admin') {
-        router.push('/access-denied');
+    // Check authentication and admin role
+    if (!authLoading) {
+      if (!user) {
+        router.push('/login?callbackUrl=/admin/users');
+        return;
+      }
+      
+      if (user.role !== 'admin' && user.role !== 'super_admin') {
+        router.push('/access-denied?reason=admin_required');
+        return;
       }
     }
-  }, [session, router]);
+  }, [user, authLoading, router]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,7 +126,7 @@ export default function AdminUsersPage() {
     setPagination(prev => ({ ...prev, page: 1 }));
   };
 
-  if (status === 'loading' || loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -137,8 +137,8 @@ export default function AdminUsersPage() {
     );
   }
 
-  if (!session) {
-    return null;
+  if (!user) {
+    return null; // Will redirect in useEffect
   }
 
   return (

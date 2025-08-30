@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { signIn } from 'next-auth/react'
+import { useAuth } from '@/components/auth/AuthProvider'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -45,6 +45,7 @@ interface RegisterFormProps {
 
 export function RegisterForm({ className = '' }: RegisterFormProps) {
   const router = useRouter()
+  const { signUp, signInWithGoogle } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -69,48 +70,26 @@ export function RegisterForm({ className = '' }: RegisterFormProps) {
       setError(null)
       setSuccess(false)
 
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: data.name,
-          email: data.email,
-          password: data.password,
-        }),
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        switch (result.error) {
-          case 'UserAlreadyExists':
-            setError('An account with this email already exists. Please sign in instead.')
-            break
-          case 'InvalidEmail':
-            setError('Please enter a valid email address.')
-            break
-          case 'WeakPassword':
-            setError('Password is too weak. Please choose a stronger password.')
-            break
-          case 'ValidationError':
-            setError(result.message || 'Please check your information and try again.')
-            break
-          case 'RateLimitExceeded':
-            setError('Too many registration attempts. Please wait a few minutes before trying again.')
-            break
-          default:
-            setError(result.message || 'Registration failed. Please try again.')
-        }
-        return
-      }
-
-      // Registration successful
+      const result = await signUp(data.email, data.password, { name: data.name })
+      
       setSuccess(true)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error)
-      setError('An unexpected error occurred. Please try again.')
+      
+      // Handle Supabase auth errors
+      if (error?.message) {
+        if (error.message.includes('User already registered')) {
+          setError('An account with this email already exists. Please sign in instead.')
+        } else if (error.message.includes('Password should be')) {
+          setError('Password is too weak. Please choose a stronger password.')
+        } else if (error.message.includes('Invalid email')) {
+          setError('Please enter a valid email address.')
+        } else {
+          setError(error.message)
+        }
+      } else {
+        setError('An unexpected error occurred. Please try again.')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -119,7 +98,7 @@ export function RegisterForm({ className = '' }: RegisterFormProps) {
   const handleGoogleSignUp = async () => {
     try {
       setError(null)
-      await signIn('google', { callbackUrl: '/dashboard' })
+      await signInWithGoogle()
     } catch (error) {
       console.error('Google sign-up error:', error)
       setError('Google sign-up failed. Please try again.')

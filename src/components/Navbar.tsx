@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { useSession, signOut } from 'next-auth/react'
+import { useAuth } from '@/components/auth/AuthProvider'
 import { Button } from './ui/button'
 import {
   DropdownMenu,
@@ -15,14 +15,16 @@ import {
 import { Menu, X, User, LogOut, Home, Shield, Users, Settings } from 'lucide-react'
 
 export function Navbar() {
-  const { data: session, status } = useSession()
+  const { user, profile, loading, signOut } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true)
-      await signOut({ callbackUrl: '/' })
+      await signOut()
+      // Redirect to home page after logout
+      window.location.href = '/'
     } catch (error) {
       console.error('Logout failed:', error)
     } finally {
@@ -65,7 +67,7 @@ export function Navbar() {
                 Home
               </Link>
               
-              {session && (
+              {user && (
                 <>
                   <Link
                     href="/dashboard"
@@ -75,7 +77,7 @@ export function Navbar() {
                     <Shield className="inline w-4 h-4 mr-1" aria-hidden="true" />
                     Dashboard
                   </Link>
-                  {((session.user as any)?.role === 'admin' || (session.user as any)?.role === 'super_admin') && (
+                  {(profile?.role === 'admin' || profile?.role === 'super_admin') && (
                     <Link
                       href="/admin"
                       className="text-gray-900 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
@@ -92,11 +94,11 @@ export function Navbar() {
 
           {/* Desktop Auth Section */}
           <div className="hidden md:flex items-center space-x-4">
-            {status === 'loading' ? (
+            {loading ? (
               <div className="animate-pulse">
                 <div className="h-8 w-20 bg-gray-200 rounded"></div>
               </div>
-            ) : session ? (
+            ) : user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
@@ -106,18 +108,25 @@ export function Navbar() {
                   >
                     <User className="w-4 h-4" aria-hidden="true" />
                     <span className="truncate max-w-32">
-                      {session.user?.name || session.user?.email || 'User'}
+                      {profile?.name || user.email || 'User'}
                     </span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {session.user?.name || 'User'}
-                      </p>
+                      <div className="flex items-center space-x-2">
+                        <p className="text-sm font-medium leading-none">
+                          {profile?.name || 'User'}
+                        </p>
+                        {(profile?.role === 'admin' || profile?.role === 'super_admin') && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {profile?.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs leading-none text-muted-foreground">
-                        {session.user?.email}
+                        {user.email}
                       </p>
                     </div>
                   </DropdownMenuLabel>
@@ -128,7 +137,7 @@ export function Navbar() {
                       Dashboard
                     </Link>
                   </DropdownMenuItem>
-                  {((session.user as any)?.role === 'admin' || (session.user as any)?.role === 'super_admin') && (
+                  {(profile?.role === 'admin' || profile?.role === 'super_admin') && (
                     <DropdownMenuItem asChild>
                       <Link href="/admin" className="cursor-pointer">
                         <Users className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -199,7 +208,7 @@ export function Navbar() {
             Home
           </Link>
           
-          {session && (
+          {user && (
             <>
               <Link
                 href="/dashboard"
@@ -210,7 +219,7 @@ export function Navbar() {
                 <Shield className="inline w-4 h-4 mr-2" aria-hidden="true" />
                 Dashboard
               </Link>
-              {((session.user as any)?.role === 'admin' || (session.user as any)?.role === 'super_admin') && (
+              {(profile?.role === 'admin' || profile?.role === 'super_admin') && (
                 <Link
                   href="/admin"
                   onClick={closeMobileMenu}
@@ -225,18 +234,25 @@ export function Navbar() {
           )}
           
           <div className="border-t pt-2">
-            {status === 'loading' ? (
+            {loading ? (
               <div className="animate-pulse px-3 py-2">
                 <div className="h-8 w-20 bg-gray-200 rounded"></div>
               </div>
-            ) : session ? (
+            ) : user ? (
               <div className="space-y-1">
                 <div className="px-3 py-2">
-                  <p className="text-base font-medium text-gray-900">
-                    {session.user?.name || 'User'}
-                  </p>
+                  <div className="flex items-center space-x-2">
+                    <p className="text-base font-medium text-gray-900">
+                      {profile?.name || 'User'}
+                    </p>
+                    {(profile?.role === 'admin' || profile?.role === 'super_admin') && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {profile?.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-gray-500">
-                    {session.user?.email}
+                    {user.email}
                   </p>
                 </div>
                 <button

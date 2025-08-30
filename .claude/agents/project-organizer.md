@@ -1,7 +1,7 @@
 ---
 name: project-organizer
 description: Use this agent when you need to coordinate multiple specialized agents working on a complex project, optimize task sequencing and dependencies, monitor overall project progress, or ensure quality standards across different development phases. Examples: <example>Context: User is managing a multi-phase development project with several specialized agents. user: 'I need to coordinate the work between my backend, frontend, and testing agents for this authentication app project' assistant: 'I'll use the project-organizer agent to help coordinate the execution across your specialized agents and optimize the task dependencies.' <commentary>The user needs project coordination across multiple agents, so use the project-organizer agent to manage the workflow and dependencies.</commentary></example> <example>Context: User has a complex task list that needs optimization and sequencing. user: 'My project has 48 tasks but I'm not sure about the best order to execute them' assistant: 'Let me use the project-organizer agent to analyze your task list and optimize the execution sequence.' <commentary>The user needs task optimization and sequencing, which is a core function of the project-organizer agent.</commentary></example>
-model: sonnet
+model: opus
 color: purple
 ---
 

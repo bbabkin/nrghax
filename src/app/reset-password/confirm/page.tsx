@@ -2,7 +2,7 @@
 
 import React, { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/components/auth/AuthProvider'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -29,7 +29,7 @@ const resetPasswordSchema = z.object({
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>
 
 function ResetPasswordConfirmContent() {
-  const { data: session, status } = useSession()
+  const { user, loading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   
@@ -53,18 +53,18 @@ function ResetPasswordConfirmContent() {
   const password = watch('password', '')
 
   useEffect(() => {
-    if (status === 'loading') return
+    if (loading) return
     
-    if (session) {
+    if (user) {
       router.push('/dashboard')
     }
 
     if (!token) {
       setError('No reset token provided. Please use the link from your email.')
     }
-  }, [session, status, router, token])
+  }, [user, loading, router, token])
 
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
@@ -75,7 +75,7 @@ function ResetPasswordConfirmContent() {
     )
   }
 
-  if (session) {
+  if (user) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">

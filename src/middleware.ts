@@ -1,23 +1,9 @@
 import { NextRequest } from 'next/server';
-import { adminMiddleware } from '@/middleware/admin';
-import { authMiddleware } from '@/middleware/auth';
+import { supabaseAuthMiddleware } from '@/middleware/supabase-auth';
 
-// Combined middleware that handles different route types
+// Middleware using Supabase Auth
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // Handle admin routes
-  if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
-    return await adminMiddleware(request);
-  }
-
-  // Handle auth routes (prevent authenticated users from accessing login/register)
-  if (pathname === '/login' || pathname === '/register') {
-    return await authMiddleware(request);
-  }
-  
-  // Default: continue to the route
-  return;
+  return await supabaseAuthMiddleware(request);
 }
 
 // Configure which paths this middleware should run on
@@ -26,6 +12,9 @@ export const config = {
     // Admin routes (pages and API)
     '/admin/:path*',
     '/api/admin/:path*',
+    
+    // Dashboard routes  
+    '/dashboard/:path*',
     
     // Auth routes (prevent authenticated users from accessing)
     '/login',

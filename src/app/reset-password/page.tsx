@@ -2,12 +2,12 @@
 
 import React, { Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/components/auth/AuthProvider'
 import { PasswordResetForm } from '@/components/PasswordResetForm'
 import { AlertCircle, Loader2, CheckCircle } from 'lucide-react'
 
 function ResetPasswordContent() {
-  const { data: session, status } = useSession()
+  const { user, loading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   
@@ -15,14 +15,14 @@ function ResetPasswordContent() {
   const error = searchParams.get('error')
 
   useEffect(() => {
-    if (status === 'loading') return
+    if (loading) return
     
-    if (session) {
+    if (user) {
       router.push('/dashboard')
     }
-  }, [session, status, router])
+  }, [user, loading, router])
 
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
@@ -33,7 +33,7 @@ function ResetPasswordContent() {
     )
   }
 
-  if (session) {
+  if (user) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">

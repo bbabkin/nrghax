@@ -1,7 +1,6 @@
-import { auth } from "@/lib/auth"
-import { getUserProfile } from "@/lib/supabase"
+import { createSupabaseServerClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import type { Session, User } from "next-auth"
+import type { User } from "@supabase/supabase-js"
 
 // Extended user type with profile information
 export interface ExtendedUser extends User {
@@ -15,19 +14,38 @@ export interface ExtendedUser extends User {
   } | null
 }
 
-// Extended session type
-export interface ExtendedSession extends Session {
+// Supabase session type
+export interface SupabaseSession {
   user: ExtendedUser
+  expires: string
 }
 
 /**
  * Get the current session on the server side
  * Returns null if no session exists
  */
-export async function getServerSession(): Promise<Session | null> {
+export async function getServerSession(): Promise<SupabaseSession | null> {
   try {
-    const session = await auth()
-    return session
+    const supabase = createSupabaseServerClient()
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    if (error || !user) return null
+    
+    // Get user profile
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single()
+    
+    return {
+      user: {
+        ...user,
+        role: (profile as any)?.role || 'user',
+        profile
+      } as ExtendedUser,
+      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
+    }
   } catch (error) {
     console.error("Error getting server session:", error)
     return null
@@ -38,7 +56,7 @@ export async function getServerSession(): Promise<Session | null> {
  * Get the current session with extended user profile information
  * Returns null if no session exists
  */
-export async function getExtendedSession(): Promise<ExtendedSession | null> {
+export async function getExtendedSession(): Promise<SupabaseSession | null> {
   try {
     const session = await getServerSession()
     if (!session || !session.user) {

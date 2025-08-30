@@ -1,25 +1,34 @@
 import { redirect } from 'next/navigation';
-import { auth } from '@/lib/auth';
+import { authServer } from '@/lib/supabase/auth';
 import Link from 'next/link';
 import { Users, Activity, Settings, BarChart3 } from 'lucide-react';
 import { DebugPanel } from '@/components/debug/DebugPanel';
 
 export default async function AdminDashboard() {
-  const session = await auth();
+  // Server-side authentication check with Supabase
+  const user = await authServer.getUser();
   
-  // Server-side authentication check
-  if (!session) {
-    console.log('No session found, redirecting to login');
+  if (!user) {
+    console.log('No user found, redirecting to login');
+    redirect('/login?callbackUrl=/admin');
+  }
+
+  // Get user profile to check role
+  const userProfile = await authServer.getUserProfile(user.id);
+  
+  if (!userProfile) {
+    console.log('No user profile found, redirecting to login');
     redirect('/login?callbackUrl=/admin');
   }
 
   // Check if user has admin role
-  const userRole = (session.user as any)?.role;
+  const userRole = userProfile.role;
   if (userRole !== 'admin' && userRole !== 'super_admin') {
-    redirect('/access-denied');
+    console.log(`User role ${userRole} insufficient for admin access`);
+    redirect('/access-denied?reason=admin_required');
   }
 
-  const userName = session.user?.name || session.user?.email;
+  const userName = userProfile.name || user.email;
 
   return (
     <div className="min-h-screen bg-gray-50">
