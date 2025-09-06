@@ -5,6 +5,7 @@ export type Hack = {
   name: string;
   description: string;
   image_url: string;
+  image_path?: string | null;
   content_type: 'content' | 'link';
   content_body: string | null;
   external_link: string | null;
@@ -67,13 +68,14 @@ export async function getHackById(id: string) {
       *,
       user_hack_likes!left(id, user_id),
       user_hack_completions!left(id, user_id),
-      hack_prerequisites!left(
+      hack_prerequisites!hack_prerequisites_hack_id_fkey(
         prerequisite_hack_id,
         prerequisite:hacks!hack_prerequisites_prerequisite_hack_id_fkey(
           id,
           name,
           description,
-          image_url
+          image_url,
+          image_path
         )
       )
     `)
