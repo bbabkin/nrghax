@@ -9,7 +9,7 @@ export async function NavbarWrapper() {
   if (user) {
     const { data } = await supabase
       .from('profiles')
-      .select('full_name, avatar_url')
+      .select('full_name, avatar_url, is_admin')
       .eq('id', user.id)
       .single()
     profile = data

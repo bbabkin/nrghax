@@ -79,6 +79,9 @@ SUPABASE_SERVICE_ROLE_KEY=[your-service-role-key]
 ## Best Practices
 
 ### Testing & Verification
+- **ALWAYS run `npm run build` before claiming everything works** - Build must succeed without errors
+- **Restart dev server after build** - The dev server doesn't work properly after running build command, restart it
+- **Check TypeScript errors** - Run `npx tsc --noEmit` before saying code is error-free
 - **Never assume code works** - Always verify with actual testing
 - **Test in real environment** - Use actual localhost URLs, not theoretical ones
 - **Capture evidence** - Take screenshots or logs to prove features work

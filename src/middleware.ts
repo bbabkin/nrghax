@@ -37,6 +37,32 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Check if user is trying to access admin routes
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    if (!user) {
+      // No user, redirect to auth
+      const url = request.nextUrl.clone()
+      url.pathname = '/auth'
+      url.searchParams.set('redirect', request.nextUrl.pathname)
+      return NextResponse.redirect(url)
+    }
+
+    // Check if user is admin
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile?.is_admin) {
+      // Not an admin, redirect to home
+      const url = request.nextUrl.clone()
+      url.pathname = '/'
+      return NextResponse.redirect(url)
+    }
+  }
+
+  // Check for other protected routes
   if (
     !user &&
     !request.nextUrl.pathname.startsWith('/auth') &&

@@ -13,6 +13,7 @@ interface NavbarProps {
   profile?: {
     full_name?: string
     avatar_url?: string
+    is_admin?: boolean
   } | null
 }
 
@@ -28,6 +29,9 @@ export function Navbar({ user, profile }: NavbarProps) {
     ...(user ? [
       { href: '/dashboard', label: 'Dashboard' },
       { href: '/account', label: 'Account' },
+      ...(profile?.is_admin ? [
+        { href: '/admin/users', label: 'Users' },
+      ] : []),
     ] : []),
   ]
 
