@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,8 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { RichTextEditor } from './RichTextEditor';
 import { PrerequisiteSelector } from './PrerequisiteSelector';
-import { createHack, updateHack, HackFormData } from '@/lib/hacks/actions';
-import { Loader2 } from 'lucide-react';
+import { createHackWithImage, updateHackWithImage } from '@/lib/hacks/client-actions';
+import { Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
 
 interface HackFormProps {
   hack?: {
@@ -18,26 +19,18 @@ interface HackFormProps {
     name: string;
     description: string;
     image_url: string;
+    image_path?: string | null;
     content_type: 'content' | 'link';
     content_body: string | null;
     external_link: string | null;
     prerequisite_ids?: string[];
   };
   availableHacks: { id: string; name: string }[];
+  userId: string;
 }
 
-function SubmitButton({ isEdit }: { isEdit: boolean }) {
-  const { pending } = useFormStatus();
-  
-  return (
-    <Button type="submit" disabled={pending}>
-      {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      {isEdit ? 'Update Hack' : 'Create Hack'}
-    </Button>
-  );
-}
-
-export function HackForm({ hack, availableHacks }: HackFormProps) {
+export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
+  const router = useRouter();
   const [contentType, setContentType] = useState<'content' | 'link'>(
     hack?.content_type || 'content'
   );
@@ -46,33 +39,116 @@ export function HackForm({ hack, availableHacks }: HackFormProps) {
     hack?.prerequisite_ids || []
   );
   const [error, setError] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    hack?.image_url || null
+  );
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setError('Invalid file type. Please upload a JPEG, PNG, GIF, or WebP image.');
+      return;
+    }
+
+    // Validate file size (5MB max)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setError('File size exceeds 5MB limit.');
+      return;
+    }
+
+    setImageFile(file);
     setError(null);
-    
-    const data: HackFormData = {
-      name: formData.get('name') as string,
-      description: formData.get('description') as string,
-      image_url: formData.get('image_url') as string,
-      content_type: contentType,
-      content_body: contentType === 'content' ? contentBody : null,
-      external_link: contentType === 'link' ? (formData.get('external_link') as string) : null,
-      prerequisite_ids: prerequisites,
-    };
 
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(hack?.image_url || null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setIsUploading(true);
+    
+    const formData = new FormData(e.currentTarget);
+    
     try {
-      if (hack) {
-        await updateHack(hack.id, data);
-      } else {
-        await createHack(data);
+      // Validate required fields
+      const name = formData.get('name') as string;
+      const description = formData.get('description') as string;
+      
+      if (!name?.trim()) {
+        throw new Error('Name is required');
       }
+      
+      if (!description?.trim()) {
+        throw new Error('Description is required');
+      }
+      
+      // Check if we have an image
+      if (!imageFile && !hack?.image_path && !hack?.image_url) {
+        throw new Error('Please select an image');
+      }
+      
+      console.log('[HackForm] Submitting form with data:', {
+        name,
+        description,
+        hasImageFile: !!imageFile,
+        contentType,
+        userId
+      });
+      
+      const data = {
+        name,
+        description,
+        imageFile,
+        existingImagePath: hack?.image_path || undefined,
+        existingImageUrl: hack?.image_url || undefined,
+        content_type: contentType,
+        content_body: contentType === 'content' ? contentBody : null,
+        external_link: contentType === 'link' ? (formData.get('external_link') as string) : null,
+        prerequisite_ids: prerequisites,
+      };
+
+      if (hack) {
+        await updateHackWithImage(hack.id, data, userId);
+      } else {
+        await createHackWithImage(data, userId);
+      }
+      
+      router.push('/admin/hacks');
+      router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('[HackForm] Submit error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
+      setIsUploading(false);
+      
+      // Scroll to error message
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   return (
-    <form action={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
           {error}
@@ -103,15 +179,53 @@ export function HackForm({ hack, availableHacks }: HackFormProps) {
       </div>
 
       <div>
-        <Label htmlFor="image_url">Image URL *</Label>
-        <Input
-          id="image_url"
-          name="image_url"
-          type="url"
-          required
-          defaultValue={hack?.image_url}
-          placeholder="https://example.com/image.jpg"
-        />
+        <Label htmlFor="image">Image *</Label>
+        <div className="space-y-2">
+          {imagePreview && (
+            <div className="relative w-full max-w-md">
+              <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
+                <Image
+                  src={imagePreview}
+                  alt="Preview"
+                  fill
+                  className="object-cover"
+                  unoptimized={imageFile !== null}
+                />
+              </div>
+              {imageFile && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  className="absolute top-2 right-2"
+                  onClick={handleRemoveImage}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <Input
+              ref={fileInputRef}
+              id="image"
+              name="image"
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+              onChange={handleImageChange}
+              className="cursor-pointer"
+            />
+            {!imageFile && !imagePreview && (
+              <ImageIcon className="h-4 w-4 text-gray-500" />
+            )}
+          </div>
+          <p className="text-sm text-gray-500">
+            {imageFile ? 
+              `Selected: ${imageFile.name} (${(imageFile.size / 1024 / 1024).toFixed(2)}MB)` : 
+              'Accepted formats: JPEG, PNG, GIF, WebP (max 5MB)'
+            }
+          </p>
+        </div>
       </div>
 
       <div>
@@ -165,7 +279,10 @@ export function HackForm({ hack, availableHacks }: HackFormProps) {
       </div>
 
       <div className="flex gap-3">
-        <SubmitButton isEdit={!!hack} />
+        <Button type="submit" disabled={isUploading}>
+        {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {hack ? 'Update Hack' : 'Create Hack'}
+      </Button>
         <Button type="button" variant="outline" onClick={() => window.history.back()}>
           Cancel
         </Button>

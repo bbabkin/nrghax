@@ -55,7 +55,7 @@ export default async function EditHackPage({ params }: { params: { id: string } 
         <h1 className="text-3xl font-bold">Edit Hack</h1>
         <DeleteButton hackId={params.id} />
       </div>
-      <HackForm hack={hack} availableHacks={availableHacks} />
+      <HackForm hack={hack} availableHacks={availableHacks} userId={user.id} />
     </div>
   );
 }

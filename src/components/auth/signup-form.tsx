@@ -75,52 +75,80 @@ export function SignupForm() {
   }
 
   async function signInWithGoogle() {
+    setIsLoading(true)
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${location.origin}/auth/callback`,
-        },
+      const formData = new FormData()
+      formData.append('provider', 'google')
+      
+      const response = await fetch('/auth/oauth', {
+        method: 'POST',
+        body: formData,
       })
       
-      if (error) {
-        toast({
-          title: 'Error',
-          description: error.message,
-          variant: 'destructive',
-        })
+      if (response.redirected) {
+        window.location.href = response.url
+      } else {
+        throw new Error('OAuth failed')
       }
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Something went wrong. Please try again.',
+        description: 'Failed to sign in with Google',
         variant: 'destructive',
       })
+      setIsLoading(false)
     }
   }
 
   async function signInWithDiscord() {
+    setIsLoading(true)
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'discord',
-        options: {
-          redirectTo: `${location.origin}/auth/callback`,
-        },
+      const formData = new FormData()
+      formData.append('provider', 'discord')
+      
+      const response = await fetch('/auth/oauth', {
+        method: 'POST',
+        body: formData,
       })
       
-      if (error) {
-        toast({
-          title: 'Error',
-          description: error.message,
-          variant: 'destructive',
-        })
+      if (response.redirected) {
+        window.location.href = response.url
+      } else {
+        throw new Error('OAuth failed')
       }
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Something went wrong. Please try again.',
+        description: 'Failed to sign in with Discord',
         variant: 'destructive',
       })
+      setIsLoading(false)
+    }
+  }
+
+  async function signInWithGitHub() {
+    setIsLoading(true)
+    try {
+      const formData = new FormData()
+      formData.append('provider', 'github')
+      
+      const response = await fetch('/auth/oauth', {
+        method: 'POST',
+        body: formData,
+      })
+      
+      if (response.redirected) {
+        window.location.href = response.url
+      } else {
+        throw new Error('OAuth failed')
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to sign in with GitHub',
+        variant: 'destructive',
+      })
+      setIsLoading(false)
     }
   }
 
@@ -188,13 +216,17 @@ export function SignupForm() {
         </div>
       </div>
       <div className="grid gap-2">
-        <Button variant="outline" type="button" disabled={isLoading} onClick={signInWithGoogle}>
-          <Icons.google className="mr-2 h-4 w-4" />
-          Google
-        </Button>
         <Button variant="outline" type="button" disabled={isLoading} onClick={signInWithDiscord}>
           <Icons.discord className="mr-2 h-4 w-4" />
           Discord
+        </Button>
+        <Button variant="outline" type="button" disabled={isLoading} onClick={signInWithGitHub}>
+          <Icons.gitHub className="mr-2 h-4 w-4" />
+          GitHub
+        </Button>
+        <Button variant="outline" type="button" disabled={isLoading} onClick={signInWithGoogle}>
+          <Icons.google className="mr-2 h-4 w-4" />
+          Google
         </Button>
       </div>
     </div>

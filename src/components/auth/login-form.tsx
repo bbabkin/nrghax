@@ -50,7 +50,19 @@ export function LoginForm() {
   async function signInWithGitHub() {
     setIsLoading(true)
     try {
-      window.location.href = '/auth/oauth?provider=github'
+      const formData = new FormData()
+      formData.append('provider', 'github')
+      
+      const response = await fetch('/auth/oauth', {
+        method: 'POST',
+        body: formData,
+      })
+      
+      if (response.redirected) {
+        window.location.href = response.url
+      } else {
+        throw new Error('OAuth failed')
+      }
     } catch (error) {
       toast({
         title: 'Error',
@@ -64,11 +76,49 @@ export function LoginForm() {
   async function signInWithGoogle() {
     setIsLoading(true)
     try {
-      window.location.href = '/auth/oauth?provider=google'
+      const formData = new FormData()
+      formData.append('provider', 'google')
+      
+      const response = await fetch('/auth/oauth', {
+        method: 'POST',
+        body: formData,
+      })
+      
+      if (response.redirected) {
+        window.location.href = response.url
+      } else {
+        throw new Error('OAuth failed')
+      }
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to sign in with Google',
+        variant: 'destructive',
+      })
+      setIsLoading(false)
+    }
+  }
+
+  async function signInWithDiscord() {
+    setIsLoading(true)
+    try {
+      const formData = new FormData()
+      formData.append('provider', 'discord')
+      
+      const response = await fetch('/auth/oauth', {
+        method: 'POST',
+        body: formData,
+      })
+      
+      if (response.redirected) {
+        window.location.href = response.url
+      } else {
+        throw new Error('OAuth failed')
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to sign in with Discord',
         variant: 'destructive',
       })
       setIsLoading(false)
@@ -125,6 +175,15 @@ export function LoginForm() {
         </div>
       </div>
       <div className="grid gap-2">
+        <Button
+          variant="outline"
+          type="button"
+          disabled={isLoading}
+          onClick={signInWithDiscord}
+        >
+          <Icons.discord className="mr-2 h-4 w-4" />
+          Discord
+        </Button>
         <Button
           variant="outline"
           type="button"

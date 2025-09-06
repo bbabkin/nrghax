@@ -8,6 +8,7 @@ export type HackFormData = {
   name: string;
   description: string;
   image_url: string;
+  image_path?: string;
   content_type: 'content' | 'link';
   content_body?: string | null;
   external_link?: string | null;
@@ -41,7 +42,8 @@ export async function createHack(formData: HackFormData) {
     .insert({
       name: formData.name,
       description: formData.description,
-      image_url: formData.image_url,
+      image_url: formData.image_path ? null : formData.image_url,
+      image_path: formData.image_path || null,
       content_type: formData.content_type,
       content_body: formData.content_body,
       external_link: formData.external_link,
@@ -117,7 +119,8 @@ export async function updateHack(id: string, formData: HackFormData) {
     .update({
       name: formData.name,
       description: formData.description,
-      image_url: formData.image_url,
+      image_url: formData.image_path ? null : formData.image_url,
+      image_path: formData.image_path || null,
       content_type: formData.content_type,
       content_body: formData.content_body,
       external_link: formData.external_link,

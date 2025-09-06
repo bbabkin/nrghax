@@ -16,6 +16,7 @@ interface HackCardProps {
     name: string;
     description: string;
     image_url: string;
+    image_path?: string | null;
     content_type: 'content' | 'link';
     external_link?: string | null;
     like_count?: number;
@@ -60,11 +61,21 @@ export function HackCard({
   };
 
   const isLocked = hasIncompletePrerequisites;
+  
+  // Determine the image source - prioritize image_path from storage
+  const getImageSrc = () => {
+    if (hack.image_path) {
+      // Use Supabase storage URL for local development
+      return `http://localhost:54321/storage/v1/object/public/hack-images/${hack.image_path}`;
+    }
+    return hack.image_url;
+  };
+  
   const cardContent = (
     <>
       <div className="relative aspect-video w-full overflow-hidden rounded-t-lg">
         <Image
-          src={hack.image_url}
+          src={getImageSrc()}
           alt={hack.name}
           fill
           className="object-cover"

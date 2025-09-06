@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 export async function POST(request: Request) {
   const requestUrl = new URL(request.url)
   const formData = await request.formData()
-  const provider = String(formData.get('provider')) as 'google' | 'discord'
+  const provider = String(formData.get('provider')) as 'google' | 'discord' | 'github'
   
   const supabase = await createClient()
 
