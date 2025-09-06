@@ -87,7 +87,9 @@ export default async function HackPage({ params }: { params: { id: string } }) {
                     <div className="flex items-center gap-3">
                       <div className="relative w-16 h-16 flex-shrink-0">
                         <Image
-                          src={prereq.image_url}
+                          src={prereq.image_path 
+                            ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/hack-images/${prereq.image_path}`
+                            : prereq.image_url}
                           alt={prereq.name}
                           fill
                           className="object-cover rounded"
@@ -110,7 +112,9 @@ export default async function HackPage({ params }: { params: { id: string } }) {
         <>
           <div className="relative aspect-video w-full overflow-hidden rounded-lg mb-8">
             <Image
-              src={hack.image_url}
+              src={hack.image_path 
+                ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/hack-images/${hack.image_path}`
+                : hack.image_url}
               alt={hack.name}
               fill
               className="object-cover"

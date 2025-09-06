@@ -74,82 +74,52 @@ export function SignupForm() {
     }
   }
 
-  async function signInWithGoogle() {
+  function signInWithGoogle() {
     setIsLoading(true)
-    try {
-      const formData = new FormData()
-      formData.append('provider', 'google')
-      
-      const response = await fetch('/auth/oauth', {
-        method: 'POST',
-        body: formData,
-      })
-      
-      if (response.redirected) {
-        window.location.href = response.url
-      } else {
-        throw new Error('OAuth failed')
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to sign in with Google',
-        variant: 'destructive',
-      })
-      setIsLoading(false)
-    }
+    const form = document.createElement('form')
+    form.method = 'POST'
+    form.action = '/auth/oauth'
+    
+    const input = document.createElement('input')
+    input.type = 'hidden'
+    input.name = 'provider'
+    input.value = 'google'
+    
+    form.appendChild(input)
+    document.body.appendChild(form)
+    form.submit()
   }
 
-  async function signInWithDiscord() {
+  function signInWithDiscord() {
     setIsLoading(true)
-    try {
-      const formData = new FormData()
-      formData.append('provider', 'discord')
-      
-      const response = await fetch('/auth/oauth', {
-        method: 'POST',
-        body: formData,
-      })
-      
-      if (response.redirected) {
-        window.location.href = response.url
-      } else {
-        throw new Error('OAuth failed')
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to sign in with Discord',
-        variant: 'destructive',
-      })
-      setIsLoading(false)
-    }
+    const form = document.createElement('form')
+    form.method = 'POST'
+    form.action = '/auth/oauth'
+    
+    const input = document.createElement('input')
+    input.type = 'hidden'
+    input.name = 'provider'
+    input.value = 'discord'
+    
+    form.appendChild(input)
+    document.body.appendChild(form)
+    form.submit()
   }
 
-  async function signInWithGitHub() {
+  function signInWithGitHub() {
     setIsLoading(true)
-    try {
-      const formData = new FormData()
-      formData.append('provider', 'github')
-      
-      const response = await fetch('/auth/oauth', {
-        method: 'POST',
-        body: formData,
-      })
-      
-      if (response.redirected) {
-        window.location.href = response.url
-      } else {
-        throw new Error('OAuth failed')
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to sign in with GitHub',
-        variant: 'destructive',
-      })
-      setIsLoading(false)
-    }
+    const form = document.createElement('form')
+    form.method = 'POST'
+    form.action = '/auth/oauth'
+    
+    const input = document.createElement('input')
+    input.type = 'hidden'
+    input.name = 'provider'
+    input.value = 'github'
+    
+    form.appendChild(input)
+    document.body.appendChild(form)
+    form.submit()
   }
 
   return (
