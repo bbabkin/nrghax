@@ -103,3 +103,4 @@ SUPABASE_SERVICE_ROLE_KEY=[your-service-role-key]
 - **Fix directly** - Don't overthink, just solve the immediate problem
 - **Test empirically** - Click through the actual flow, don't just read code
 - **Clear error messages** - Help users understand what went wrong
+- restart dev server after build commands.

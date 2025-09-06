@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -68,7 +68,8 @@ export async function middleware(request: NextRequest) {
     !request.nextUrl.pathname.startsWith('/auth') &&
     !request.nextUrl.pathname.startsWith('/api/auth') &&
     (request.nextUrl.pathname.startsWith('/dashboard') ||
-     request.nextUrl.pathname.startsWith('/account'))
+     request.nextUrl.pathname.startsWith('/account') ||
+     request.nextUrl.pathname.startsWith('/profile'))
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()
@@ -80,6 +81,10 @@ export async function middleware(request: NextRequest) {
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
   // If you're trying to modify the response, do it above.
   return supabaseResponse
+}
+
+export async function middleware(request: NextRequest) {
+  return await updateSession(request)
 }
 
 export const config = {

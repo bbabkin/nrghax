@@ -1,56 +1,67 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { createClient } from '@/lib/supabase/server';
+import { HackCard } from '@/components/hacks/HackCard';
+import { getHacks } from '@/lib/hacks/utils';
 
-export default function HacksPage() {
-  const hacks = [
-    {
-      id: 1,
-      title: 'Authentication Flow',
-      description: 'Secure user authentication with email/password and OAuth providers',
-      category: 'Security',
-    },
-    {
-      id: 2,
-      title: 'Database Patterns',
-      description: 'Best practices for database schema design and RLS policies',
-      category: 'Backend',
-    },
-    {
-      id: 3,
-      title: 'UI Components',
-      description: 'Reusable components with shadcn/ui and Tailwind CSS',
-      category: 'Frontend',
-    },
-  ]
+export default async function HacksPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  const hacks = await getHacks();
+
+  // Get user's completed hacks to check prerequisites
+  let completedHackIds: string[] = [];
+  if (user) {
+    const { data: completions } = await supabase
+      .from('user_hack_completions')
+      .select('hack_id')
+      .eq('user_id', user.id);
+    
+    completedHackIds = completions?.map(c => c.hack_id) || [];
+  }
+
+  // Get all prerequisites to check which hacks are locked
+  const { data: allPrerequisites } = await supabase
+    .from('hack_prerequisites')
+    .select('hack_id, prerequisite_hack_id');
+
+  const hacksWithPrerequisiteStatus = hacks.map(hack => {
+    const prerequisites = allPrerequisites?.filter(p => p.hack_id === hack.id) || [];
+    const hasIncompletePrerequisites = prerequisites.some(
+      p => !completedHackIds.includes(p.prerequisite_hack_id)
+    );
+    
+    return {
+      ...hack,
+      hasIncompletePrerequisites,
+    };
+  });
 
   return (
-    <div className="container mx-auto py-10 px-4">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold mb-2">Hacks & Tips</h1>
-        <p className="text-muted-foreground mb-8">
-          Collection of useful patterns and best practices
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Learning Hacks</h1>
+        <p className="text-gray-600">
+          Explore our collection of learning materials. Complete prerequisites to unlock advanced content.
         </p>
+      </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {hacks.map((hack) => (
-            <Card key={hack.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-primary/10 text-primary">
-                    {hack.category}
-                  </span>
-                </div>
-                <CardTitle className="text-xl">{hack.title}</CardTitle>
-                <CardDescription>{hack.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <button className="text-sm text-primary hover:underline">
-                  Learn more →
-                </button>
-              </CardContent>
-            </Card>
+      {hacks.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500">No hacks available yet. Check back later!</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {hacksWithPrerequisiteStatus.map(hack => (
+            <HackCard
+              key={hack.id}
+              hack={hack}
+              hasIncompletePrerequisites={hack.hasIncompletePrerequisites}
+              isAdmin={false}
+              showActions={true}
+            />
           ))}
         </div>
-      </div>
+      )}
     </div>
-  )
+  );
 }

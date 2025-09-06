@@ -28,9 +28,11 @@ export function Navbar({ user, profile }: NavbarProps) {
     { href: '/hacks', label: 'Hacks' },
     ...(user ? [
       { href: '/dashboard', label: 'Dashboard' },
+      { href: '/profile/history', label: 'My History' },
       { href: '/account', label: 'Account' },
       ...(profile?.is_admin ? [
         { href: '/admin/users', label: 'Users' },
+        { href: '/admin/hacks', label: 'Manage Hacks' },
       ] : []),
     ] : []),
   ]

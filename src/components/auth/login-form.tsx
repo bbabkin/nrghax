@@ -1,8 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,32 +8,34 @@ import { Icons } from '@/components/icons'
 import { useToast } from '@/components/ui/use-toast'
 
 export function LoginForm() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
   const { toast } = useToast()
-  const supabase = createClient()
 
-  async function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setIsLoading(true)
 
+    const formData = new FormData(e.currentTarget)
+    
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const response = await fetch('/auth/login', {
+        method: 'POST',
+        body: formData,
+        redirect: 'manual',
       })
 
-      if (error) {
+      // Check if login was successful based on redirect
+      if (response.type === 'opaqueredirect' || response.status === 301 || response.status === 302) {
+        // Login successful, the browser will handle the redirect
+        window.location.href = '/dashboard'
+      } else {
+        // Login failed
         toast({
           title: 'Error',
-          description: error.message,
+          description: 'Invalid login credentials',
           variant: 'destructive',
         })
-      } else {
-        router.push('/dashboard')
-        router.refresh()
+        setIsLoading(false)
       }
     } catch (error) {
       toast({
@@ -43,58 +43,35 @@ export function LoginForm() {
         description: 'Something went wrong. Please try again.',
         variant: 'destructive',
       })
-    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  async function signInWithGitHub() {
+    setIsLoading(true)
+    try {
+      window.location.href = '/auth/oauth?provider=github'
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to sign in with GitHub',
+        variant: 'destructive',
+      })
       setIsLoading(false)
     }
   }
 
   async function signInWithGoogle() {
+    setIsLoading(true)
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${location.origin}/auth/callback`,
-        },
-      })
-      
-      if (error) {
-        toast({
-          title: 'Error',
-          description: error.message,
-          variant: 'destructive',
-        })
-      }
+      window.location.href = '/auth/oauth?provider=google'
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Something went wrong. Please try again.',
+        description: 'Failed to sign in with Google',
         variant: 'destructive',
       })
-    }
-  }
-
-  async function signInWithDiscord() {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'discord',
-        options: {
-          redirectTo: `${location.origin}/auth/callback`,
-        },
-      })
-      
-      if (error) {
-        toast({
-          title: 'Error',
-          description: error.message,
-          variant: 'destructive',
-        })
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive',
-      })
+      setIsLoading(false)
     }
   }
 
@@ -106,14 +83,13 @@ export function LoginForm() {
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
+              name="email"
               placeholder="name@example.com"
               type="email"
               autoCapitalize="none"
               autoComplete="email"
               autoCorrect="off"
               disabled={isLoading}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
@@ -121,16 +97,16 @@ export function LoginForm() {
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
+              name="password"
               placeholder="Enter your password"
               type="password"
+              autoCapitalize="none"
               autoComplete="current-password"
               disabled={isLoading}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>
-          <Button disabled={isLoading}>
+          <Button disabled={isLoading} type="submit">
             {isLoading && (
               <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
             )}
@@ -149,13 +125,23 @@ export function LoginForm() {
         </div>
       </div>
       <div className="grid gap-2">
-        <Button variant="outline" type="button" disabled={isLoading} onClick={signInWithGoogle}>
+        <Button
+          variant="outline"
+          type="button"
+          disabled={isLoading}
+          onClick={signInWithGitHub}
+        >
+          <Icons.gitHub className="mr-2 h-4 w-4" />
+          GitHub
+        </Button>
+        <Button
+          variant="outline"
+          type="button"
+          disabled={isLoading}
+          onClick={signInWithGoogle}
+        >
           <Icons.google className="mr-2 h-4 w-4" />
           Google
-        </Button>
-        <Button variant="outline" type="button" disabled={isLoading} onClick={signInWithDiscord}>
-          <Icons.discord className="mr-2 h-4 w-4" />
-          Discord
         </Button>
       </div>
     </div>
