@@ -9,7 +9,7 @@ Next.js application with Supabase for authentication and database.
 ### Tech Stack
 - **Frontend**: Next.js 14+ with App Router, TypeScript, Tailwind CSS, shadCN UI
 - **Backend**: Supabase (PostgreSQL database + authentication)
-- **Testing**: Playwright for e2e tests
+- **Testing**: Vitest (unit/integration), Playwright + Supawright (E2E), pgTAP (database)
 
 ## Development Commands
 
@@ -24,8 +24,11 @@ npx supabase db reset        # Reset database with fresh migrations
 npx supabase status          # Check if Supabase is running
 
 # Testing
-npm test                     # Run tests
-npx playwright test          # Run e2e tests
+npm test                     # Run unit tests with Vitest
+npm run test:coverage        # Run tests with coverage report
+npx playwright test          # Run E2E tests
+npx supabase test db         # Run database tests with pgTAP
+npm run test:all             # Run all test suites
 ```
 
 ## Project Structure
@@ -75,6 +78,17 @@ NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
 NEXT_PUBLIC_SUPABASE_ANON_KEY=[your-anon-key]
 SUPABASE_SERVICE_ROLE_KEY=[your-service-role-key]
 ```
+
+## Testing Strategy
+
+For comprehensive testing guidance, use the **Supabase Testing Expert Agent** at `tasks/supabase-testing-expert.md`. This agent provides:
+- Complete testing infrastructure setup (pgTAP, Vitest, Playwright, Supawright)
+- Database testing patterns with RLS policy validation
+- Integration testing without mocks (real Supabase calls)
+- E2E testing with automatic cleanup
+- Security and performance testing patterns
+- Test data management with factories and seed data
+- CI/CD integration examples
 
 ## Best Practices
 
