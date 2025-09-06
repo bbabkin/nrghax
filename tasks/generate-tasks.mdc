@@ -1,0 +1,105 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Rule: Generating a Task List from a PRD
+
+## Goal
+
+To guide an AI assistant in creating a practical, step-by-step task list in Markdown format based on an existing Product Requirements Document (PRD). The task list should guide a developer through implementation in a logical order.
+
+## Process
+
+1. **Receive PRD Reference:** The user points the AI to a specific PRD file
+2. **Analyze PRD:** Read and analyze the functional requirements, user stories, and technical considerations
+3. **Generate Task List:** Create a logical sequence of implementation tasks
+4. **Include Testing:** Add appropriate testing tasks (TDD optional based on feature type)
+5. **Save Task List:** Save the document in `/tasks/` with filename `tasks-[prd-file-name].md`
+
+## Output Format
+
+The generated task list should follow this structure:
+
+```markdown
+# Task List: [Feature Name]
+
+## Overview
+Brief description of what will be built based on the PRD.
+
+## Implementation Approach
+- **Testing Strategy**: [TDD, test-after, or mixed based on feature needs]
+- **Priority Order**: [What to build first and why]
+- **Key Dependencies**: [External services, packages, or configurations needed]
+
+## User Stories
+[List key user stories from PRD with acceptance criteria]
+
+## Relevant Files
+### Implementation Files
+- `src/components/[feature]/[Component].tsx` - Description
+- `src/app/[route]/page.tsx` - Description
+- `src/lib/[feature]/utils.ts` - Description
+
+### Test Files (if using TDD approach)
+- `src/components/[feature]/[Component].test.tsx` - Unit tests
+- `tests/e2e/[feature].spec.ts` - End-to-end tests
+
+### Configuration Files
+- `.env.example` - Environment variables needed
+- `[config-file]` - Any configuration changes
+
+## Tasks
+
+### Phase 1: Setup & Configuration
+- [ ] 1.1 Install required dependencies
+- [ ] 1.2 Set up environment variables
+- [ ] 1.3 Configure external services (if needed)
+
+### Phase 2: Core Implementation
+- [ ] 2.1 [Main feature task]
+  - [ ] 2.1.1 [Subtask with specific detail]
+  - [ ] 2.1.2 [Another subtask]
+- [ ] 2.2 [Next feature task]
+
+### Phase 3: Testing (approach based on feature)
+- [ ] 3.1 Write tests for critical paths
+- [ ] 3.2 Test error handling
+- [ ] 3.3 Test edge cases
+
+### Phase 4: Polish & Documentation
+- [ ] 4.1 Refine UI/UX
+- [ ] 4.2 Add error handling
+- [ ] 4.3 Update documentation
+
+## Testing Notes
+
+### When to Use TDD
+- Complex business logic
+- Security-critical features
+- API endpoints with multiple states
+- Data transformation functions
+
+### When Testing After is Fine
+- Simple UI components
+- Configuration files
+- Static content
+- Third-party integrations
+
+## Success Criteria
+[How to know the feature is complete - from PRD]
+```
+
+## Guidelines
+
+1. **Pragmatic Approach**: Choose testing strategy based on the feature, not dogma
+2. **Clear Priorities**: Order tasks by dependencies and importance
+3. **Actionable Tasks**: Each task should be specific and completable
+4. **Flexible Structure**: Adapt the phases to the specific feature needs
+5. **Developer Friendly**: Write for developers who want to ship features efficiently
+
+## Output
+
+- **Format:** Markdown (`.md`)
+- **Location:** `/tasks/`
+- **Filename:** `tasks-[prd-file-name].md`
