@@ -83,7 +83,9 @@ export default async function HistoryPage() {
                           <div className="flex items-center gap-4">
                             <div className="relative w-20 h-20 flex-shrink-0">
                               <Image
-                                src={hack.image_url}
+                                src={hack.image_path 
+                                  ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/hack-images/${hack.image_path}`
+                                  : hack.image_url || '/placeholder-hack.svg'}
                                 alt={hack.name}
                                 fill
                                 className="object-cover rounded"

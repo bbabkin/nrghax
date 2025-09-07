@@ -159,6 +159,7 @@ export async function getUserCompletedHacks(userId: string) {
         name,
         description,
         image_url,
+        image_path,
         content_type
       )
     `)
@@ -177,6 +178,7 @@ export async function getUserCompletedHacks(userId: string) {
       name: c.hack.name,
       description: c.hack.description,
       image_url: c.hack.image_url,
+      image_path: c.hack.image_path,
       content_type: c.hack.content_type as 'content' | 'link',
       completed_at: c.completed_at,
     }));
