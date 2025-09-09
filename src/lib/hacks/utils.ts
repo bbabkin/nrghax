@@ -17,6 +17,7 @@ export type Hack = {
   is_completed?: boolean;
   prerequisites?: Hack[];
   prerequisite_ids?: string[];
+  tags?: Array<{ id: string; name: string; slug: string }>;
 };
 
 export async function getHacks() {
@@ -24,13 +25,16 @@ export async function getHacks() {
   
   const { data: { user } } = await supabase.auth.getUser();
   
-  // Get all hacks with their stats
+  // Get all hacks with their stats and tags
   const { data: hacks, error } = await supabase
     .from('hacks')
     .select(`
       *,
       user_hack_likes!left(id, user_id),
-      user_hack_completions!left(id, user_id)
+      user_hack_completions!left(id, user_id),
+      hack_tags(
+        tag:tags(id, name, slug)
+      )
     `)
     .order('created_at', { ascending: false });
 
@@ -43,6 +47,7 @@ export async function getHacks() {
   return hacks.map(hack => {
     const likes = hack.user_hack_likes || [];
     const completions = hack.user_hack_completions || [];
+    const tags = hack.hack_tags?.map((ht: any) => ht.tag).filter(Boolean) || [];
     
     return {
       ...hack,
@@ -50,8 +55,10 @@ export async function getHacks() {
       completion_count: completions.length,
       is_liked: user ? likes.some((like: any) => like.user_id === user.id) : false,
       is_completed: user ? completions.some((comp: any) => comp.user_id === user.id) : false,
+      tags,
       user_hack_likes: undefined,
       user_hack_completions: undefined,
+      hack_tags: undefined,
     };
   });
 }
@@ -198,4 +205,76 @@ export async function getAllHacksForSelect() {
   }
 
   return hacks;
+}
+
+export async function getRecommendedHacks(userId?: string) {
+  const supabase = await createClient();
+  
+  // If no user ID provided, try to get current user
+  if (!userId) {
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id;
+  }
+  
+  // If still no user, return all hacks
+  if (!userId) {
+    return getHacks();
+  }
+  
+  // Get recommended hacks based on user tags
+  const { data: recommendedHacks, error } = await supabase
+    .rpc('get_recommended_hacks', {
+      user_uuid: userId
+    });
+  
+  if (error) {
+    console.error('Error fetching recommended hacks:', error);
+    // Fallback to all hacks
+    return getHacks();
+  }
+  
+  // Get full hack details for recommended hacks
+  if (recommendedHacks && recommendedHacks.length > 0) {
+    const hackIds = recommendedHacks.map((h: any) => h.hack_id);
+    
+    const { data: hacks, error: hacksError } = await supabase
+      .from('hacks')
+      .select(`
+        *,
+        user_hack_likes!left(id, user_id),
+        user_hack_completions!left(id, user_id),
+        hack_tags(
+          tag:tags(id, name, slug)
+        )
+      `)
+      .in('id', hackIds)
+      .order('created_at', { ascending: false });
+    
+    if (hacksError) {
+      console.error('Error fetching hack details:', hacksError);
+      return [];
+    }
+    
+    // Process the data
+    return hacks.map(hack => {
+      const likes = hack.user_hack_likes || [];
+      const completions = hack.user_hack_completions || [];
+      const tags = hack.hack_tags?.map((ht: any) => ht.tag).filter(Boolean) || [];
+      
+      return {
+        ...hack,
+        like_count: likes.length,
+        completion_count: completions.length,
+        is_liked: userId ? likes.some((like: any) => like.user_id === userId) : false,
+        is_completed: userId ? completions.some((comp: any) => comp.user_id === userId) : false,
+        tags,
+        user_hack_likes: undefined,
+        user_hack_completions: undefined,
+        hack_tags: undefined,
+      };
+    });
+  }
+  
+  // If user has no tags, return all hacks
+  return getHacks();
 }

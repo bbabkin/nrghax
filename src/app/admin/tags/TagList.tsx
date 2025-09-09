@@ -1,0 +1,160 @@
+'use client';
+
+import { useState } from 'react';
+import { Tag } from '@/lib/tags/types';
+import { Edit2, Trash2, Save, X } from 'lucide-react';
+
+interface TagListProps {
+  initialTags: Tag[];
+}
+
+export function TagList({ initialTags }: TagListProps) {
+  const [tags, setTags] = useState(initialTags);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredTags = tags.filter(tag =>
+    tag.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleEdit = (tag: Tag) => {
+    setEditingId(tag.id);
+    setEditingName(tag.name);
+  };
+
+  const handleSave = async (id: string) => {
+    if (!editingName.trim()) return;
+    
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/admin/tags/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: editingName }),
+      });
+      
+      if (response.ok) {
+        setTags(tags.map(t => t.id === id ? { ...t, name: editingName } : t));
+        setEditingId(null);
+      } else {
+        alert('Failed to update tag. It may already exist.');
+      }
+    } catch (error) {
+      console.error('Failed to update tag:', error);
+      alert('Failed to update tag.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this tag?')) return;
+    
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/admin/tags/${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.ok) {
+        setTags(tags.filter(t => t.id !== id));
+      } else {
+        alert('Failed to delete tag.');
+      }
+    } catch (error) {
+      console.error('Failed to delete tag:', error);
+      alert('Failed to delete tag.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setEditingName('');
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow">
+      <div className="p-6 border-b">
+        <h2 className="text-xl font-semibold mb-4">All Tags</h2>
+        <input
+          type="text"
+          placeholder="Search tags..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+      
+      <div className="divide-y">
+        {filteredTags.length === 0 ? (
+          <div className="p-6 text-center text-gray-500">
+            {searchQuery ? 'No tags found matching your search.' : 'No tags created yet.'}
+          </div>
+        ) : (
+          filteredTags.map(tag => (
+            <div key={tag.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
+              {editingId === tag.id ? (
+                <div className="flex items-center gap-2 flex-1">
+                  <input
+                    type="text"
+                    value={editingName}
+                    onChange={(e) => setEditingName(e.target.value)}
+                    className="flex-1 px-3 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={loading}
+                  />
+                  <button
+                    onClick={() => handleSave(tag.id)}
+                    disabled={loading}
+                    className="p-1 text-green-600 hover:bg-green-50 rounded"
+                  >
+                    <Save className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    disabled={loading}
+                    className="p-1 text-gray-600 hover:bg-gray-100 rounded"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <div className="font-medium">{tag.name}</div>
+                    <div className="text-sm text-gray-500">{tag.slug}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleEdit(tag)}
+                      className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(tag.id)}
+                      className="p-1 text-red-600 hover:bg-red-50 rounded"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+      
+      {filteredTags.length > 0 && (
+        <div className="p-4 border-t text-sm text-gray-500">
+          Showing {filteredTags.length} of {tags.length} tags
+        </div>
+      )}
+    </div>
+  );
+}

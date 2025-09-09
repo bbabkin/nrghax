@@ -4,6 +4,7 @@ import { logger } from './utils/logger';
 import { CommandHandler } from './handlers/commandHandler';
 import { ErrorService, ErrorSeverity } from './services/errorService';
 import { RoleSyncService } from './services/roleSyncService';
+import { TagSyncService } from './services/tagSyncService';
 
 // Load environment variables
 dotenv.config();
@@ -38,6 +39,7 @@ const client = new Client({
 let commandHandler: CommandHandler;
 let errorService: ErrorService;
 let roleSyncService: RoleSyncService;
+let tagSyncService: TagSyncService;
 
 // Handle client ready event
 client.once(Events.ClientReady, async (readyClient) => {
@@ -52,6 +54,7 @@ client.once(Events.ClientReady, async (readyClient) => {
   commandHandler = new CommandHandler(client);
   errorService = new ErrorService(client);
   roleSyncService = new RoleSyncService(client);
+  tagSyncService = new TagSyncService(client);
 
   // Deploy commands
   try {
@@ -62,6 +65,9 @@ client.once(Events.ClientReady, async (readyClient) => {
 
   // Start role sync
   roleSyncService.startPeriodicSync();
+  
+  // Initialize tag sync service
+  await tagSyncService.initialize();
 
   // Ensure NRG roles exist in all guilds
   for (const [guildId, guild] of client.guilds.cache) {
@@ -165,6 +171,10 @@ process.on('SIGINT', async () => {
     roleSyncService.stopPeriodicSync();
   }
   
+  if (tagSyncService) {
+    tagSyncService.stopPeriodicSync();
+  }
+  
   client.destroy();
   process.exit(0);
 });
@@ -174,6 +184,10 @@ process.on('SIGTERM', async () => {
   
   if (roleSyncService) {
     roleSyncService.stopPeriodicSync();
+  }
+  
+  if (tagSyncService) {
+    tagSyncService.stopPeriodicSync();
   }
   
   client.destroy();

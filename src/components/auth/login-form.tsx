@@ -18,7 +18,7 @@ export function LoginForm() {
     const formData = new FormData(e.currentTarget)
     
     try {
-      const response = await fetch('/auth/login', {
+      const response = await fetch('/auth/simple-login', {
         method: 'POST',
         body: formData,
         redirect: 'manual',
@@ -27,14 +27,27 @@ export function LoginForm() {
       // Check if login was successful based on redirect
       if (response.type === 'opaqueredirect' || response.status === 301 || response.status === 302) {
         // Login successful, the browser will handle the redirect
+        toast({
+          title: 'Success',
+          description: 'Login successful! Redirecting...',
+        })
         window.location.href = '/dashboard'
       } else {
-        // Login failed
-        toast({
-          title: 'Error',
-          description: 'Invalid login credentials',
-          variant: 'destructive',
-        })
+        // Login failed - parse error message from response
+        try {
+          const errorData = await response.json()
+          toast({
+            title: 'Login Failed',
+            description: errorData.error || 'Invalid login credentials',
+            variant: 'destructive',
+          })
+        } catch {
+          toast({
+            title: 'Login Failed',
+            description: 'Invalid email or password. Please try again.',
+            variant: 'destructive',
+          })
+        }
         setIsLoading(false)
       }
     } catch (error) {

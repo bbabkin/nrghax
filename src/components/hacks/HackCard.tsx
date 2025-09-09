@@ -22,6 +22,7 @@ interface HackCardProps {
     like_count?: number;
     is_liked?: boolean;
     is_completed?: boolean;
+    tags?: Array<{ id: string; name: string; slug: string }>;
   };
   hasIncompletePrerequisites?: boolean;
   isAdmin?: boolean;
@@ -104,6 +105,20 @@ export function HackCard({
           )}
         </div>
         <p className="text-sm text-gray-600 line-clamp-2">{hack.description}</p>
+        
+        {/* Display tags as pills below description */}
+        {hack.tags && hack.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-3">
+            {hack.tags.map(tag => (
+              <span
+                key={tag.id}
+                className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full"
+              >
+                {tag.name}
+              </span>
+            ))}
+          </div>
+        )}
       </CardContent>
 
       {showActions && (
