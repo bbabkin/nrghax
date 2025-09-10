@@ -171,7 +171,7 @@ export class RecommendationEngine {
         .select('tag:tags(id, name, slug)')
         .eq('user_id', userId);
       
-      const tags = userTags?.map(ut => ut.tag).filter(Boolean) || [];
+      const tags = userTags?.map(ut => ut.tag).filter(Boolean).flat() || [];
       
       // Get count of recommended hacks
       const recommendedHacks = await this.getRecommendedHacks(userId);

@@ -42,15 +42,19 @@ export class TagService {
     // Check if it's a UUID
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
     
-    const query = supabase
-      .from('tags')
-      .select('*')
-      .is('deleted_at', null)
-      .single();
-    
     const { data, error } = isUuid 
-      ? await query.eq('id', idOrSlug)
-      : await query.eq('slug', idOrSlug);
+      ? await supabase
+          .from('tags')
+          .select('*')
+          .is('deleted_at', null)
+          .eq('id', idOrSlug)
+          .single()
+      : await supabase
+          .from('tags')
+          .select('*')
+          .is('deleted_at', null)
+          .eq('slug', idOrSlug)
+          .single();
     
     if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
       console.error('Error fetching tag:', error);

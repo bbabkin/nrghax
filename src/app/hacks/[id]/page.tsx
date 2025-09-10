@@ -34,11 +34,12 @@ async function LikeButton({ hackId, isLiked, likeCount }: {
   );
 }
 
-export default async function HackPage({ params }: { params: { id: string } }) {
+export default async function HackPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   
-  const hack = await getHackById(params.id);
+  const hack = await getHackById(resolvedParams.id);
   if (!hack) {
     notFound();
   }
@@ -46,7 +47,7 @@ export default async function HackPage({ params }: { params: { id: string } }) {
   // Check if user has completed prerequisites
   let canAccess = true;
   if (user) {
-    canAccess = await checkPrerequisitesCompleted(params.id, user.id);
+    canAccess = await checkPrerequisitesCompleted(resolvedParams.id, user.id);
   } else if (hack.prerequisites && hack.prerequisites.length > 0) {
     canAccess = false;
   }
@@ -55,14 +56,14 @@ export default async function HackPage({ params }: { params: { id: string } }) {
   if (hack.content_type === 'link' && hack.external_link && canAccess) {
     // Mark as complete before redirecting
     if (user) {
-      await markHackComplete(params.id);
+      await markHackComplete(resolvedParams.id);
     }
     redirect(hack.external_link);
   }
 
   // Mark as complete for internal content
   if (hack.content_type === 'content' && canAccess && user) {
-    await markHackComplete(params.id);
+    await markHackComplete(resolvedParams.id);
   }
 
   return (
@@ -146,7 +147,7 @@ export default async function HackPage({ params }: { params: { id: string } }) {
 
             <div className="flex items-center gap-4">
               <LikeButton 
-                hackId={params.id} 
+                hackId={resolvedParams.id} 
                 isLiked={hack.is_liked || false}
                 likeCount={hack.like_count || 0}
               />

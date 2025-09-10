@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Tag } from '@/lib/tags/types';
-import { Check, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface Hack {
   id: string;
@@ -38,8 +38,15 @@ export function TagAssignment({ initialTags, initialHacks }: TagAssignmentProps)
     const tags: Record<string, string[]> = {};
     
     for (const hack of initialHacks) {
-      const hackTagList = await TagService.getHackTags(hack.id);
-      tags[hack.id] = hackTagList.map(t => t.id);
+      try {
+        const response = await fetch(`/api/admin/tags/hack/${hack.id}`);
+        if (response.ok) {
+          const hackTagList = await response.json();
+          tags[hack.id] = hackTagList.map((t: any) => t.id);
+        }
+      } catch (error) {
+        console.error(`Error loading tags for hack ${hack.id}:`, error);
+      }
     }
     
     setHackTags(tags);
@@ -78,7 +85,11 @@ export function TagAssignment({ initialTags, initialHacks }: TagAssignmentProps)
       if (mode === 'single') {
         // Single hack mode - replace all tags
         const hackId = selectedHacks[0];
-        await TagService.bulkAssignTagsToHack(hackId, selectedTags);
+        await fetch(`/api/admin/tags/hack/${hackId}/bulk`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tag_ids: selectedTags })
+        });
         setHackTags({
           ...hackTags,
           [hackId]: selectedTags
@@ -86,9 +97,13 @@ export function TagAssignment({ initialTags, initialHacks }: TagAssignmentProps)
         alert('Tags updated successfully!');
       } else {
         // Bulk mode - add tags to multiple hacks
-        await TagService.bulkAssignTagsToHacks({
-          hack_ids: selectedHacks,
-          tag_ids: selectedTags
+        await fetch('/api/admin/tags/bulk-assign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            hack_ids: selectedHacks,
+            tag_ids: selectedTags
+          })
         });
         
         // Update local state
@@ -119,13 +134,17 @@ export function TagAssignment({ initialTags, initialHacks }: TagAssignmentProps)
     
     try {
       if (remove) {
-        await TagService.removeTagFromHack(hackId, tagId);
+        await fetch(`/api/admin/tags/hack/${hackId}/${tagId}`, {
+          method: 'DELETE'
+        });
         setHackTags({
           ...hackTags,
           [hackId]: hackTags[hackId].filter(id => id !== tagId)
         });
       } else {
-        await TagService.assignTagToHack(hackId, tagId);
+        await fetch(`/api/admin/tags/hack/${hackId}/${tagId}`, {
+          method: 'POST'
+        });
         setHackTags({
           ...hackTags,
           [hackId]: [...(hackTags[hackId] || []), tagId]

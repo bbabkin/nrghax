@@ -55,6 +55,12 @@ describe('Hack Server Actions', () => {
     }
 
     it('should create a hack successfully for admin user', async () => {
+      // Mock user authentication
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'admin-123' } },
+        error: null
+      })
+      
       // Mock admin check
       mockSupabase.single.mockResolvedValueOnce({
         data: { is_admin: true },

@@ -23,7 +23,8 @@ async function DeleteButton({ hackId }: { hackId: string }) {
   );
 }
 
-export default async function EditHackPage({ params }: { params: { id: string } }) {
+export default async function EditHackPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   const supabase = await createClient();
   
   // Check if user is admin
@@ -42,7 +43,7 @@ export default async function EditHackPage({ params }: { params: { id: string } 
     redirect('/');
   }
 
-  const hack = await getHackWithPrerequisites(params.id);
+  const hack = await getHackWithPrerequisites(resolvedParams.id);
   if (!hack) {
     notFound();
   }
@@ -53,7 +54,7 @@ export default async function EditHackPage({ params }: { params: { id: string } 
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Edit Hack</h1>
-        <DeleteButton hackId={params.id} />
+        <DeleteButton hackId={resolvedParams.id} />
       </div>
       <HackForm hack={hack} availableHacks={availableHacks} userId={user.id} />
     </div>

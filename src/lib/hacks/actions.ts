@@ -18,10 +18,17 @@ export type HackFormData = {
 export async function createHack(formData: HackFormData) {
   const supabase = await createClient();
   
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('Unauthorized: Not logged in');
+  }
+  
   // Check if user is admin
   const { data: profile } = await supabase
     .from('profiles')
     .select('is_admin')
+    .eq('id', user.id)
     .single();
     
   if (!profile?.is_admin) {
@@ -95,10 +102,17 @@ export async function createHack(formData: HackFormData) {
 export async function updateHack(id: string, formData: HackFormData) {
   const supabase = await createClient();
   
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('Unauthorized: Not logged in');
+  }
+  
   // Check if user is admin
   const { data: profile } = await supabase
     .from('profiles')
     .select('is_admin')
+    .eq('id', user.id)
     .single();
     
   if (!profile?.is_admin) {
@@ -175,10 +189,17 @@ export async function updateHack(id: string, formData: HackFormData) {
 export async function deleteHack(id: string) {
   const supabase = await createClient();
   
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('Unauthorized: Not logged in');
+  }
+  
   // Check if user is admin
   const { data: profile } = await supabase
     .from('profiles')
     .select('is_admin')
+    .eq('id', user.id)
     .single();
     
   if (!profile?.is_admin) {
@@ -271,7 +292,6 @@ export async function markHackComplete(hackId: string) {
     }
   }
 
-  revalidatePath('/hacks');
-  revalidatePath(`/hacks/${hackId}`);
-  revalidatePath('/profile/history');
+  // Note: revalidatePath cannot be called during render
+  // These paths will be revalidated on next navigation
 }

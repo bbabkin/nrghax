@@ -18,7 +18,7 @@ export function LoginForm() {
     const formData = new FormData(e.currentTarget)
     
     try {
-      const response = await fetch('/auth/simple-login', {
+      const response = await fetch('/auth/login', {
         method: 'POST',
         body: formData,
         redirect: 'manual',
