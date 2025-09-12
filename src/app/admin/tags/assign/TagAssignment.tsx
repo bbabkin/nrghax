@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Tag } from '@/lib/tags/types';
 import { X } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 interface Hack {
   id: string;
@@ -16,6 +17,7 @@ interface TagAssignmentProps {
 }
 
 export function TagAssignment({ initialTags, initialHacks }: TagAssignmentProps) {
+  const { toast } = useToast();
   const [selectedHacks, setSelectedHacks] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [hackTags, setHackTags] = useState<Record<string, string[]>>({});
@@ -75,7 +77,11 @@ export function TagAssignment({ initialTags, initialHacks }: TagAssignmentProps)
 
   const handleSave = async () => {
     if (selectedHacks.length === 0) {
-      alert('Please select at least one hack');
+      toast({
+        title: 'No hacks selected',
+        description: 'Please select at least one hack',
+        variant: 'destructive'
+      });
       return;
     }
 
@@ -85,37 +91,50 @@ export function TagAssignment({ initialTags, initialHacks }: TagAssignmentProps)
       if (mode === 'single') {
         // Single hack mode - replace all tags
         const hackId = selectedHacks[0];
-        await fetch(`/api/admin/tags/hack/${hackId}/bulk`, {
+        const response = await fetch(`/api/admin/tags/hack/${hackId}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tag_ids: selectedTags })
         });
+        
+        if (!response.ok) {
+          throw new Error('Failed to update tags');
+        }
+        
         setHackTags({
           ...hackTags,
           [hackId]: selectedTags
         });
-        alert('Tags updated successfully!');
+        
+        toast({
+          title: 'Success',
+          description: 'Tags updated successfully!'
+        });
       } else {
         // Bulk mode - add tags to multiple hacks
-        await fetch('/api/admin/tags/bulk-assign', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            hack_ids: selectedHacks,
-            tag_ids: selectedTags
-          })
-        });
-        
-        // Update local state
-        const newHackTags = { ...hackTags };
+        // For now, update each hack individually
         for (const hackId of selectedHacks) {
-          const existingTags = hackTags[hackId] || [];
-          const uniqueTags = [...new Set([...existingTags, ...selectedTags])];
-          newHackTags[hackId] = uniqueTags;
+          const response = await fetch(`/api/admin/tags/hack/${hackId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tag_ids: selectedTags })
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Failed to update tags for hack ${hackId}`);
+          }
+          
+          // Update local state
+          setHackTags({
+            ...hackTags,
+            [hackId]: selectedTags
+          });
         }
-        setHackTags(newHackTags);
         
-        alert(`Tags assigned to ${selectedHacks.length} hacks successfully!`);
+        toast({
+          title: 'Success',
+          description: `Tags assigned to ${selectedHacks.length} hacks successfully!`
+        });
       }
       
       // Reset selection
@@ -123,7 +142,11 @@ export function TagAssignment({ initialTags, initialHacks }: TagAssignmentProps)
       setSelectedTags([]);
     } catch (error) {
       console.error('Failed to assign tags:', error);
-      alert('Failed to assign tags. Please try again.');
+      toast({
+        title: 'Error',
+        description: 'Failed to assign tags. Please try again.',
+        variant: 'destructive'
+      });
     } finally {
       setLoading(false);
     }
@@ -152,6 +175,11 @@ export function TagAssignment({ initialTags, initialHacks }: TagAssignmentProps)
       }
     } catch (error) {
       console.error('Failed to update tag:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update tag',
+        variant: 'destructive'
+      });
     } finally {
       setLoadingHackId(null);
     }

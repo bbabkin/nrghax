@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import { Tag } from '@/lib/tags/types';
 import { Edit2, Trash2, Save, X } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 interface TagListProps {
   initialTags: Tag[];
 }
 
 export function TagList({ initialTags }: TagListProps) {
+  const { toast } = useToast();
   const [tags, setTags] = useState(initialTags);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
@@ -40,19 +42,32 @@ export function TagList({ initialTags }: TagListProps) {
       if (response.ok) {
         setTags(tags.map(t => t.id === id ? { ...t, name: editingName } : t));
         setEditingId(null);
+        toast({
+          title: 'Success',
+          description: `Tag updated to "${editingName}"`
+        });
       } else {
-        alert('Failed to update tag. It may already exist.');
+        toast({
+          title: 'Error',
+          description: 'Failed to update tag. It may already exist.',
+          variant: 'destructive'
+        });
       }
     } catch (error) {
       console.error('Failed to update tag:', error);
-      alert('Failed to update tag.');
+      toast({
+        title: 'Error',
+        description: 'Failed to update tag.',
+        variant: 'destructive'
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this tag?')) return;
+    // Simple confirmation - in production you'd want a proper modal
+    if (!window.confirm('Are you sure you want to delete this tag? This action cannot be undone.')) return;
     
     setLoading(true);
     try {
@@ -61,13 +76,26 @@ export function TagList({ initialTags }: TagListProps) {
       });
       
       if (response.ok) {
+        const deletedTag = tags.find(t => t.id === id);
         setTags(tags.filter(t => t.id !== id));
+        toast({
+          title: 'Success',
+          description: `Tag "${deletedTag?.name}" deleted successfully`
+        });
       } else {
-        alert('Failed to delete tag.');
+        toast({
+          title: 'Error',
+          description: 'Failed to delete tag. It may be in use.',
+          variant: 'destructive'
+        });
       }
     } catch (error) {
       console.error('Failed to delete tag:', error);
-      alert('Failed to delete tag.');
+      toast({
+        title: 'Error',
+        description: 'Failed to delete tag.',
+        variant: 'destructive'
+      });
     } finally {
       setLoading(false);
     }

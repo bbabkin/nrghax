@@ -96,7 +96,7 @@ export async function createHack(formData: HackFormData) {
   }
 
   revalidatePath('/admin/hacks');
-  redirect('/admin/hacks');
+  return hack;
 }
 
 export async function updateHack(id: string, formData: HackFormData) {

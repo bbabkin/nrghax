@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { RichTextEditor } from './RichTextEditor';
 import { PrerequisiteSelector } from './PrerequisiteSelector';
+import { TagSelector } from './TagSelector';
 import { createHackWithImage, updateHackWithImage } from '@/lib/hacks/client-actions';
 import { Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
@@ -38,6 +39,7 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
   const [prerequisites, setPrerequisites] = useState<string[]>(
     hack?.prerequisite_ids || []
   );
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(
@@ -128,10 +130,22 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
         prerequisite_ids: prerequisites,
       };
 
+      let hackId: string;
       if (hack) {
         await updateHackWithImage(hack.id, data, userId);
+        hackId = hack.id;
       } else {
-        await createHackWithImage(data, userId);
+        const result = await createHackWithImage(data, userId);
+        hackId = result.id;
+      }
+      
+      // Save tags if any are selected
+      if (selectedTags.length > 0 || hack) {
+        await fetch(`/api/admin/tags/hack/${hackId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tag_ids: selectedTags })
+        });
       }
       
       router.push('/admin/hacks');
@@ -275,6 +289,14 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
           selectedIds={prerequisites}
           onChange={setPrerequisites}
           currentHackId={hack?.id}
+        />
+      </div>
+
+      <div>
+        <TagSelector
+          hackId={hack?.id}
+          selectedTags={selectedTags}
+          onTagsChange={setSelectedTags}
         />
       </div>
 

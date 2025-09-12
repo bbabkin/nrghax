@@ -1,0 +1,24 @@
+{
+  "passed": [
+    "Verify tag in list: Test Automation Tag",
+    "Verify tag in list: Performance Testing",
+    "Verify tag in list: End-to-End Tests",
+    "Tag count verification: 3 tags",
+    "Assign tag to hack"
+  ],
+  "failed": [
+    "Create tag: Test Automation Tag - Toast verification failed",
+    "Create tag: Performance Testing - Toast verification failed",
+    "Create tag: End-to-End Tests - Toast verification failed",
+    "Duplicate tag prevention"
+  ],
+  "screenshots": [
+    "tag-crud-01-initial.png",
+    "tag-crud-02-created-1.png",
+    "tag-crud-02-created-2.png",
+    "tag-crud-02-created-3.png",
+    "tag-crud-03-duplicate-error.png",
+    "tag-crud-06-final-state.png",
+    "tag-crud-07-hack-with-tag.png"
+  ]
+}

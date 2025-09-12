@@ -157,6 +157,15 @@ export function HackCard({
     );
   }
 
+  // Don't wrap in Link if we're showing admin actions (to avoid nested links)
+  if (isAdmin && showActions) {
+    return (
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+        {cardContent}
+      </Card>
+    );
+  }
+
   return (
     <Link href={`/hacks/${hack.id}`}>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">

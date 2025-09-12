@@ -56,12 +56,12 @@ export function ProfileForm({ user }: ProfileFormProps) {
       
       const { error } = await supabase
         .from('profiles')
-        .upsert({
-          id: user.id,
+        .update({
           full_name: fullName,
           avatar_url: avatarUrl,
           updated_at: new Date().toISOString(),
         })
+        .eq('id', user.id)
 
       if (error) {
         throw error
@@ -115,11 +115,11 @@ export function ProfileForm({ user }: ProfileFormProps) {
       // Update profile with new avatar URL
       const { error: updateError } = await supabase
         .from('profiles')
-        .upsert({
-          id: user.id,
+        .update({
           avatar_url: publicUrl,
           updated_at: new Date().toISOString(),
         })
+        .eq('id', user.id)
 
       if (updateError) {
         throw updateError

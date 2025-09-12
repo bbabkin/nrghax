@@ -2,23 +2,27 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/ui/use-toast';
 
 export function CreateTagForm() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!name.trim()) {
-      setError('Tag name is required');
+      toast({
+        title: 'Validation Error',
+        description: 'Tag name is required',
+        variant: 'destructive'
+      });
       return;
     }
     
     setLoading(true);
-    setError('');
     
     try {
       // Call server action to create tag
@@ -33,15 +37,27 @@ export function CreateTagForm() {
       const data = await response.json();
       
       if (!response.ok) {
-        setError(data.error || 'Failed to create tag');
+        toast({
+          title: 'Error',
+          description: data.error || 'Failed to create tag',
+          variant: 'destructive'
+        });
         return;
       }
       
       setName('');
+      toast({
+        title: 'Success',
+        description: `Tag "${name}" created successfully`
+      });
       router.refresh();
     } catch (error: any) {
       console.error('Failed to create tag:', error);
-      setError(error.message || 'Failed to create tag');
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to create tag',
+        variant: 'destructive'
+      });
     } finally {
       setLoading(false);
     }
@@ -66,12 +82,6 @@ export function CreateTagForm() {
           This will be synced with Discord roles
         </p>
       </div>
-      
-      {error && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg">
-          {error}
-        </div>
-      )}
       
       <button
         type="submit"

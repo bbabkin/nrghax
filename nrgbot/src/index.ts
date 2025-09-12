@@ -28,10 +28,10 @@ for (const envVar of requiredEnvVars) {
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.DirectMessages,
-    GatewayIntentBits.MessageContent,
+    // GatewayIntentBits.GuildMembers, // Requires privileged intent
+    // GatewayIntentBits.GuildMessages,
+    // GatewayIntentBits.DirectMessages,
+    // GatewayIntentBits.MessageContent, // Requires privileged intent
   ],
 });
 
