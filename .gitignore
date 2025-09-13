@@ -1,5 +1,6 @@
 # Dependencies
 /node_modules
+bot/node_modules
 /.pnp
 .pnp.js
 
@@ -17,10 +18,13 @@
 # Production builds
 /build
 /dist
+bot/dist
 
 # Environment variables
 .env*.local
 .env.production
+bot/.env
+bot/.env.local
 
 # Debug
 npm-debug.log*
