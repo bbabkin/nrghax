@@ -65,8 +65,8 @@ nano .env
 
 # Add these variables:
 DISCORD_TOKEN=your-discord-bot-token-here
-DISCORD_CLIENT_ID=1411335145771761746
-DISCORD_GUILD_ID=1403106908159606834
+DISCORD_CLIENT_ID=your-discord-client-id
+DISCORD_GUILD_ID=your-discord-guild-id
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-production-service-role-key
 APP_URL=https://your-app-domain.com
