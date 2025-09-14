@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, Events, ActivityType } from 'discord.js';
+import { Client, GatewayIntentBits, Events, ActivityType, GuildMember } from 'discord.js';
 import dotenv from 'dotenv';
 import { logger } from './utils/logger';
 import { CommandHandler } from './handlers/commandHandler';
@@ -106,7 +106,7 @@ client.on(Events.GuildMemberUpdate, async (oldMember, newMember) => {
   }
   
   try {
-    await roleSyncService.handleDiscordRoleUpdate(oldMember, newMember);
+    await roleSyncService.handleDiscordRoleUpdate(oldMember as GuildMember, newMember as GuildMember);
   } catch (error) {
     await errorService.handleError(error, ErrorSeverity.LOW, {
       userId: newMember.id,

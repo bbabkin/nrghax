@@ -23,7 +23,6 @@ export class HackRepository {
       const { data, error } = await supabase
         .from('hacks')
         .select('*')
-        .eq('is_published', true)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -63,7 +62,6 @@ export class HackRepository {
         .from('hacks')
         .select('*')
         .eq('id', hackId)
-        .eq('is_published', true)
         .single();
 
       if (error && error.code !== 'PGRST116') {
@@ -86,7 +84,6 @@ export class HackRepository {
       const { data, error } = await supabase
         .from('hacks')
         .select('*')
-        .eq('is_published', true)
         .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
         .limit(10);
 

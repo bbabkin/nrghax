@@ -26,6 +26,6 @@ export const CONSTANTS = {
     ERROR_GENERIC: "Whoops! Hit a snag there. Let me try that again... 🔧",
     ERROR_NOT_FOUND: "Couldn't find what you're looking for. Let's explore other hacks! 🔍",
     SYNC_SUCCESS: "Your roles are all synced up! You're good to go! ✨",
-    PING_RESPONSE: "I'm here and ready to help you optimize your energy! ⚡",
+    PING_RESPONSE: "🎯 NRGHax Bot v2 ACTIVE! Database connected with 6 hacks ready to share! 🚀",
   }
 } as const;

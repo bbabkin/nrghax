@@ -1,17 +1,17 @@
 import {
   SlashCommandBuilder,
   EmbedBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  ComponentType,
   ChatInputCommandInteraction,
 } from 'discord.js';
 import { Command } from '../types/command';
 import { CONSTANTS } from '../config/constants';
 import { hackRepository } from '../database/repositories/hackRepository';
-import { Hack } from '../database/supabase';
 import { logger } from '../utils/logger';
+import {
+  createHackCard,
+  createHackButtons,
+  sendHackCarousel,
+} from '../utils/hackCards';
 
 export const hackCommand: Command = {
   data: new SlashCommandBuilder()
@@ -125,20 +125,9 @@ async function handleListHacks(interaction: ChatInputCommandInteraction): Promis
   await interaction.deferReply();
 
   const hacks = await hackRepository.getAllHacks();
-  
-  if (hacks.length === 0) {
-    const embed = new EmbedBuilder()
-      .setColor(CONSTANTS.BRAND_COLOR)
-      .setTitle('No Hacks Available')
-      .setDescription('Check back soon for new energy optimization hacks!')
-      .setFooter({ text: CONSTANTS.FOOTER_TEXT })
-      .setTimestamp();
-    
-    await interaction.editReply({ embeds: [embed] });
-    return;
-  }
 
-  await sendPaginatedHacks(interaction, hacks, 'All Energy Hacks');
+  // Use the new carousel display for all hacks
+  await sendHackCarousel(interaction, hacks, 'All Energy Hacks');
 }
 
 async function handleSearchHacks(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -154,12 +143,12 @@ async function handleSearchHacks(interaction: ChatInputCommandInteraction): Prom
       .setDescription(`${CONSTANTS.MESSAGES.ERROR_NOT_FOUND}\nTry searching with different keywords!`)
       .setFooter({ text: CONSTANTS.FOOTER_TEXT })
       .setTimestamp();
-    
+
     await interaction.editReply({ embeds: [embed] });
     return;
   }
 
-  await sendPaginatedHacks(interaction, hacks, `Search Results for "${query}"`);
+  await sendHackCarousel(interaction, hacks, `Search Results for "${query}"`);
 }
 
 async function handleCategoryHacks(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -175,7 +164,7 @@ async function handleCategoryHacks(interaction: ChatInputCommandInteraction): Pr
       .setDescription(`No hacks found in the ${category} category yet. Check back soon!`)
       .setFooter({ text: CONSTANTS.FOOTER_TEXT })
       .setTimestamp();
-    
+
     await interaction.editReply({ embeds: [embed] });
     return;
   }
@@ -189,7 +178,7 @@ async function handleCategoryHacks(interaction: ChatInputCommandInteraction): Pr
     mindfulness: 'Mindfulness',
   };
 
-  await sendPaginatedHacks(interaction, hacks, `${categoryNames[category]} Hacks`);
+  await sendHackCarousel(interaction, hacks, `${categoryNames[category]} Hacks`);
 }
 
 async function handleViewHack(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -205,184 +194,18 @@ async function handleViewHack(interaction: ChatInputCommandInteraction): Promise
       .setDescription(CONSTANTS.MESSAGES.ERROR_NOT_FOUND)
       .setFooter({ text: CONSTANTS.FOOTER_TEXT })
       .setTimestamp();
-    
+
     await interaction.editReply({ embeds: [embed] });
     return;
   }
 
-  const embed = createHackEmbed(hack, true);
-  await interaction.editReply({ embeds: [embed] });
-}
-
-async function sendPaginatedHacks(interaction: ChatInputCommandInteraction, hacks: Hack[], title: string) {
-  let currentPage = 0;
-  const totalPages = Math.ceil(hacks.length / CONSTANTS.HACKS_PER_PAGE);
-
-  const generateEmbed = (page: number) => {
-    const start = page * CONSTANTS.HACKS_PER_PAGE;
-    const end = start + CONSTANTS.HACKS_PER_PAGE;
-    const pageHacks = hacks.slice(start, end);
-
-    const embed = new EmbedBuilder()
-      .setColor(CONSTANTS.BRAND_COLOR)
-      .setTitle(`${title} (Page ${page + 1}/${totalPages})`)
-      .setDescription(CONSTANTS.MESSAGES.HACK_INTRO)
-      .setFooter({ text: CONSTANTS.FOOTER_TEXT })
-      .setTimestamp();
-
-    pageHacks.forEach(hack => {
-      const difficulty = hack.difficulty ? ` • ${hack.difficulty}` : '';
-      const impact = hack.energy_impact ? ` • Energy: +${hack.energy_impact}%` : '';
-      
-      embed.addFields({
-        name: `${hack.name}${difficulty}${impact}`,
-        value: `${hack.description.substring(0, 100)}${hack.description.length > 100 ? '...' : ''}\n` +
-               `ID: \`${hack.id}\` | Category: ${hack.category || 'General'}`,
-        inline: false,
-      });
-    });
-
-    return embed;
-  };
-
-  const generateButtons = (page: number) => {
-    const row = new ActionRowBuilder<ButtonBuilder>()
-      .addComponents(
-        new ButtonBuilder()
-          .setCustomId('first')
-          .setLabel('⏮️ First')
-          .setStyle(ButtonStyle.Secondary)
-          .setDisabled(page === 0),
-        new ButtonBuilder()
-          .setCustomId('prev')
-          .setLabel('◀️ Previous')
-          .setStyle(ButtonStyle.Primary)
-          .setDisabled(page === 0),
-        new ButtonBuilder()
-          .setCustomId('next')
-          .setLabel('Next ▶️')
-          .setStyle(ButtonStyle.Primary)
-          .setDisabled(page === totalPages - 1),
-        new ButtonBuilder()
-          .setCustomId('last')
-          .setLabel('Last ⏭️')
-          .setStyle(ButtonStyle.Secondary)
-          .setDisabled(page === totalPages - 1)
-      );
-    return row;
-  };
-
-  const message = await interaction.editReply({
-    embeds: [generateEmbed(currentPage)],
-    components: totalPages > 1 ? [generateButtons(currentPage)] : [],
-  });
-
-  if (totalPages <= 1) return;
-
-  const collector = message.createMessageComponentCollector({
-    componentType: ComponentType.Button,
-    time: 300000, // 5 minutes
-  });
-
-  collector.on('collect', async (i: any) => {
-    if (i.user.id !== interaction.user.id) {
-      await i.reply({
-        content: 'You cannot use these buttons.',
-        ephemeral: true,
-      });
-      return;
-    }
-
-    switch (i.customId) {
-      case 'first':
-        currentPage = 0;
-        break;
-      case 'prev':
-        currentPage = Math.max(0, currentPage - 1);
-        break;
-      case 'next':
-        currentPage = Math.min(totalPages - 1, currentPage + 1);
-        break;
-      case 'last':
-        currentPage = totalPages - 1;
-        break;
-    }
-
-    await i.update({
-      embeds: [generateEmbed(currentPage)],
-      components: [generateButtons(currentPage)],
-    });
-  });
-
-  collector.on('end', async () => {
-    await interaction.editReply({
-      components: [],
-    });
+  // Show single hack with full details and action buttons
+  const embed = createHackCard(hack, true);
+  const buttons = createHackButtons(hack);
+  await interaction.editReply({
+    embeds: [embed],
+    components: [buttons]
   });
 }
 
-function createHackEmbed(hack: Hack, detailed = false): EmbedBuilder {
-  const embed = new EmbedBuilder()
-    .setColor(CONSTANTS.BRAND_COLOR)
-    .setTitle(hack.name)
-    .setDescription(hack.description)
-    .setFooter({ text: CONSTANTS.FOOTER_TEXT })
-    .setTimestamp();
-
-  if (detailed) {
-    if (hack.requirements && hack.requirements.length > 0) {
-      embed.addFields({
-        name: '📋 Requirements',
-        value: hack.requirements.map(r => `• ${r}`).join('\n'),
-        inline: false,
-      });
-    }
-
-    const fields = [];
-    
-    if (hack.category) {
-      fields.push({ name: 'Category', value: hack.category, inline: true });
-    }
-    
-    if (hack.difficulty) {
-      const difficultyEmoji = {
-        beginner: '🟢',
-        intermediate: '🟡',
-        advanced: '🔴',
-      };
-      fields.push({
-        name: 'Difficulty',
-        value: `${difficultyEmoji[hack.difficulty]} ${hack.difficulty}`,
-        inline: true,
-      });
-    }
-    
-    if (hack.energy_impact) {
-      fields.push({
-        name: 'Energy Impact',
-        value: `+${hack.energy_impact}%`,
-        inline: true,
-      });
-    }
-    
-    if (hack.time_investment) {
-      fields.push({
-        name: 'Time Investment',
-        value: hack.time_investment,
-        inline: true,
-      });
-    }
-
-    if (fields.length > 0) {
-      embed.addFields(fields);
-    }
-
-    embed.addFields({
-      name: 'How to Use',
-      value: 'Start implementing this hack today to boost your energy levels! Track your progress and share your results with the community.',
-      inline: false,
-    });
-  }
-
-  return embed;
-}
+// Old pagination and embed functions removed - now using hackCards utility

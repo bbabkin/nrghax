@@ -53,9 +53,11 @@ export interface Hack {
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
   energy_impact?: number;
   time_investment?: string;
+  image_url?: string;
+  content_type?: string;
+  external_link?: string;
   created_at: string;
   updated_at: string;
-  is_published: boolean;
 }
 
 export interface UserHack {
