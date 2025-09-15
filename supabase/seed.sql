@@ -100,19 +100,49 @@ BEGIN
   RAISE NOTICE '  John: john@test.com / test123';
 END $$;
 
--- Create tags (simulating Discord roles)
-INSERT INTO public.tags (id, name, slug, created_by)
-VALUES 
-  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Beginner', 'beginner', '11111111-1111-1111-1111-111111111111'),
-  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Intermediate', 'intermediate', '11111111-1111-1111-1111-111111111111'),
-  ('cccccccc-cccc-cccc-cccc-cccccccccccc', 'Advanced', 'advanced', '11111111-1111-1111-1111-111111111111'),
-  ('dddddddd-dddd-dddd-dddd-dddddddddddd', 'Energy Worker', 'energy-worker', '11111111-1111-1111-1111-111111111111'),
-  ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Energy Master', 'energy-master', '11111111-1111-1111-1111-111111111111'),
-  ('ffffffff-ffff-ffff-ffff-ffffffffffff', 'Verified', 'verified', '11111111-1111-1111-1111-111111111111'),
-  ('11111111-2222-3333-4444-555555555555', 'Morning Person', 'morning-person', '11111111-1111-1111-1111-111111111111'),
-  ('22222222-3333-4444-5555-666666666666', 'Night Owl', 'night-owl', '11111111-1111-1111-1111-111111111111'),
-  ('33333333-4444-5555-6666-777777777777', 'Meditation', 'meditation', '11111111-1111-1111-1111-111111111111'),
-  ('44444444-5555-6666-7777-888888888888', 'Breathwork', 'breathwork', '11111111-1111-1111-1111-111111111111')
+-- Create tags with new tag_type system
+-- User experience level tags (mutually exclusive)
+INSERT INTO public.tags (id, name, slug, tag_type, is_user_assignable, display_order, description, discord_role_name, created_by)
+VALUES
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Beginner', 'beginner', 'user_experience', true, 1,
+   'New to cybersecurity and hacking', 'Beginner', '11111111-1111-1111-1111-111111111111'),
+  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Intermediate', 'intermediate', 'user_experience', true, 2,
+   'Some experience with security concepts and tools', 'Intermediate', '11111111-1111-1111-1111-111111111111'),
+  ('cccccccc-cccc-cccc-cccc-cccccccccccc', 'Expert', 'expert', 'user_experience', true, 3,
+   'Advanced knowledge and practical experience', 'Expert', '11111111-1111-1111-1111-111111111111')
+ON CONFLICT (id) DO NOTHING;
+
+-- User interest tags (can have multiple)
+INSERT INTO public.tags (id, name, slug, tag_type, is_user_assignable, display_order, description, discord_role_name, created_by)
+VALUES
+  ('11111111-2222-3333-4444-555555555555', 'Web Security', 'web-security', 'user_interest', true, 10,
+   'Interest in web application security, XSS, SQL injection, etc.', 'Web Security', '11111111-1111-1111-1111-111111111111'),
+  ('22222222-3333-4444-5555-666666666666', 'Binary Exploitation', 'binary-exploitation', 'user_interest', true, 11,
+   'Interest in reverse engineering, buffer overflows, ROP chains', 'Binary Exploitation', '11111111-1111-1111-1111-111111111111'),
+  ('33333333-4444-5555-6666-777777777777', 'Cryptography', 'cryptography', 'user_interest', true, 12,
+   'Interest in encryption, hashing, cryptanalysis', 'Cryptography', '11111111-1111-1111-1111-111111111111'),
+  ('44444444-5555-6666-7777-888888888888', 'Network Security', 'network-security', 'user_interest', true, 13,
+   'Interest in network protocols, packet analysis, pentesting', 'Network Security', '11111111-1111-1111-1111-111111111111')
+ON CONFLICT (id) DO NOTHING;
+
+-- Special user tags (admin-managed)
+INSERT INTO public.tags (id, name, slug, tag_type, is_user_assignable, display_order, description, discord_role_name, created_by)
+VALUES
+  ('ffffffff-ffff-ffff-ffff-ffffffffffff', 'Verified', 'verified', 'user_special', false, 50,
+   'Verified security researcher or professional', 'Verified', '11111111-1111-1111-1111-111111111111'),
+  ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Mentor', 'mentor', 'user_special', false, 51,
+   'Community mentor who helps other users', 'Mentor', '11111111-1111-1111-1111-111111111111')
+ON CONFLICT (id) DO NOTHING;
+
+-- Content tags for hacks
+INSERT INTO public.tags (id, name, slug, tag_type, is_user_assignable, display_order, description, created_by)
+VALUES
+  ('dddddddd-dddd-dddd-dddd-dddddddddddd', 'Easy', 'easy', 'content', false, 100,
+   'Suitable for beginners', '11111111-1111-1111-1111-111111111111'),
+  ('e1111111-1111-1111-1111-111111111111', 'Medium', 'medium', 'content', false, 101,
+   'Requires some experience', '11111111-1111-1111-1111-111111111111'),
+  ('e2222222-2222-2222-2222-222222222222', 'Hard', 'hard', 'content', false, 102,
+   'Challenging for experienced users', '11111111-1111-1111-1111-111111111111')
 ON CONFLICT (id) DO NOTHING;
 
 -- Create hacks
@@ -144,50 +174,53 @@ ON CONFLICT (id) DO NOTHING;
 
 -- External link for the link-type hack is already set in the INSERT above
 
--- Assign tags to hacks
+-- Assign tags to hacks (using content tags for difficulty and interest tags for topics)
 INSERT INTO public.hack_tags (hack_id, tag_id, assigned_by)
-VALUES 
-  -- Morning Energy Boost - Beginner, Morning Person
-  ('a1111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111'),
+VALUES
+  -- Morning Energy Boost - Easy, Web Security
+  ('a1111111-1111-1111-1111-111111111111', 'dddddddd-dddd-dddd-dddd-dddddddddddd', '11111111-1111-1111-1111-111111111111'),
   ('a1111111-1111-1111-1111-111111111111', '11111111-2222-3333-4444-555555555555', '11111111-1111-1111-1111-111111111111'),
-  
-  -- Grounding Meditation - Beginner, Meditation
-  ('a2222222-2222-2222-2222-222222222222', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111'),
+
+  -- Grounding Meditation - Easy, Cryptography
+  ('a2222222-2222-2222-2222-222222222222', 'dddddddd-dddd-dddd-dddd-dddddddddddd', '11111111-1111-1111-1111-111111111111'),
   ('a2222222-2222-2222-2222-222222222222', '33333333-4444-5555-6666-777777777777', '11111111-1111-1111-1111-111111111111'),
-  
-  -- Energy Shield - Intermediate, Energy Worker
-  ('a3333333-3333-3333-3333-333333333333', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '11111111-1111-1111-1111-111111111111'),
-  ('a3333333-3333-3333-3333-333333333333', 'dddddddd-dddd-dddd-dddd-dddddddddddd', '11111111-1111-1111-1111-111111111111'),
-  
-  -- Third Eye - Advanced, Energy Master, Meditation
-  ('a4444444-4444-4444-4444-444444444444', 'cccccccc-cccc-cccc-cccc-cccccccccccc', '11111111-1111-1111-1111-111111111111'),
-  ('a4444444-4444-4444-4444-444444444444', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', '11111111-1111-1111-1111-111111111111'),
+
+  -- Energy Shield - Medium, Network Security
+  ('a3333333-3333-3333-3333-333333333333', 'e1111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111'),
+  ('a3333333-3333-3333-3333-333333333333', '44444444-5555-6666-7777-888888888888', '11111111-1111-1111-1111-111111111111'),
+
+  -- Third Eye - Hard, Binary Exploitation, Cryptography
+  ('a4444444-4444-4444-4444-444444444444', 'e2222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111'),
+  ('a4444444-4444-4444-4444-444444444444', '22222222-3333-4444-5555-666666666666', '11111111-1111-1111-1111-111111111111'),
   ('a4444444-4444-4444-4444-444444444444', '33333333-4444-5555-6666-777777777777', '11111111-1111-1111-1111-111111111111'),
-  
-  -- Chakra Balancing - Intermediate, Energy Worker, Meditation
-  ('a5555555-5555-5555-5555-555555555555', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '11111111-1111-1111-1111-111111111111'),
-  ('a5555555-5555-5555-5555-555555555555', 'dddddddd-dddd-dddd-dddd-dddddddddddd', '11111111-1111-1111-1111-111111111111'),
-  ('a5555555-5555-5555-5555-555555555555', '33333333-4444-5555-6666-777777777777', '11111111-1111-1111-1111-111111111111'),
-  
-  -- Breathwork - Beginner, Breathwork
-  ('a6666666-6666-6666-6666-666666666666', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111'),
+
+  -- Chakra Balancing - Medium, Web Security
+  ('a5555555-5555-5555-5555-555555555555', 'e1111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111'),
+  ('a5555555-5555-5555-5555-555555555555', '11111111-2222-3333-4444-555555555555', '11111111-1111-1111-1111-111111111111'),
+
+  -- Breathwork - Easy, Network Security
+  ('a6666666-6666-6666-6666-666666666666', 'dddddddd-dddd-dddd-dddd-dddddddddddd', '11111111-1111-1111-1111-111111111111'),
   ('a6666666-6666-6666-6666-666666666666', '44444444-5555-6666-7777-888888888888', '11111111-1111-1111-1111-111111111111')
 ON CONFLICT (hack_id, tag_id) DO NOTHING;
 
--- Assign tags to users based on their Discord roles
+-- Assign tags to users based on their roles
 INSERT INTO public.user_tags (user_id, tag_id, source)
-VALUES 
-  -- Admin gets: Energy Master, Verified
-  ('11111111-1111-1111-1111-111111111111', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'discord'),
-  ('11111111-1111-1111-1111-111111111111', 'ffffffff-ffff-ffff-ffff-ffffffffffff', 'discord'),
-  
-  -- Test User gets: Beginner, Verified
-  ('22222222-2222-2222-2222-222222222222', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'discord'),
+VALUES
+  -- Admin gets: Expert (experience), Web Security (interest), Mentor and Verified (special)
+  ('11111111-1111-1111-1111-111111111111', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'system'),
+  ('11111111-1111-1111-1111-111111111111', '11111111-2222-3333-4444-555555555555', 'system'),
+  ('11111111-1111-1111-1111-111111111111', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'admin'),
+  ('11111111-1111-1111-1111-111111111111', 'ffffffff-ffff-ffff-ffff-ffffffffffff', 'admin'),
+
+  -- Test User gets: Beginner (experience), Web Security (interest), Verified (special)
+  ('22222222-2222-2222-2222-222222222222', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'onboarding'),
+  ('22222222-2222-2222-2222-222222222222', '11111111-2222-3333-4444-555555555555', 'onboarding'),
   ('22222222-2222-2222-2222-222222222222', 'ffffffff-ffff-ffff-ffff-ffffffffffff', 'discord'),
-  
-  -- John gets: Intermediate, Energy Worker
-  ('33333333-3333-3333-3333-333333333333', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'discord'),
-  ('33333333-3333-3333-3333-333333333333', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'discord')
+
+  -- John gets: Intermediate (experience), Binary Exploitation and Cryptography (interests)
+  ('33333333-3333-3333-3333-333333333333', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'onboarding'),
+  ('33333333-3333-3333-3333-333333333333', '22222222-3333-4444-5555-666666666666', 'onboarding'),
+  ('33333333-3333-3333-3333-333333333333', '33333333-4444-5555-6666-777777777777', 'onboarding')
 ON CONFLICT (user_id, tag_id) DO NOTHING;
 
 -- Add some likes and completions

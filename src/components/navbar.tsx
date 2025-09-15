@@ -34,6 +34,7 @@ export function Navbar({ user, profile }: NavbarProps) {
         { href: '/admin/users', label: 'Users' },
         { href: '/admin/hacks', label: 'Manage Hacks' },
         { href: '/admin/tags', label: 'Tags' },
+        { href: '/admin/onboarding', label: 'Onboarding' },
       ] : []),
     ] : []),
   ]
