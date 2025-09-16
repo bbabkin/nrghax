@@ -63,13 +63,13 @@ export async function getAllUsers(): Promise<UserProfile[] | null> {
  */
 export async function getUserById(userId: string): Promise<UserProfile | null> {
   const isAdmin = await isUserAdmin()
-  
+
   if (!isAdmin) {
     return null
   }
 
   const supabase = await createClient()
-  
+
   const { data: profile, error } = await supabase
     .from('profiles')
     .select('*')
@@ -82,4 +82,38 @@ export async function getUserById(userId: string): Promise<UserProfile | null> {
   }
 
   return profile as UserProfile
+}
+
+/**
+ * Delete a user (admin only)
+ * This will cascade delete all related data due to foreign key constraints
+ */
+export async function deleteUser(userId: string): Promise<boolean> {
+  const isAdmin = await isUserAdmin()
+
+  if (!isAdmin) {
+    throw new Error('Unauthorized: Admin access required')
+  }
+
+  const supabase = await createClient()
+
+  // Get current user to prevent self-deletion
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (user?.id === userId) {
+    throw new Error('Cannot delete your own account')
+  }
+
+  // Delete from profiles table (this will cascade to related tables)
+  const { error } = await supabase
+    .from('profiles')
+    .delete()
+    .eq('id', userId)
+
+  if (error) {
+    console.error('Error deleting user:', error)
+    throw new Error('Failed to delete user')
+  }
+
+  return true
 }

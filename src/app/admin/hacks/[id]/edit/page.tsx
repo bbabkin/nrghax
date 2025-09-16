@@ -2,26 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect, notFound } from 'next/navigation';
 import { HackForm } from '@/components/hacks/HackForm';
 import { getAllHacksForSelect, getHackWithPrerequisites } from '@/lib/hacks/utils';
-import { Button } from '@/components/ui/button';
-import { deleteHack } from '@/lib/hacks/actions';
-import { Trash2 } from 'lucide-react';
-
-async function DeleteButton({ hackId }: { hackId: string }) {
-  async function handleDelete() {
-    'use server';
-    await deleteHack(hackId);
-    redirect('/admin/hacks');
-  }
-
-  return (
-    <form action={handleDelete}>
-      <Button type="submit" variant="destructive">
-        <Trash2 className="mr-2 h-4 w-4" />
-        Delete Hack
-      </Button>
-    </form>
-  );
-}
+import { DeleteHackButton } from '@/components/hacks/DeleteHackButton';
 
 export default async function EditHackPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -54,7 +35,7 @@ export default async function EditHackPage({ params }: { params: Promise<{ id: s
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Edit Hack</h1>
-        <DeleteButton hackId={resolvedParams.id} />
+        <DeleteHackButton hackId={resolvedParams.id} hackName={hack.name} />
       </div>
       <HackForm hack={hack} availableHacks={availableHacks} userId={user.id} />
     </div>

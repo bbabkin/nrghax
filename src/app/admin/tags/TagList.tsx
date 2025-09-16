@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Tag } from '@/lib/tags/types';
 import { Edit2, Trash2, Save, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { ConfirmDialog } from '@/components/ui/confirmation-dialog';
 
 interface TagListProps {
   initialTags: Tag[];
@@ -66,15 +67,12 @@ export function TagList({ initialTags }: TagListProps) {
   };
 
   const handleDelete = async (id: string) => {
-    // Simple confirmation - in production you'd want a proper modal
-    if (!window.confirm('Are you sure you want to delete this tag? This action cannot be undone.')) return;
-    
     setLoading(true);
     try {
       const response = await fetch(`/api/admin/tags/${id}`, {
         method: 'DELETE',
       });
-      
+
       if (response.ok) {
         const deletedTag = tags.find(t => t.id === id);
         setTags(tags.filter(t => t.id !== id));
@@ -164,12 +162,23 @@ export function TagList({ initialTags }: TagListProps) {
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
-                    <button
-                      onClick={() => handleDelete(tag.id)}
-                      className="p-1 text-red-600 hover:bg-red-50 rounded"
+                    <ConfirmDialog
+                      title="Delete Tag"
+                      description={`Are you sure you want to delete the tag "${tag.name}"? This action cannot be undone.`}
+                      confirmText="Delete"
+                      cancelText="Cancel"
+                      onConfirm={() => handleDelete(tag.id)}
+                      variant="destructive"
                     >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                      {({ onClick }) => (
+                        <button
+                          onClick={onClick}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </ConfirmDialog>
                   </div>
                 </>
               )}

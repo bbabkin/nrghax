@@ -3,12 +3,15 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Heart, Lock, CheckCircle, ExternalLink, BookOpen } from 'lucide-react';
-import { toggleLike } from '@/lib/hacks/actions';
+import { Heart, Lock, CheckCircle, ExternalLink, BookOpen, Trash2 } from 'lucide-react';
+import { toggleLike, deleteHack } from '@/lib/hacks/actions';
 import { cn } from '@/lib/utils';
+import { ConfirmDialog } from '@/components/ui/confirmation-dialog';
+import { useToast } from '@/components/ui/use-toast';
 
 interface HackCardProps {
   hack: {
@@ -29,26 +32,29 @@ interface HackCardProps {
   showActions?: boolean;
 }
 
-export function HackCard({ 
-  hack, 
+export function HackCard({
+  hack,
   hasIncompletePrerequisites = false,
   isAdmin = false,
-  showActions = true 
+  showActions = true
 }: HackCardProps) {
+  const router = useRouter();
+  const { toast } = useToast();
   const [isLiked, setIsLiked] = useState(hack.is_liked || false);
   const [likeCount, setLikeCount] = useState(hack.like_count || 0);
   const [isLiking, setIsLiking] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (isLiking) return;
-    
+
     setIsLiking(true);
     setIsLiked(!isLiked);
     setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
-    
+
     try {
       await toggleLike(hack.id);
     } catch (error) {
@@ -58,6 +64,26 @@ export function HackCard({
       console.error('Failed to toggle like:', error);
     } finally {
       setIsLiking(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteHack(hack.id);
+      toast({
+        title: 'Success',
+        description: `Hack "${hack.name}" has been deleted successfully`,
+      });
+      router.refresh();
+    } catch (error) {
+      console.error('Failed to delete hack:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete hack. Please try again.',
+        variant: 'destructive',
+      });
+      setIsDeleting(false);
     }
   };
 
@@ -142,6 +168,25 @@ export function HackCard({
               <Link href={`/admin/hacks/${hack.id}/edit`}>
                 <Button size="sm" variant="outline">Edit</Button>
               </Link>
+              <ConfirmDialog
+                title="Delete Hack"
+                description={`Are you sure you want to delete "${hack.name}"? This will also remove all user progress and cannot be undone.`}
+                confirmText="Delete"
+                cancelText="Cancel"
+                onConfirm={handleDelete}
+                variant="destructive"
+              >
+                {({ onClick }) => (
+                  <Button
+                    onClick={onClick}
+                    size="sm"
+                    variant="destructive"
+                    disabled={isDeleting}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </ConfirmDialog>
             </div>
           )}
         </CardFooter>
