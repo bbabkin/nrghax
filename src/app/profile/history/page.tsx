@@ -37,7 +37,7 @@ export default async function HistoryPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Learning History</h1>
         <p className="text-gray-600">
-          Track your learning journey and see all the hacks you've completed.
+          Track your learning journey and see all the hacks you&apos;ve completed.
         </p>
       </div>
 

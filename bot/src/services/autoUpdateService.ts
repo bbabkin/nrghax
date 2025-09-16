@@ -1,9 +1,9 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import express from 'express';
+import express, { Request, Response } from 'express';
 import crypto from 'crypto';
 import { logger } from '../utils/logger';
-import { Client } from 'discord.js';
+import { Client, TextChannel } from 'discord.js';
 
 const execAsync = promisify(exec);
 
@@ -29,12 +29,13 @@ export class AutoUpdateService {
     this.app.use(express.raw({ type: 'application/json' }));
 
     // GitHub webhook endpoint
-    this.app.post('/webhook/github', async (req, res) => {
+    this.app.post('/webhook/github', async (req: Request, res: Response): Promise<void> => {
       try {
         // Verify GitHub signature
         if (!this.verifyGitHubSignature(req)) {
           logger.warn('Invalid GitHub webhook signature');
-          return res.status(401).send('Unauthorized');
+          res.status(401).send('Unauthorized');
+          return;
         }
 
         const payload = JSON.parse(req.body.toString());
@@ -60,7 +61,7 @@ export class AutoUpdateService {
     });
 
     // Health check endpoint
-    this.app.get('/health', (req, res) => {
+    this.app.get('/health', (_req: Request, res: Response) => {
       res.status(200).json({
         status: 'healthy',
         uptime: process.uptime(),
@@ -69,11 +70,12 @@ export class AutoUpdateService {
     });
 
     // Manual update trigger (protected)
-    this.app.post('/update/manual', async (req, res) => {
+    this.app.post('/update/manual', async (req: Request, res: Response): Promise<void> => {
       const token = req.headers['x-update-token'];
 
       if (token !== process.env.MANUAL_UPDATE_TOKEN) {
-        return res.status(401).send('Unauthorized');
+        res.status(401).send('Unauthorized');
+        return;
       }
 
       logger.info('Manual update triggered');
@@ -190,8 +192,8 @@ export class AutoUpdateService {
 
     try {
       const channel = await this.client.channels.fetch(this.updateChannelId);
-      if (channel?.isTextBased()) {
-        await channel.send(message);
+      if (channel && 'send' in channel) {
+        await (channel as TextChannel).send(message);
       }
     } catch (error) {
       logger.error('Failed to send Discord notification:', error);

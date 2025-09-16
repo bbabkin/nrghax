@@ -22,16 +22,16 @@ export type Hack = {
 
 export async function getHacks() {
   const supabase = await createClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   // Get all hacks with their stats and tags
+  // user_hacks table uses status field: 'liked', 'completed', 'interested'
   const { data: hacks, error } = await supabase
     .from('hacks')
     .select(`
       *,
-      user_hack_likes!left(id, user_id),
-      user_hack_completions!left(id, user_id),
+      user_hacks!left(id, user_id, status),
       hack_tags(
         tag:tags(id, name, slug)
       )
@@ -45,10 +45,11 @@ export async function getHacks() {
 
   // Process the data to get counts and user-specific flags
   return hacks.map(hack => {
-    const likes = hack.user_hack_likes || [];
-    const completions = hack.user_hack_completions || [];
+    const userHacks = hack.user_hacks || [];
+    const likes = userHacks.filter((uh: any) => uh.status === 'liked');
+    const completions = userHacks.filter((uh: any) => uh.status === 'completed');
     const tags = hack.hack_tags?.map((ht: any) => ht.tag).filter(Boolean) || [];
-    
+
     return {
       ...hack,
       like_count: likes.length,
@@ -56,8 +57,7 @@ export async function getHacks() {
       is_liked: user ? likes.some((like: any) => like.user_id === user.id) : false,
       is_completed: user ? completions.some((comp: any) => comp.user_id === user.id) : false,
       tags,
-      user_hack_likes: undefined,
-      user_hack_completions: undefined,
+      user_hacks: undefined,
       hack_tags: undefined,
     };
   });
@@ -65,16 +65,15 @@ export async function getHacks() {
 
 export async function getHackById(id: string) {
   const supabase = await createClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   // Get hack with prerequisites
   const { data: hack, error } = await supabase
     .from('hacks')
     .select(`
       *,
-      user_hack_likes!left(id, user_id),
-      user_hack_completions!left(id, user_id),
+      user_hacks!left(id, user_id, status),
       hack_prerequisites!hack_prerequisites_hack_id_fkey(
         prerequisite_hack_id,
         prerequisite:hacks!hack_prerequisites_prerequisite_hack_id_fkey(
@@ -94,10 +93,11 @@ export async function getHackById(id: string) {
     return null;
   }
 
-  const likes = hack.user_hack_likes || [];
-  const completions = hack.user_hack_completions || [];
+  const userHacks = hack.user_hacks || [];
+  const likes = userHacks.filter((uh: any) => uh.status === 'liked');
+  const completions = userHacks.filter((uh: any) => uh.status === 'completed');
   const prerequisites = hack.hack_prerequisites?.map((p: any) => p.prerequisite) || [];
-  
+
   return {
     ...hack,
     like_count: likes.length,
@@ -105,15 +105,14 @@ export async function getHackById(id: string) {
     is_liked: user ? likes.some((like: any) => like.user_id === user.id) : false,
     is_completed: user ? completions.some((comp: any) => comp.user_id === user.id) : false,
     prerequisites,
-    user_hack_likes: undefined,
-    user_hack_completions: undefined,
+    user_hacks: undefined,
     hack_prerequisites: undefined,
   } as Hack;
 }
 
 export async function getHackWithPrerequisites(id: string) {
   const supabase = await createClient();
-  
+
   const { data: hack, error: hackError } = await supabase
     .from('hacks')
     .select('*')
@@ -144,21 +143,34 @@ export async function getHackWithPrerequisites(id: string) {
 
 export async function checkPrerequisitesCompleted(hackId: string, userId: string) {
   const supabase = await createClient();
-  
-  const { data: isCompleted } = await supabase
-    .rpc('check_prerequisites_completed', {
-      p_user_id: userId,
-      p_hack_id: hackId,
-    });
-    
-  return isCompleted || false;
+
+  // Get prerequisites for this hack
+  const { data: prerequisites } = await supabase
+    .from('hack_prerequisites')
+    .select('prerequisite_hack_id')
+    .eq('hack_id', hackId);
+
+  if (!prerequisites || prerequisites.length === 0) {
+    return true; // No prerequisites, so they're "completed"
+  }
+
+  // Check if user has completed all prerequisites
+  const prerequisiteIds = prerequisites.map(p => p.prerequisite_hack_id);
+  const { data: completed } = await supabase
+    .from('user_hacks')
+    .select('hack_id')
+    .eq('user_id', userId)
+    .eq('status', 'completed')
+    .in('hack_id', prerequisiteIds);
+
+  return completed?.length === prerequisites.length;
 }
 
 export async function getUserCompletedHacks(userId: string) {
   const supabase = await createClient();
-  
+
   const { data: completions, error } = await supabase
-    .from('user_hack_completions')
+    .from('user_hacks')
     .select(`
       completed_at,
       hack:hacks(
@@ -171,6 +183,7 @@ export async function getUserCompletedHacks(userId: string) {
       )
     `)
     .eq('user_id', userId)
+    .eq('status', 'completed')
     .order('completed_at', { ascending: false });
 
   if (error || !completions) {
@@ -193,7 +206,7 @@ export async function getUserCompletedHacks(userId: string) {
 
 export async function getAllHacksForSelect() {
   const supabase = await createClient();
-  
+
   const { data: hacks, error } = await supabase
     .from('hacks')
     .select('id, name')
@@ -209,72 +222,65 @@ export async function getAllHacksForSelect() {
 
 export async function getRecommendedHacks(userId?: string) {
   const supabase = await createClient();
-  
+
   // If no user ID provided, try to get current user
   if (!userId) {
     const { data: { user } } = await supabase.auth.getUser();
     userId = user?.id;
   }
-  
+
   // If still no user, return all hacks
   if (!userId) {
     return getHacks();
   }
-  
-  // Get recommended hacks based on user tags
-  const { data: recommendedHacks, error } = await supabase
-    .rpc('get_recommended_hacks', {
-      user_uuid: userId
-    });
-  
+
+  // Get user's tags
+  const { data: userTags } = await supabase
+    .from('user_tags')
+    .select('tag_id')
+    .eq('user_id', userId);
+
+  if (!userTags || userTags.length === 0) {
+    return getHacks(); // No tags, return all hacks
+  }
+
+  const tagIds = userTags.map(ut => ut.tag_id);
+
+  // Get hacks that match user's tags
+  const { data: hacks, error } = await supabase
+    .from('hacks')
+    .select(`
+      *,
+      user_hacks!left(id, user_id, status),
+      hack_tags!inner(
+        tag_id,
+        tag:tags(id, name, slug)
+      )
+    `)
+    .in('hack_tags.tag_id', tagIds)
+    .order('created_at', { ascending: false });
+
   if (error) {
     console.error('Error fetching recommended hacks:', error);
-    // Fallback to all hacks
     return getHacks();
   }
-  
-  // Get full hack details for recommended hacks
-  if (recommendedHacks && recommendedHacks.length > 0) {
-    const hackIds = recommendedHacks.map((h: any) => h.hack_id);
-    
-    const { data: hacks, error: hacksError } = await supabase
-      .from('hacks')
-      .select(`
-        *,
-        user_hack_likes!left(id, user_id),
-        user_hack_completions!left(id, user_id),
-        hack_tags(
-          tag:tags(id, name, slug)
-        )
-      `)
-      .in('id', hackIds)
-      .order('created_at', { ascending: false });
-    
-    if (hacksError) {
-      console.error('Error fetching hack details:', hacksError);
-      return [];
-    }
-    
-    // Process the data
-    return hacks.map(hack => {
-      const likes = hack.user_hack_likes || [];
-      const completions = hack.user_hack_completions || [];
-      const tags = hack.hack_tags?.map((ht: any) => ht.tag).filter(Boolean) || [];
-      
-      return {
-        ...hack,
-        like_count: likes.length,
-        completion_count: completions.length,
-        is_liked: userId ? likes.some((like: any) => like.user_id === userId) : false,
-        is_completed: userId ? completions.some((comp: any) => comp.user_id === userId) : false,
-        tags,
-        user_hack_likes: undefined,
-        user_hack_completions: undefined,
-        hack_tags: undefined,
-      };
-    });
-  }
-  
-  // If user has no tags, return all hacks
-  return getHacks();
+
+  // Process the data
+  return hacks.map(hack => {
+    const userHacks = hack.user_hacks || [];
+    const likes = userHacks.filter((uh: any) => uh.status === 'liked');
+    const completions = userHacks.filter((uh: any) => uh.status === 'completed');
+    const tags = hack.hack_tags?.map((ht: any) => ht.tag).filter(Boolean) || [];
+
+    return {
+      ...hack,
+      like_count: likes.length,
+      completion_count: completions.length,
+      is_liked: userId ? likes.some((like: any) => like.user_id === userId) : false,
+      is_completed: userId ? completions.some((comp: any) => comp.user_id === userId) : false,
+      tags,
+      user_hacks: undefined,
+      hack_tags: undefined,
+    };
+  });
 }

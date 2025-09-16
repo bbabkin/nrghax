@@ -1,22 +1,13 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import * as schema from './schema';
-import * as relations from './relations';
+import { PrismaClient } from '@prisma/client';
 
-// Database connection string
-const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:54322/postgres';
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
 
-// For query purposes
-const queryClient = postgres(connectionString);
-export const db = drizzle(queryClient, {
-  schema: { ...schema, ...relations },
-  logger: process.env.NODE_ENV === 'development'
+export const prisma = globalForPrisma.prisma ?? new PrismaClient({
+  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
 });
 
-// For migrations (requires max 1 connection)
-const migrationClient = postgres(connectionString, { max: 1 });
-export const migrationDb = drizzle(migrationClient);
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
-// Export schema for easy access
-export * from './schema';
-export * from './relations';
+export default prisma;

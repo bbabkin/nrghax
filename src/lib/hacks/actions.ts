@@ -220,39 +220,52 @@ export async function deleteHack(id: string) {
 
 export async function toggleLike(hackId: string) {
   const supabase = await createClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     throw new Error('Must be logged in to like hacks');
   }
 
-  // Check if already liked
-  const { data: existingLike } = await supabase
-    .from('user_hack_likes')
-    .select('id')
+  // Check if user has any interaction with this hack
+  const { data: existingHack } = await supabase
+    .from('user_hacks')
+    .select('id, status')
     .eq('user_id', user.id)
     .eq('hack_id', hackId)
     .single();
 
-  if (existingLike) {
-    // Unlike
-    const { error } = await supabase
-      .from('user_hack_likes')
-      .delete()
-      .eq('id', existingLike.id);
-      
-    if (error) {
-      throw new Error(`Failed to unlike: ${error.message}`);
+  if (existingHack) {
+    if (existingHack.status === 'liked') {
+      // Unlike (remove the record)
+      const { error } = await supabase
+        .from('user_hacks')
+        .delete()
+        .eq('id', existingHack.id);
+
+      if (error) {
+        throw new Error(`Failed to unlike: ${error.message}`);
+      }
+    } else {
+      // Update status to liked
+      const { error } = await supabase
+        .from('user_hacks')
+        .update({ status: 'liked' })
+        .eq('id', existingHack.id);
+
+      if (error) {
+        throw new Error(`Failed to like: ${error.message}`);
+      }
     }
   } else {
-    // Like
+    // Create new like
     const { error } = await supabase
-      .from('user_hack_likes')
+      .from('user_hacks')
       .insert({
         user_id: user.id,
         hack_id: hackId,
+        status: 'liked',
       });
-      
+
     if (error) {
       throw new Error(`Failed to like: ${error.message}`);
     }
@@ -264,29 +277,46 @@ export async function toggleLike(hackId: string) {
 
 export async function markHackComplete(hackId: string) {
   const supabase = await createClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     throw new Error('Must be logged in to complete hacks');
   }
 
-  // Check if already completed
-  const { data: existingCompletion } = await supabase
-    .from('user_hack_completions')
-    .select('id')
+  // Check if user has any interaction with this hack
+  const { data: existingHack } = await supabase
+    .from('user_hacks')
+    .select('id, status')
     .eq('user_id', user.id)
     .eq('hack_id', hackId)
     .single();
 
-  if (!existingCompletion) {
-    // Mark as complete
+  if (existingHack) {
+    if (existingHack.status !== 'completed') {
+      // Update to completed status
+      const { error } = await supabase
+        .from('user_hacks')
+        .update({
+          status: 'completed',
+          completed_at: new Date().toISOString()
+        })
+        .eq('id', existingHack.id);
+
+      if (error) {
+        throw new Error(`Failed to mark as complete: ${error.message}`);
+      }
+    }
+  } else {
+    // Create new completion record
     const { error } = await supabase
-      .from('user_hack_completions')
+      .from('user_hacks')
       .insert({
         user_id: user.id,
         hack_id: hackId,
+        status: 'completed',
+        completed_at: new Date().toISOString()
       });
-      
+
     if (error) {
       throw new Error(`Failed to mark as complete: ${error.message}`);
     }

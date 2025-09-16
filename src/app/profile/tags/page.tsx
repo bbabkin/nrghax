@@ -153,7 +153,7 @@ export default async function ProfileTagsPage() {
           <CardHeader>
             <CardTitle>Interest Areas</CardTitle>
             <CardDescription>
-              Topics you're interested in learning about
+              Topics you&apos;re interested in learning about
             </CardDescription>
           </CardHeader>
           <CardContent>

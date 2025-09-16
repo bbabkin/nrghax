@@ -1,0 +1,160 @@
+// This is the clean Prisma schema for production
+// It only includes the tables we actually need (no auth tables)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum ContentType {
+  content
+  link
+}
+
+enum QuestionType {
+  single_choice
+  multiple_choice
+  text
+}
+
+enum TagSource {
+  web
+  discord
+  onboarding
+  admin
+  system
+}
+
+enum TagType {
+  user_experience
+  user_interest
+  user_special
+  content
+}
+
+enum UserHackStatus {
+  interested
+  liked
+  completed
+}
+
+// Core Models
+model Profile {
+  id                  String    @id @db.Uuid
+  email               String    @unique
+  fullName            String?   @map("full_name")
+  avatarUrl           String?   @map("avatar_url")
+  isAdmin             Boolean   @default(false) @map("is_admin")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  // Relations
+  createdHacks        Hack[]    @relation("HackCreator")
+  userHacks           UserHack[]
+  userTags            UserTag[]
+
+  @@map("profiles")
+}
+
+model Hack {
+  id            String      @id @default(uuid()) @db.Uuid
+  name          String
+  description   String
+  imageUrl      String?     @map("image_url")
+  imagePath     String?     @map("image_path")
+  contentType   String      @default("content") @map("content_type")
+  contentBody   String?     @map("content_body")
+  externalLink  String?     @map("external_link")
+  createdAt     DateTime?   @default(now()) @map("created_at")
+  updatedAt     DateTime?   @default(now()) @updatedAt @map("updated_at")
+  createdBy     String?     @map("created_by") @db.Uuid
+  updatedBy     String?     @map("updated_by") @db.Uuid
+
+  // Relations
+  creator               Profile?             @relation("HackCreator", fields: [createdBy], references: [id])
+  userHacks             UserHack[]
+  hackTags              HackTag[]
+  prerequisites         HackPrerequisite[]   @relation("HackPrerequisites")
+  prerequisiteFor       HackPrerequisite[]   @relation("PrerequisiteHacks")
+
+  @@map("hacks")
+}
+
+model Tag {
+  id          String      @id @default(uuid()) @db.Uuid
+  name        String      @unique
+  category    String?
+  color       String?
+  createdAt   DateTime?   @default(now()) @map("created_at")
+  updatedAt   DateTime?   @default(now()) @updatedAt @map("updated_at")
+
+  // Relations
+  hackTags    HackTag[]
+  userTags    UserTag[]
+
+  @@map("tags")
+}
+
+model UserHack {
+  id            String      @id @default(uuid()) @db.Uuid
+  userId        String?     @map("user_id") @db.Uuid
+  hackId        String?     @map("hack_id") @db.Uuid
+  status        String?     // 'interested', 'liked', 'completed'
+  startedAt     DateTime?   @default(now()) @map("started_at")
+  completedAt   DateTime?   @map("completed_at")
+  createdAt     DateTime?   @default(now()) @map("created_at")
+  updatedAt     DateTime?   @default(now()) @updatedAt @map("updated_at")
+
+  // Relations
+  user          Profile?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hack          Hack?       @relation(fields: [hackId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, hackId])
+  @@map("user_hacks")
+}
+
+model HackPrerequisite {
+  id                    String    @id @default(uuid()) @db.Uuid
+  hackId                String?   @map("hack_id") @db.Uuid
+  prerequisiteHackId    String?   @map("prerequisite_hack_id") @db.Uuid
+  createdAt             DateTime? @default(now()) @map("created_at")
+
+  // Relations
+  hack                  Hack?     @relation("HackPrerequisites", fields: [hackId], references: [id], onDelete: Cascade)
+  prerequisiteHack      Hack?     @relation("PrerequisiteHacks", fields: [prerequisiteHackId], references: [id], onDelete: Cascade)
+
+  @@unique([hackId, prerequisiteHackId])
+  @@map("hack_prerequisites")
+}
+
+model HackTag {
+  hackId        String    @map("hack_id") @db.Uuid
+  tagId         String    @map("tag_id") @db.Uuid
+  createdAt     DateTime? @default(now()) @map("created_at")
+
+  // Relations
+  hack          Hack      @relation(fields: [hackId], references: [id], onDelete: Cascade)
+  tag           Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([hackId, tagId])
+  @@map("hack_tags")
+}
+
+model UserTag {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String?   @map("user_id") @db.Uuid
+  tagId         String?   @map("tag_id") @db.Uuid
+  createdAt     DateTime? @default(now()) @map("created_at")
+
+  // Relations
+  user          Profile?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tag           Tag?      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tagId])
+  @@map("user_tags")
+}

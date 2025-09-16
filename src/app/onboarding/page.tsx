@@ -30,7 +30,7 @@ export default async function OnboardingPage() {
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold mb-4">Welcome to NRGhax!</h1>
             <p className="text-lg text-muted-foreground">
-              Let's personalize your experience. Answer a few questions to help us recommend the best challenges for you.
+              Let&apos;s personalize your experience. Answer a few questions to help us recommend the best challenges for you.
             </p>
           </div>
 
