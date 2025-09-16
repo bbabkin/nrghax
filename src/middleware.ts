@@ -48,11 +48,22 @@ export async function updateSession(request: NextRequest) {
     }
 
     // Check if user is admin
-    const { data: profile } = await supabase
+    const { data: profile, error } = await supabase
       .from('profiles')
       .select('is_admin')
       .eq('id', user.id)
       .single()
+
+    // Debug logging in production
+    if (process.env.NODE_ENV === 'production') {
+      console.log('[Middleware] Admin check:', {
+        userId: user.id,
+        userEmail: user.email,
+        profileFound: !!profile,
+        isAdmin: profile?.is_admin,
+        error: error?.message
+      })
+    }
 
     if (!profile?.is_admin) {
       // Not an admin, redirect to home
