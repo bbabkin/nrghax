@@ -10,6 +10,38 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
+      // Get the authenticated user
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        // Check if profile exists
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .single()
+
+        // Create profile if it doesn't exist
+        if (!profile) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: user.id,
+              email: user.email!,
+              full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+              avatar_url: user.user_metadata?.avatar_url || null,
+              updated_at: new Date().toISOString()
+            }, {
+              onConflict: 'id'
+            })
+
+          if (profileError) {
+            console.error('Failed to create profile:', profileError)
+            // Don't fail the auth flow, just log the error
+          }
+        }
+      }
+
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
       const isLocalEnv = process.env.NODE_ENV === 'development'
       if (isLocalEnv) {
