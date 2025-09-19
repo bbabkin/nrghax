@@ -21,22 +21,23 @@ export type Hack = {
 };
 
 export async function getHacks() {
-  const supabase = await createClient();
+  try {
+    const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
 
-  // First, get all hacks without complex joins
-  const { data: hacks, error } = await supabase
-    .from('hacks')
-    .select('*')
-    .order('created_at', { ascending: false });
+    // First, get all hacks without complex joins
+    const { data: hacks, error } = await supabase
+      .from('hacks')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching hacks:', error);
-    return [];
-  }
+    if (error) {
+      console.error('Error fetching hacks:', error);
+      return [];
+    }
 
-  if (!hacks) return [];
+    if (!hacks || hacks.length === 0) return [];
 
   // Get additional data separately to avoid complex joins
   const hackIds = hacks.map(h => h.id);
@@ -74,6 +75,10 @@ export async function getHacks() {
       tags,
     };
   });
+  } catch (error) {
+    console.error('Error in getHacks:', error);
+    return [];
+  }
 }
 
 export async function getHackById(id: string) {
