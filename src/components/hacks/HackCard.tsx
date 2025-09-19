@@ -92,10 +92,12 @@ export function HackCard({
   // Determine the image source - prioritize image_path from storage
   const getImageSrc = () => {
     if (hack.image_path) {
-      // Use Supabase storage URL for local development
-      return `http://localhost:54321/storage/v1/object/public/hack-images/${hack.image_path}`;
+      // Use Supabase storage URL - use env variable for proper URL
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321';
+      return `${supabaseUrl}/storage/v1/object/public/hack-images/${hack.image_path}`;
     }
-    return hack.image_url;
+    // Fallback to image_url or a data URL placeholder if null
+    return hack.image_url || 'data:image/svg+xml,%3Csvg width="400" height="225" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="400" height="225" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" font-family="sans-serif" font-size="20" fill="%236b7280" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
   };
   
   const cardContent = (

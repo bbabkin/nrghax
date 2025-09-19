@@ -88,9 +88,9 @@ export default async function HackPage({ params }: { params: Promise<{ id: strin
                     <div className="flex items-center gap-3">
                       <div className="relative w-16 h-16 flex-shrink-0">
                         <Image
-                          src={prereq.image_path 
+                          src={prereq.image_path
                             ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/hack-images/${prereq.image_path}`
-                            : prereq.image_url}
+                            : (prereq.image_url || 'data:image/svg+xml,%3Csvg width="400" height="225" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="400" height="225" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" font-family="sans-serif" font-size="20" fill="%236b7280" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E')}
                           alt={prereq.name}
                           fill
                           className="object-cover rounded"
@@ -113,9 +113,9 @@ export default async function HackPage({ params }: { params: Promise<{ id: strin
         <>
           <div className="relative aspect-video w-full overflow-hidden rounded-lg mb-8">
             <Image
-              src={hack.image_path 
+              src={hack.image_path
                 ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/hack-images/${hack.image_path}`
-                : hack.image_url}
+                : (hack.image_url || 'data:image/svg+xml,%3Csvg width="400" height="225" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="400" height="225" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" font-family="sans-serif" font-size="20" fill="%236b7280" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E')}
               alt={hack.name}
               fill
               className="object-cover"
