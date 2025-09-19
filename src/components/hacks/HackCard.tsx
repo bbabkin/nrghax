@@ -17,6 +17,7 @@ interface HackCardProps {
   hack: {
     id: string;
     name: string;
+    slug?: string;
     description: string;
     image_url: string;
     image_path?: string | null;
@@ -214,7 +215,7 @@ export function HackCard({
   }
 
   return (
-    <Link href={`/hacks/${hack.id}`}>
+    <Link href={`/hacks/${hack.slug || hack.id}`}>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
         {cardContent}
       </Card>

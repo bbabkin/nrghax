@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 export type Hack = {
   id: string;
   name: string;
+  slug?: string;
   description: string;
   image_url: string;
   image_path?: string | null;
@@ -109,6 +110,52 @@ export async function getHackById(id: string) {
   if (error || !hack) {
     console.error('Error fetching hack:', error);
     return null;
+  }
+
+  const userHacks = hack.user_hacks || [];
+  const likes = userHacks.filter((uh: any) => uh.status === 'liked');
+  const completions = userHacks.filter((uh: any) => uh.status === 'completed');
+  const prerequisites = hack.hack_prerequisites?.map((p: any) => p.prerequisite) || [];
+
+  return {
+    ...hack,
+    like_count: likes.length,
+    completion_count: completions.length,
+    is_liked: user ? likes.some((like: any) => like.user_id === user.id) : false,
+    is_completed: user ? completions.some((comp: any) => comp.user_id === user.id) : false,
+    prerequisites,
+    user_hacks: undefined,
+    hack_prerequisites: undefined,
+  } as Hack;
+}
+
+export async function getHackBySlug(slug: string) {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Get hack with prerequisites
+  const { data: hack, error } = await supabase
+    .from('hacks')
+    .select(`
+      *,
+      user_hacks!left(id, user_id, status),
+      hack_prerequisites!hack_prerequisites_hack_id_fkey(
+        prerequisite_hack_id,
+        prerequisite:hacks!hack_prerequisites_prerequisite_hack_id_fkey(
+          id,
+          name,
+          description,
+          image_url,
+          image_path
+        )
+      )
+    `)
+    .eq('slug', slug)
+    .single();
+
+  if (error || !hack) {
+    return null; // Don't log error for slug lookup, it's expected to fail for UUIDs
   }
 
   const userHacks = hack.user_hacks || [];

@@ -15,22 +15,31 @@ export type HackFormData = {
   prerequisite_ids?: string[];
 };
 
+function generateSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/[\s_]+/g, '-')  // Replace spaces and underscores with hyphens
+    .replace(/^-+/, '')        // Remove leading hyphens
+    .replace(/-+$/, '');       // Remove trailing hyphens
+}
+
 export async function createHack(formData: HackFormData) {
   const supabase = await createClient();
-  
+
   // Get current user
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     throw new Error('Unauthorized: Not logged in');
   }
-  
+
   // Check if user is admin
   const { data: profile } = await supabase
     .from('profiles')
     .select('is_admin')
     .eq('id', user.id)
     .single();
-    
+
   if (!profile?.is_admin) {
     throw new Error('Unauthorized: Admin access required');
   }
@@ -43,11 +52,17 @@ export async function createHack(formData: HackFormData) {
     throw new Error('External link is required for link type');
   }
 
+  // Generate a unique slug
+  const baseSlug = generateSlug(formData.name);
+  const randomSuffix = crypto.randomUUID().substring(0, 8);
+  const slug = `${baseSlug}-${randomSuffix}`;
+
   // Create the hack
   const { data: hack, error: hackError } = await supabase
     .from('hacks')
     .insert({
       name: formData.name,
+      slug: slug,
       description: formData.description,
       image_url: formData.image_path ? null : formData.image_url,
       image_path: formData.image_path || null,
@@ -127,18 +142,34 @@ export async function updateHack(id: string, formData: HackFormData) {
     throw new Error('External link is required for link type');
   }
 
+  // Get the existing hack to check if name changed
+  const { data: existingHack } = await supabase
+    .from('hacks')
+    .select('name, slug')
+    .eq('id', id)
+    .single();
+
+  // Generate new slug if name changed
+  let updateData: any = {
+    name: formData.name,
+    description: formData.description,
+    image_url: formData.image_path ? null : formData.image_url,
+    image_path: formData.image_path || null,
+    content_type: formData.content_type,
+    content_body: formData.content_body,
+    external_link: formData.external_link,
+  };
+
+  if (existingHack && existingHack.name !== formData.name) {
+    const baseSlug = generateSlug(formData.name);
+    const randomSuffix = crypto.randomUUID().substring(0, 8);
+    updateData.slug = `${baseSlug}-${randomSuffix}`;
+  }
+
   // Update the hack
   const { error: hackError } = await supabase
     .from('hacks')
-    .update({
-      name: formData.name,
-      description: formData.description,
-      image_url: formData.image_path ? null : formData.image_url,
-      image_path: formData.image_path || null,
-      content_type: formData.content_type,
-      content_body: formData.content_body,
-      external_link: formData.external_link,
-    })
+    .update(updateData)
     .eq('id', id);
 
   if (hackError) {
@@ -276,12 +307,12 @@ export async function toggleLike(hackId: string) {
   revalidatePath(`/hacks/${hackId}`);
 }
 
-export async function markHackComplete(hackId: string) {
+export async function markHackViewed(hackId: string) {
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    throw new Error('Must be logged in to complete hacks');
+    throw new Error('Must be logged in to track viewed hacks');
   }
 
   // Check if user has any interaction with this hack
@@ -293,34 +324,34 @@ export async function markHackComplete(hackId: string) {
     .single();
 
   if (existingHack) {
-    if (existingHack.status !== 'completed') {
-      // Update to completed status
+    if (existingHack.status !== 'viewed') {
+      // Update to viewed status
       const { error } = await supabase
         .from('user_hacks')
         .update({
-          status: 'completed',
-          completed_at: new Date().toISOString()
+          status: 'viewed',
+          completed_at: new Date().toISOString() // Keep as completed_at for backward compatibility
         })
         .eq('id', existingHack.id);
 
       if (error) {
-        throw new Error(`Failed to mark as complete: ${error.message}`);
+        throw new Error(`Failed to mark as viewed: ${error.message}`);
       }
     }
   } else {
-    // Create new completion record with generated UUID
+    // Create new viewed record with generated UUID
     const { error } = await supabase
       .from('user_hacks')
       .insert({
         id: crypto.randomUUID(),
         user_id: user.id,
         hack_id: hackId,
-        status: 'completed',
-        completed_at: new Date().toISOString()
+        status: 'viewed',
+        completed_at: new Date().toISOString() // Keep as completed_at for backward compatibility
       });
 
     if (error) {
-      throw new Error(`Failed to mark as complete: ${error.message}`);
+      throw new Error(`Failed to mark as viewed: ${error.message}`);
     }
   }
 

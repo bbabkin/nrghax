@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect, notFound } from 'next/navigation';
-import { getHackById, checkPrerequisitesCompleted } from '@/lib/hacks/utils';
-import { markHackComplete, toggleLike } from '@/lib/hacks/actions';
+import { getHackById, getHackBySlug, checkPrerequisitesCompleted } from '@/lib/hacks/utils';
+import { markHackViewed, toggleLike } from '@/lib/hacks/actions';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -38,8 +38,12 @@ export default async function HackPage({ params }: { params: Promise<{ id: strin
   const resolvedParams = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  
-  const hack = await getHackById(resolvedParams.id);
+
+  // Try to get hack by slug first, then by ID for backward compatibility
+  let hack = await getHackBySlug(resolvedParams.id);
+  if (!hack) {
+    hack = await getHackById(resolvedParams.id);
+  }
   if (!hack) {
     notFound();
   }
@@ -54,24 +58,24 @@ export default async function HackPage({ params }: { params: Promise<{ id: strin
 
   // If it's an external link and user can access, redirect
   if (hack.content_type === 'link' && hack.external_link && canAccess) {
-    // Mark as complete before redirecting (only for authenticated users)
+    // Mark as viewed before redirecting (only for authenticated users)
     if (user) {
       try {
-        await markHackComplete(resolvedParams.id);
+        await markHackViewed(resolvedParams.id);
       } catch (error) {
-        console.error('Failed to mark hack as complete:', error);
+        console.error('Failed to mark hack as viewed:', error);
         // Continue with redirect even if marking fails
       }
     }
     redirect(hack.external_link);
   }
 
-  // Mark as complete for internal content (only for authenticated users)
+  // Mark as viewed for internal content (only for authenticated users)
   if (hack.content_type === 'content' && canAccess && user) {
     try {
-      await markHackComplete(resolvedParams.id);
+      await markHackViewed(resolvedParams.id);
     } catch (error) {
-      console.error('Failed to mark hack as complete:', error);
+      console.error('Failed to mark hack as viewed:', error);
       // Continue showing content even if marking fails
     }
   }
