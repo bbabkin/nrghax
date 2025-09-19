@@ -54,16 +54,26 @@ export default async function HackPage({ params }: { params: Promise<{ id: strin
 
   // If it's an external link and user can access, redirect
   if (hack.content_type === 'link' && hack.external_link && canAccess) {
-    // Mark as complete before redirecting
+    // Mark as complete before redirecting (only for authenticated users)
     if (user) {
-      await markHackComplete(resolvedParams.id);
+      try {
+        await markHackComplete(resolvedParams.id);
+      } catch (error) {
+        console.error('Failed to mark hack as complete:', error);
+        // Continue with redirect even if marking fails
+      }
     }
     redirect(hack.external_link);
   }
 
-  // Mark as complete for internal content
+  // Mark as complete for internal content (only for authenticated users)
   if (hack.content_type === 'content' && canAccess && user) {
-    await markHackComplete(resolvedParams.id);
+    try {
+      await markHackComplete(resolvedParams.id);
+    } catch (error) {
+      console.error('Failed to mark hack as complete:', error);
+      // Continue showing content even if marking fails
+    }
   }
 
   return (

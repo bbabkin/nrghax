@@ -257,10 +257,11 @@ export async function toggleLike(hackId: string) {
       }
     }
   } else {
-    // Create new like
+    // Create new like with generated UUID
     const { error } = await supabase
       .from('user_hacks')
       .insert({
+        id: crypto.randomUUID(),
         user_id: user.id,
         hack_id: hackId,
         status: 'liked',
@@ -307,10 +308,11 @@ export async function markHackComplete(hackId: string) {
       }
     }
   } else {
-    // Create new completion record
+    // Create new completion record with generated UUID
     const { error } = await supabase
       .from('user_hacks')
       .insert({
+        id: crypto.randomUUID(),
         user_id: user.id,
         hack_id: hackId,
         status: 'completed',
