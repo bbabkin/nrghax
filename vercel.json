@@ -1,0 +1,9 @@
+{
+  "buildCommand": "prisma generate && prisma migrate deploy && next build",
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "regions": ["iad1"],
+  "env": {
+    "PRISMA_HIDE_UPDATE_MESSAGE": "1"
+  }
+}
