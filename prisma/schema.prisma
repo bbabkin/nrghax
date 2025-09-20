@@ -116,6 +116,8 @@ model Hack {
   contentType   String      @default("content") @map("content_type")
   contentBody   String?     @map("content_body")
   externalLink  String?     @map("external_link")
+  difficulty    String?
+  timeMinutes   Int?        @map("time_minutes")
   createdAt     DateTime?   @default(now()) @map("created_at")
   updatedAt     DateTime?   @default(now()) @updatedAt @map("updated_at")
   createdBy     String?     @map("created_by") @db.Uuid
@@ -134,6 +136,9 @@ model Hack {
 model Tag {
   id          String      @id @default(uuid()) @db.Uuid
   name        String      @unique
+  slug        String      @unique
+  tagType     String      @default("hack") @map("tag_type")
+  description String?
   category    String?
   color       String?
   createdAt   DateTime?   @default(now()) @map("created_at")
@@ -150,7 +155,10 @@ model UserHack {
   id            String      @id @default(uuid()) @db.Uuid
   userId        String?     @map("user_id") @db.Uuid
   hackId        String?     @map("hack_id") @db.Uuid
-  status        String?     // 'interested', 'liked', 'visited'
+  liked         Boolean     @default(false)
+  viewed        Boolean     @default(false)
+  viewedAt      DateTime?   @map("viewed_at")
+  status        String?     // deprecated - use liked/viewed instead
   startedAt     DateTime?   @default(now()) @map("started_at")
   completedAt   DateTime?   @map("completed_at")
   createdAt     DateTime?   @default(now()) @map("created_at")
@@ -195,6 +203,7 @@ model UserTag {
   id            String    @id @default(uuid()) @db.Uuid
   userId        String?   @map("user_id") @db.Uuid
   tagId         String?   @map("tag_id") @db.Uuid
+  source        String    @default("system")
   createdAt     DateTime? @default(now()) @map("created_at")
 
   // Relations

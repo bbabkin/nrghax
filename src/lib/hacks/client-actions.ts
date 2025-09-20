@@ -53,12 +53,12 @@ export async function createHackWithImage(data: HackFormClientData, userId: stri
   const formData: HackFormData = {
     name: data.name,
     description: data.description,
-    image_url: imageUrl || '',
-    image_path: imagePath,
-    content_type: data.content_type,
-    content_body: data.content_body,
-    external_link: data.external_link,
-    prerequisite_ids: data.prerequisite_ids,
+    imageUrl: imageUrl || '',
+    imagePath: imagePath,
+    contentType: data.content_type,
+    contentBody: data.content_body,
+    externalLink: data.external_link,
+    prerequisiteIds: data.prerequisite_ids,
   };
 
   return createHack(formData);
@@ -84,12 +84,12 @@ export async function updateHackWithImage(hackId: string, data: HackFormClientDa
   const formData: HackFormData = {
     name: data.name,
     description: data.description,
-    image_url: imageUrl || '',
-    image_path: imagePath,
-    content_type: data.content_type,
-    content_body: data.content_body,
-    external_link: data.external_link,
-    prerequisite_ids: data.prerequisite_ids,
+    imageUrl: imageUrl || '',
+    imagePath: imagePath,
+    contentType: data.content_type,
+    contentBody: data.content_body,
+    externalLink: data.external_link,
+    prerequisiteIds: data.prerequisite_ids,
   };
 
   return updateHack(hackId, formData);

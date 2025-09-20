@@ -1,18 +1,21 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { requireAuth, requireAdmin, getCurrentUser } from '@/lib/auth/user';
+import prisma from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 export type HackFormData = {
   name: string;
   description: string;
-  image_url: string;
-  image_path?: string;
-  content_type: 'content' | 'link';
-  content_body?: string | null;
-  external_link?: string | null;
-  prerequisite_ids?: string[];
+  imageUrl: string;
+  imagePath?: string;
+  contentType: 'content' | 'link';
+  contentBody?: string | null;
+  externalLink?: string | null;
+  prerequisiteIds?: string[];
+  difficulty?: string;
+  timeMinutes?: number;
 };
 
 function generateSlug(text: string): string {
@@ -25,30 +28,13 @@ function generateSlug(text: string): string {
 }
 
 export async function createHack(formData: HackFormData) {
-  const supabase = await createClient();
-
-  // Get current user
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error('Unauthorized: Not logged in');
-  }
-
-  // Check if user is admin
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('is_admin')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile?.is_admin) {
-    throw new Error('Unauthorized: Admin access required');
-  }
+  const user = await requireAdmin();
 
   // Validate content XOR link
-  if (formData.content_type === 'content' && !formData.content_body) {
+  if (formData.contentType === 'content' && !formData.contentBody) {
     throw new Error('Content is required for content type');
   }
-  if (formData.content_type === 'link' && !formData.external_link) {
+  if (formData.contentType === 'link' && !formData.externalLink) {
     throw new Error('External link is required for link type');
   }
 
@@ -58,56 +44,32 @@ export async function createHack(formData: HackFormData) {
   const slug = `${baseSlug}-${randomSuffix}`;
 
   // Create the hack
-  const { data: hack, error: hackError } = await supabase
-    .from('hacks')
-    .insert({
+  const hack = await prisma.hack.create({
+    data: {
       name: formData.name,
       slug: slug,
       description: formData.description,
-      image_url: formData.image_path ? null : formData.image_url,
-      image_path: formData.image_path || null,
-      content_type: formData.content_type,
-      content_body: formData.content_body,
-      external_link: formData.external_link,
-    })
-    .select()
-    .single();
-
-  if (hackError) {
-    throw new Error(`Failed to create hack: ${hackError.message}`);
-  }
+      imageUrl: formData.imagePath ? '' : formData.imageUrl,
+      imagePath: formData.imagePath || null,
+      contentType: formData.contentType,
+      contentBody: formData.contentBody,
+      externalLink: formData.externalLink,
+      difficulty: formData.difficulty,
+      timeMinutes: formData.timeMinutes,
+      createdBy: user.id
+    }
+  });
 
   // Add prerequisites if any
-  if (formData.prerequisite_ids && formData.prerequisite_ids.length > 0) {
-    // Check for circular dependencies
-    for (const prereqId of formData.prerequisite_ids) {
-      const { data: hasCircular } = await supabase
-        .rpc('check_circular_dependency', {
-          p_hack_id: hack.id,
-          p_prerequisite_id: prereqId,
-        });
-        
-      if (hasCircular) {
-        // Delete the hack we just created
-        await supabase.from('hacks').delete().eq('id', hack.id);
-        throw new Error('Cannot add prerequisite: would create circular dependency');
-      }
-    }
-
-    const prerequisites = formData.prerequisite_ids.map(prereqId => ({
-      hack_id: hack.id,
-      prerequisite_hack_id: prereqId,
+  if (formData.prerequisiteIds && formData.prerequisiteIds.length > 0) {
+    const prerequisites = formData.prerequisiteIds.map(prereqId => ({
+      hackId: hack.id,
+      prerequisiteId: prereqId,
     }));
 
-    const { error: prereqError } = await supabase
-      .from('hack_prerequisites')
-      .insert(prerequisites);
-
-    if (prereqError) {
-      // Delete the hack we just created
-      await supabase.from('hacks').delete().eq('id', hack.id);
-      throw new Error(`Failed to add prerequisites: ${prereqError.message}`);
-    }
+    await prisma.hackPrerequisite.createMany({
+      data: prerequisites
+    });
   }
 
   revalidatePath('/admin/hacks');
@@ -115,49 +77,33 @@ export async function createHack(formData: HackFormData) {
 }
 
 export async function updateHack(id: string, formData: HackFormData) {
-  const supabase = await createClient();
-  
-  // Get current user
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error('Unauthorized: Not logged in');
-  }
-  
-  // Check if user is admin
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('is_admin')
-    .eq('id', user.id)
-    .single();
-    
-  if (!profile?.is_admin) {
-    throw new Error('Unauthorized: Admin access required');
-  }
+  await requireAdmin();
 
   // Validate content XOR link
-  if (formData.content_type === 'content' && !formData.content_body) {
+  if (formData.contentType === 'content' && !formData.contentBody) {
     throw new Error('Content is required for content type');
   }
-  if (formData.content_type === 'link' && !formData.external_link) {
+  if (formData.contentType === 'link' && !formData.externalLink) {
     throw new Error('External link is required for link type');
   }
 
   // Get the existing hack to check if name changed
-  const { data: existingHack } = await supabase
-    .from('hacks')
-    .select('name, slug')
-    .eq('id', id)
-    .single();
+  const existingHack = await prisma.hack.findUnique({
+    where: { id },
+    select: { name: true, slug: true }
+  });
 
   // Generate new slug if name changed
   let updateData: any = {
     name: formData.name,
     description: formData.description,
-    image_url: formData.image_path ? null : formData.image_url,
-    image_path: formData.image_path || null,
-    content_type: formData.content_type,
-    content_body: formData.content_body,
-    external_link: formData.external_link,
+    imageUrl: formData.imagePath ? '' : formData.imageUrl,
+    imagePath: formData.imagePath || null,
+    contentType: formData.contentType,
+    contentBody: formData.contentBody,
+    externalLink: formData.externalLink,
+    difficulty: formData.difficulty,
+    timeMinutes: formData.timeMinutes,
   };
 
   if (existingHack && existingHack.name !== formData.name) {
@@ -167,49 +113,27 @@ export async function updateHack(id: string, formData: HackFormData) {
   }
 
   // Update the hack
-  const { error: hackError } = await supabase
-    .from('hacks')
-    .update(updateData)
-    .eq('id', id);
-
-  if (hackError) {
-    throw new Error(`Failed to update hack: ${hackError.message}`);
-  }
+  await prisma.hack.update({
+    where: { id },
+    data: updateData
+  });
 
   // Update prerequisites
   // First, delete existing prerequisites
-  await supabase
-    .from('hack_prerequisites')
-    .delete()
-    .eq('hack_id', id);
+  await prisma.hackPrerequisite.deleteMany({
+    where: { hackId: id }
+  });
 
   // Then add new ones if any
-  if (formData.prerequisite_ids && formData.prerequisite_ids.length > 0) {
-    // Check for circular dependencies
-    for (const prereqId of formData.prerequisite_ids) {
-      const { data: hasCircular } = await supabase
-        .rpc('check_circular_dependency', {
-          p_hack_id: id,
-          p_prerequisite_id: prereqId,
-        });
-        
-      if (hasCircular) {
-        throw new Error('Cannot add prerequisite: would create circular dependency');
-      }
-    }
-
-    const prerequisites = formData.prerequisite_ids.map(prereqId => ({
-      hack_id: id,
-      prerequisite_hack_id: prereqId,
+  if (formData.prerequisiteIds && formData.prerequisiteIds.length > 0) {
+    const prerequisites = formData.prerequisiteIds.map(prereqId => ({
+      hackId: id,
+      prerequisiteId: prereqId,
     }));
 
-    const { error: prereqError } = await supabase
-      .from('hack_prerequisites')
-      .insert(prerequisites);
-
-    if (prereqError) {
-      throw new Error(`Failed to add prerequisites: ${prereqError.message}`);
-    }
+    await prisma.hackPrerequisite.createMany({
+      data: prerequisites
+    });
   }
 
   revalidatePath('/admin/hacks');
@@ -218,49 +142,19 @@ export async function updateHack(id: string, formData: HackFormData) {
 }
 
 export async function deleteHack(id: string) {
-  const supabase = await createClient();
-  
-  // Get current user
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error('Unauthorized: Not logged in');
-  }
-  
-  // Check if user is admin
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('is_admin')
-    .eq('id', user.id)
-    .single();
-    
-  if (!profile?.is_admin) {
-    throw new Error('Unauthorized: Admin access required');
-  }
+  await requireAdmin();
 
-  const { error } = await supabase
-    .from('hacks')
-    .delete()
-    .eq('id', id);
-
-  if (error) {
-    throw new Error(`Failed to delete hack: ${error.message}`);
-  }
+  await prisma.hack.delete({
+    where: { id }
+  });
 
   revalidatePath('/admin/hacks');
 }
 
 export async function toggleLike(hackId: string) {
-  const supabase = await createClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error('Must be logged in to like hacks');
-  }
+  const user = await requireAuth();
 
   try {
-    // Import Prisma client
-    const { default: prisma } = await import('@/lib/db');
-
     // Check if user has any interaction with this hack
     const existingInteraction = await prisma.userHack.findUnique({
       where: {
@@ -272,31 +166,23 @@ export async function toggleLike(hackId: string) {
     });
 
     if (existingInteraction) {
-      if (existingInteraction.status === 'liked') {
-        // Unlike (remove the record)
-        await prisma.userHack.delete({
-          where: {
-            id: existingInteraction.id
-          }
-        });
-      } else {
-        // Update status to liked
-        await prisma.userHack.update({
-          where: {
-            id: existingInteraction.id
-          },
-          data: {
-            status: 'liked'
-          }
-        });
-      }
+      // Toggle the liked status
+      await prisma.userHack.update({
+        where: {
+          id: existingInteraction.id
+        },
+        data: {
+          liked: !existingInteraction.liked
+        }
+      });
     } else {
       // Create new like
       await prisma.userHack.create({
         data: {
           userId: user.id,
           hackId: hackId,
-          status: 'liked'
+          liked: true,
+          viewed: false
         }
       });
     }
@@ -310,17 +196,9 @@ export async function toggleLike(hackId: string) {
 }
 
 export async function markHackVisited(hackId: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error('Must be logged in to track visited hacks');
-  }
+  const user = await requireAuth();
 
   try {
-    // Import Prisma client
-    const { default: prisma } = await import('@/lib/db');
-
     // Check if user has any interaction with this hack
     const existingInteraction = await prisma.userHack.findUnique({
       where: {
@@ -332,15 +210,15 @@ export async function markHackVisited(hackId: string) {
     });
 
     if (existingInteraction) {
-      // Only update if not already marked as visited
-      if (existingInteraction.status !== 'visited') {
+      // Update to mark as viewed
+      if (!existingInteraction.viewed) {
         await prisma.userHack.update({
           where: {
             id: existingInteraction.id
           },
           data: {
-            status: 'visited',
-            completedAt: new Date()
+            viewed: true,
+            viewedAt: new Date()
           }
         });
       }
@@ -350,8 +228,9 @@ export async function markHackVisited(hackId: string) {
         data: {
           userId: user.id,
           hackId: hackId,
-          status: 'visited',
-          completedAt: new Date()
+          viewed: true,
+          viewedAt: new Date(),
+          liked: false
         }
       });
     }

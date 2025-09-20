@@ -12,6 +12,7 @@ import { toggleLike, deleteHack } from '@/lib/hacks/actions';
 import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/components/ui/confirmation-dialog';
 import { useToast } from '@/components/ui/use-toast';
+import { useLocalVisits } from '@/hooks/useLocalVisits';
 
 interface HackCardProps {
   hack: {
@@ -41,10 +42,14 @@ export function HackCard({
 }: HackCardProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const { isVisited } = useLocalVisits();
   const [isLiked, setIsLiked] = useState(hack.is_liked || false);
   const [likeCount, setLikeCount] = useState(hack.like_count || 0);
   const [isLiking, setIsLiking] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Check if visited from either database (authenticated) or local storage (anonymous)
+  const isHackVisited = hack.is_completed || isVisited(hack.id);
 
   const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -116,7 +121,7 @@ export function HackCard({
             <Lock className="h-12 w-12 text-white" />
           </div>
         )}
-        {hack.is_completed && (
+        {isHackVisited && (
           <Badge className="absolute top-2 right-2 bg-blue-500">
             <CheckCircle className="h-3 w-3 mr-1" />
             Visited
@@ -204,9 +209,11 @@ export function HackCard({
 
   if (isLocked) {
     return (
-      <Card className="overflow-hidden opacity-75 cursor-not-allowed">
-        {cardContent}
-      </Card>
+      <Link href={`/hacks/${hack.slug || hack.id}`}>
+        <Card className="overflow-hidden opacity-75 cursor-pointer hover:opacity-90 transition-opacity">
+          {cardContent}
+        </Card>
+      </Link>
     );
   }
 
@@ -219,10 +226,10 @@ export function HackCard({
     );
   }
 
-  // For external links, open in new tab but still go through our page for tracking
+  // For external links, use normal navigation to intermediate page (which will open in new tab)
   if (hack.content_type === 'link' && hack.external_link) {
     return (
-      <Link href={`/hacks/${hack.slug || hack.id}`} target="_blank">
+      <Link href={`/hacks/${hack.slug || hack.id}`}>
         <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
           {cardContent}
         </Card>

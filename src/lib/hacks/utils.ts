@@ -1,351 +1,304 @@
-import { createClient } from '@/lib/supabase/server';
+import { getCurrentUser } from '@/lib/auth/user';
+import prisma from '@/lib/db';
 
 export type Hack = {
   id: string;
   name: string;
   slug?: string;
   description: string;
-  image_url: string;
-  image_path?: string | null;
-  content_type: 'content' | 'link';
-  content_body: string | null;
-  external_link: string | null;
-  created_at: string;
-  updated_at: string;
-  like_count?: number;
-  completion_count?: number;
-  is_liked?: boolean;
-  is_completed?: boolean;
+  imageUrl: string;
+  imagePath?: string | null;
+  contentType: 'content' | 'link';
+  contentBody: string | null;
+  externalLink: string | null;
+  createdAt: string;
+  updatedAt: string;
+  likeCount?: number;
+  viewCount?: number;
+  isLiked?: boolean;
+  isViewed?: boolean;
   prerequisites?: Hack[];
-  prerequisite_ids?: string[];
+  prerequisiteIds?: string[];
   tags?: Array<{ id: string; name: string; slug: string }>;
+  difficulty?: string;
+  timeMinutes?: number;
 };
 
 export async function getHacks() {
   try {
-    const supabase = await createClient();
+    const user = await getCurrentUser();
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const hacks = await prisma.hack.findMany({
+      include: {
+        hackTags: {
+          include: {
+            tag: true
+          }
+        },
+        userHacks: user ? {
+          where: { userId: user.id }
+        } : false,
+        _count: {
+          select: {
+            userHacks: {
+              where: { liked: true }
+            }
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
 
-    // First, get all hacks without complex joins
-    const { data: hacks, error } = await supabase
-      .from('hacks')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching hacks:', error);
-      return [];
-    }
-
-    if (!hacks || hacks.length === 0) return [];
-
-  // Get additional data separately to avoid complex joins
-  const hackIds = hacks.map(h => h.id);
-
-  // Get tags for all hacks
-  const { data: hackTags } = await supabase
-    .from('hack_tags')
-    .select('hack_id, tag:tags(id, name, slug)')
-    .in('hack_id', hackIds);
-
-  // Get user interactions if user is logged in
-  let userHacks: any[] = [];
-  if (user) {
-    const { data } = await supabase
-      .from('user_hacks')
-      .select('*')
-      .eq('user_id', user.id)
-      .in('hack_id', hackIds);
-    userHacks = data || [];
-  }
-
-  // Process the data to get counts and user-specific flags
-  return hacks.map(hack => {
-    const hackUserInteractions = userHacks.filter(uh => uh.hack_id === hack.id);
-    const tags = hackTags?.filter(ht => ht.hack_id === hack.id)
-      .map(ht => ht.tag)
-      .filter(Boolean) || [];
-
-    return {
+    return hacks.map(hack => ({
       ...hack,
-      like_count: 0, // Simplified for now
-      completion_count: 0, // Simplified for now
-      is_liked: hackUserInteractions.some(uh => uh.status === 'liked'),
-      is_completed: hackUserInteractions.some(uh => uh.status === 'visited'),
-      tags,
-    };
-  });
+      tags: hack.hackTags.map(ht => ht.tag),
+      likeCount: hack._count.userHacks,
+      isLiked: user ? hack.userHacks?.some(uh => uh.liked) : false,
+      isViewed: user ? hack.userHacks?.some(uh => uh.viewed) : false,
+    }));
   } catch (error) {
-    console.error('Error in getHacks:', error);
+    console.error('Error fetching hacks:', error);
     return [];
   }
 }
 
 export async function getHackById(id: string) {
-  const supabase = await createClient();
+  try {
+    const user = await getCurrentUser();
 
-  const { data: { user } } = await supabase.auth.getUser();
+    const hack = await prisma.hack.findUnique({
+      where: { id },
+      include: {
+        hackTags: {
+          include: {
+            tag: true
+          }
+        },
+        prerequisites: {
+          include: {
+            prerequisiteHack: true
+          }
+        },
+        userHacks: user ? {
+          where: { userId: user.id }
+        } : false,
+        _count: {
+          select: {
+            userHacks: {
+              where: { liked: true }
+            }
+          }
+        }
+      }
+    });
 
-  // Get hack with prerequisites
-  const { data: hack, error } = await supabase
-    .from('hacks')
-    .select(`
-      *,
-      user_hacks!left(id, user_id, status),
-      hack_prerequisites!hack_prerequisites_hack_id_fkey(
-        prerequisite_hack_id,
-        prerequisite:hacks!hack_prerequisites_prerequisite_hack_id_fkey(
-          id,
-          name,
-          description,
-          image_url,
-          image_path
-        )
-      )
-    `)
-    .eq('id', id)
-    .single();
+    if (!hack) return null;
 
-  if (error || !hack) {
-    console.error('Error fetching hack:', error);
-    return null;
-  }
-
-  const userHacks = hack.user_hacks || [];
-  const likes = userHacks.filter((uh: any) => uh.status === 'liked');
-  const completions = userHacks.filter((uh: any) => uh.status === 'visited');
-  const prerequisites = hack.hack_prerequisites?.map((p: any) => p.prerequisite) || [];
-
-  return {
-    ...hack,
-    like_count: likes.length,
-    completion_count: completions.length,
-    is_liked: user ? likes.some((like: any) => like.user_id === user.id) : false,
-    is_completed: user ? completions.some((comp: any) => comp.user_id === user.id) : false,
-    prerequisites,
-    user_hacks: undefined,
-    hack_prerequisites: undefined,
-  } as Hack;
-}
-
-export async function getHackBySlug(slug: string) {
-  const supabase = await createClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
-
-  // Get hack with prerequisites
-  const { data: hack, error } = await supabase
-    .from('hacks')
-    .select(`
-      *,
-      user_hacks!left(id, user_id, status),
-      hack_prerequisites!hack_prerequisites_hack_id_fkey(
-        prerequisite_hack_id,
-        prerequisite:hacks!hack_prerequisites_prerequisite_hack_id_fkey(
-          id,
-          name,
-          description,
-          image_url,
-          image_path
-        )
-      )
-    `)
-    .eq('slug', slug)
-    .single();
-
-  if (error || !hack) {
-    return null; // Don't log error for slug lookup, it's expected to fail for UUIDs
-  }
-
-  const userHacks = hack.user_hacks || [];
-  const likes = userHacks.filter((uh: any) => uh.status === 'liked');
-  const completions = userHacks.filter((uh: any) => uh.status === 'visited');
-  const prerequisites = hack.hack_prerequisites?.map((p: any) => p.prerequisite) || [];
-
-  return {
-    ...hack,
-    like_count: likes.length,
-    completion_count: completions.length,
-    is_liked: user ? likes.some((like: any) => like.user_id === user.id) : false,
-    is_completed: user ? completions.some((comp: any) => comp.user_id === user.id) : false,
-    prerequisites,
-    user_hacks: undefined,
-    hack_prerequisites: undefined,
-  } as Hack;
-}
-
-export async function getHackWithPrerequisites(id: string) {
-  const supabase = await createClient();
-
-  const { data: hack, error: hackError } = await supabase
-    .from('hacks')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (hackError || !hack) {
-    return null;
-  }
-
-  // Get prerequisites
-  const { data: prerequisites } = await supabase
-    .from('hack_prerequisites')
-    .select(`
-      prerequisite_hack_id,
-      prerequisite:hacks!hack_prerequisites_prerequisite_hack_id_fkey(
-        id,
-        name
-      )
-    `)
-    .eq('hack_id', id);
-
-  return {
-    ...hack,
-    prerequisite_ids: prerequisites?.map(p => p.prerequisite_hack_id) || [],
-  };
-}
-
-export async function checkPrerequisitesCompleted(hackId: string, userId: string) {
-  const supabase = await createClient();
-
-  // Get prerequisites for this hack
-  const { data: prerequisites } = await supabase
-    .from('hack_prerequisites')
-    .select('prerequisite_hack_id')
-    .eq('hack_id', hackId);
-
-  if (!prerequisites || prerequisites.length === 0) {
-    return true; // No prerequisites, so they're "completed"
-  }
-
-  // Check if user has completed all prerequisites
-  const prerequisiteIds = prerequisites.map(p => p.prerequisite_hack_id);
-  const { data: completed } = await supabase
-    .from('user_hacks')
-    .select('hack_id')
-    .eq('user_id', userId)
-    .eq('status', 'completed')
-    .in('hack_id', prerequisiteIds);
-
-  return completed?.length === prerequisites.length;
-}
-
-export async function getUserCompletedHacks(userId: string) {
-  const supabase = await createClient();
-
-  const { data: completions, error } = await supabase
-    .from('user_hacks')
-    .select(`
-      completed_at,
-      hack:hacks(
-        id,
-        name,
-        description,
-        image_url,
-        image_path,
-        content_type
-      )
-    `)
-    .eq('user_id', userId)
-    .eq('status', 'completed')
-    .order('completed_at', { ascending: false });
-
-  if (error || !completions) {
-    console.error('Error fetching completed hacks:', error);
-    return [];
-  }
-
-  return completions
-    .filter((c: any) => c.hack)
-    .map((c: any) => ({
-      id: c.hack.id,
-      name: c.hack.name,
-      description: c.hack.description,
-      image_url: c.hack.image_url,
-      image_path: c.hack.image_path,
-      content_type: c.hack.content_type as 'content' | 'link',
-      completed_at: c.completed_at,
-    }));
-}
-
-export async function getAllHacksForSelect() {
-  const supabase = await createClient();
-
-  const { data: hacks, error } = await supabase
-    .from('hacks')
-    .select('id, name')
-    .order('name');
-
-  if (error) {
-    console.error('Error fetching hacks for select:', error);
-    return [];
-  }
-
-  return hacks;
-}
-
-export async function getRecommendedHacks(userId?: string) {
-  const supabase = await createClient();
-
-  // If no user ID provided, try to get current user
-  if (!userId) {
-    const { data: { user } } = await supabase.auth.getUser();
-    userId = user?.id;
-  }
-
-  // If still no user, return all hacks
-  if (!userId) {
-    return getHacks();
-  }
-
-  // Get user's tags
-  const { data: userTags } = await supabase
-    .from('user_tags')
-    .select('tag_id')
-    .eq('user_id', userId);
-
-  if (!userTags || userTags.length === 0) {
-    return getHacks(); // No tags, return all hacks
-  }
-
-  const tagIds = userTags.map(ut => ut.tag_id);
-
-  // Get hacks that match user's tags
-  const { data: hacks, error } = await supabase
-    .from('hacks')
-    .select(`
-      *,
-      user_hacks!left(id, user_id, status),
-      hack_tags!inner(
-        tag_id,
-        tag:tags(id, name, slug)
-      )
-    `)
-    .in('hack_tags.tag_id', tagIds)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching recommended hacks:', error);
-    return getHacks();
-  }
-
-  // Process the data
-  return hacks.map(hack => {
-    const userHacks = hack.user_hacks || [];
-    const likes = userHacks.filter((uh: any) => uh.status === 'liked');
-    const completions = userHacks.filter((uh: any) => uh.status === 'visited');
-    const tags = hack.hack_tags?.map((ht: any) => ht.tag).filter(Boolean) || [];
+    const viewCount = await prisma.userHack.count({
+      where: {
+        hackId: hack.id,
+        viewed: true
+      }
+    });
 
     return {
       ...hack,
-      like_count: likes.length,
-      completion_count: completions.length,
-      is_liked: userId ? likes.some((like: any) => like.user_id === userId) : false,
-      is_completed: userId ? completions.some((comp: any) => comp.user_id === userId) : false,
-      tags,
-      user_hacks: undefined,
-      hack_tags: undefined,
+      tags: hack.hackTags.map(ht => ht.tag),
+      prerequisites: hack.prerequisites.map(p => p.prerequisiteHack),
+      likeCount: hack._count.userHacks,
+      viewCount,
+      isLiked: user ? hack.userHacks?.some(uh => uh.liked) : false,
+      isViewed: user ? hack.userHacks?.some(uh => uh.viewed) : false,
     };
-  });
+  } catch (error) {
+    console.error('Error fetching hack:', error);
+    return null;
+  }
+}
+
+export async function getHackBySlug(slug: string) {
+  try {
+    const user = await getCurrentUser();
+
+    const hack = await prisma.hack.findUnique({
+      where: { slug },
+      include: {
+        hackTags: {
+          include: {
+            tag: true
+          }
+        },
+        prerequisites: {
+          include: {
+            prerequisiteHack: true
+          }
+        },
+        userHacks: user ? {
+          where: { userId: user.id }
+        } : false,
+        _count: {
+          select: {
+            userHacks: {
+              where: { liked: true }
+            }
+          }
+        }
+      }
+    });
+
+    if (!hack) return null;
+
+    const viewCount = await prisma.userHack.count({
+      where: {
+        hackId: hack.id,
+        viewed: true
+      }
+    });
+
+    return {
+      ...hack,
+      tags: hack.hackTags.map(ht => ht.tag),
+      prerequisites: hack.prerequisites.map(p => p.prerequisiteHack),
+      likeCount: hack._count.userHacks,
+      viewCount,
+      isLiked: user ? hack.userHacks?.some(uh => uh.liked) : false,
+      isViewed: user ? hack.userHacks?.some(uh => uh.viewed) : false,
+    };
+  } catch (error) {
+    console.error('Error fetching hack by slug:', error);
+    return null;
+  }
+}
+
+export async function checkPrerequisitesCompleted(hackId: string, userId: string) {
+  try {
+    const hack = await prisma.hack.findUnique({
+      where: { id: hackId },
+      include: {
+        prerequisites: true
+      }
+    });
+
+    if (!hack || hack.prerequisites.length === 0) {
+      return true;
+    }
+
+    const completedCount = await prisma.userHack.count({
+      where: {
+        userId,
+        hackId: {
+          in: hack.prerequisites.map(p => p.prerequisiteHackId)
+        },
+        viewed: true
+      }
+    });
+
+    return completedCount === hack.prerequisites.length;
+  } catch (error) {
+    console.error('Error checking prerequisites:', error);
+    return false;
+  }
+}
+
+export async function getUserProgress(userId: string) {
+  try {
+    const progress = await prisma.userHack.findMany({
+      where: { userId },
+      include: {
+        hack: {
+          include: {
+            hackTags: {
+              include: {
+                tag: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        viewedAt: 'desc'
+      }
+    });
+
+    return progress;
+  } catch (error) {
+    console.error('Error fetching user progress:', error);
+    return [];
+  }
+}
+
+export async function getAllHacksForSelect() {
+  try {
+    const hacks = await prisma.hack.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        name: 'asc'
+      }
+    });
+
+    return hacks;
+  } catch (error) {
+    console.error('Error fetching hacks for select:', error);
+    return [];
+  }
+}
+
+export async function getHackWithPrerequisites(id: string) {
+  try {
+    const hack = await prisma.hack.findUnique({
+      where: { id },
+      include: {
+        prerequisites: {
+          include: {
+            prerequisiteHack: true
+          }
+        },
+        hackTags: {
+          include: {
+            tag: true
+          }
+        }
+      }
+    });
+
+    return hack;
+  } catch (error) {
+    console.error('Error fetching hack with prerequisites:', error);
+    return null;
+  }
+}
+
+export async function getUserCompletedHacks(userId: string) {
+  try {
+    const completedHacks = await prisma.userHack.findMany({
+      where: {
+        userId,
+        viewed: true
+      },
+      include: {
+        hack: {
+          include: {
+            hackTags: {
+              include: {
+                tag: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        viewedAt: 'desc'
+      }
+    });
+
+    return completedHacks;
+  } catch (error) {
+    console.error('Error fetching user completed hacks:', error);
+    return [];
+  }
 }

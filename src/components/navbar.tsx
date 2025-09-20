@@ -3,21 +3,21 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Menu, X } from 'lucide-react'
 
 interface NavbarProps {
   user?: {
-    email?: string
-  } | null
-  profile?: {
-    full_name?: string
-    avatar_url?: string
-    is_admin?: boolean
+    id: string
+    email: string
+    name?: string | null
+    image?: string | null
+    isAdmin: boolean
   } | null
 }
 
-export function Navbar({ user, profile }: NavbarProps) {
+export function Navbar({ user }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const pathname = usePathname()
 
@@ -30,7 +30,7 @@ export function Navbar({ user, profile }: NavbarProps) {
       { href: '/dashboard', label: 'Dashboard' },
       { href: '/profile/history', label: 'My History' },
       { href: '/account', label: 'Account' },
-      ...(profile?.is_admin ? [
+      ...(user?.isAdmin ? [
         { href: '/admin/users', label: 'Users' },
         { href: '/admin/hacks', label: 'Manage Hacks' },
         { href: '/admin/tags', label: 'Tags' },
@@ -74,9 +74,9 @@ export function Navbar({ user, profile }: NavbarProps) {
             {user ? (
               <>
                 <div className="flex items-center space-x-3">
-                  {profile?.avatar_url ? (
+                  {user.image ? (
                     <img
-                      src={profile.avatar_url}
+                      src={user.image}
                       alt="Profile"
                       className="h-8 w-8 rounded-full object-cover border border-border"
                     />
@@ -88,14 +88,16 @@ export function Navbar({ user, profile }: NavbarProps) {
                     </div>
                   )}
                   <span className="text-sm text-muted-foreground">
-                    {profile?.full_name || user.email}
+                    {user.name || user.email}
                   </span>
                 </div>
-                <form action="/auth/signout" method="post">
-                  <Button variant="outline" size="sm">
-                    Sign Out
-                  </Button>
-                </form>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => signOut({ callbackUrl: '/' })}
+                >
+                  Sign Out
+                </Button>
               </>
             ) : (
               <>
@@ -142,9 +144,9 @@ export function Navbar({ user, profile }: NavbarProps) {
                 {user ? (
                   <>
                     <div className="flex items-center space-x-3 px-2 py-2">
-                      {profile?.avatar_url ? (
+                      {user.image ? (
                         <img
-                          src={profile.avatar_url}
+                          src={user.image}
                           alt="Profile"
                           className="h-10 w-10 rounded-full object-cover border border-border"
                         />
@@ -157,18 +159,21 @@ export function Navbar({ user, profile }: NavbarProps) {
                       )}
                       <div className="flex-1">
                         <div className="text-sm font-medium">
-                          {profile?.full_name || 'User'}
+                          {user.name || 'User'}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {user.email}
                         </div>
                       </div>
                     </div>
-                    <form action="/auth/signout" method="post">
-                      <Button variant="outline" size="sm" className="w-full">
-                        Sign Out
-                      </Button>
-                    </form>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => signOut({ callbackUrl: '/' })}
+                    >
+                      Sign Out
+                    </Button>
                   </>
                 ) : (
                   <>

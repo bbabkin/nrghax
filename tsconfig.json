@@ -18,7 +18,8 @@
     "jsx": "preserve",
     "paths": {
       "@/*": [
-        "./src/*"
+        "./src/*",
+        "./*"
       ]
     },
     "plugins": [

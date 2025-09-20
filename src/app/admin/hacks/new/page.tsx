@@ -1,26 +1,9 @@
-import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
+import { requireAdmin } from '@/lib/auth/user';
 import { HackForm } from '@/components/hacks/HackForm';
 import { getAllHacksForSelect } from '@/lib/hacks/utils';
 
 export default async function NewHackPage() {
-  const supabase = await createClient();
-  
-  // Check if user is admin
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    redirect('/login');
-  }
-  
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('is_admin')
-    .eq('id', user.id)
-    .single();
-    
-  if (!profile?.is_admin) {
-    redirect('/');
-  }
+  const user = await requireAdmin();
 
   const availableHacks = await getAllHacksForSelect();
 

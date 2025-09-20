@@ -1,406 +1,312 @@
-import { PrismaClient } from '@prisma/client'
-import { createClient } from '@supabase/supabase-js'
+import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient()
-
-// Check if we should create auth users (skip if using production DB)
-const SKIP_AUTH = process.env.SKIP_AUTH === 'true'
-
-// Use production Supabase if available
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321'
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-})
+const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting seed...')
+  console.log('🌱 Starting seed...');
 
-  let testUserId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' // Default ID
-  let adminUserId = 'b2c3d4e5-f6a7-8901-bcde-f23456789012' // Default ID
+  // Clear existing data (optional, comment out if you want to preserve data)
+  console.log('Clearing existing data...');
+  await prisma.userHack.deleteMany();
+  await prisma.userTag.deleteMany();
+  await prisma.hackTag.deleteMany();
+  await prisma.hackPrerequisite.deleteMany();
+  await prisma.hack.deleteMany();
+  await prisma.tag.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.user.deleteMany();
 
-  if (!SKIP_AUTH) {
-    // Try to create test user in Supabase Auth
-    console.log('Creating test user in Supabase Auth...')
-    try {
-      const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-        email: 'test@test.com',
-        password: 'test123',
-        email_confirm: true
-      })
-
-      if (authError && !authError.message.includes('already been registered')) {
-        console.warn('Could not create auth user, using default ID:', authError.message)
-      } else if (authUser?.user) {
-        testUserId = authUser.user.id
-        console.log(`  Auth user created/found with ID: ${testUserId}`)
-      } else {
-        // User already exists, get their ID
-        const { data: existingUser } = await supabase.auth.admin.listUsers()
-        const testUser = existingUser?.users?.find(u => u.email === 'test@test.com')
-        if (testUser) {
-          testUserId = testUser.id
-          console.log(`  Existing auth user found with ID: ${testUserId}`)
-        }
-      }
-    } catch (e) {
-      console.warn('Skipping auth user creation, using default ID')
-    }
-  } else {
-    console.log('Skipping auth user creation (SKIP_AUTH=true)')
-  }
-
-  // Create profile - DELETE existing first to ensure correct ID
-  console.log('Creating profile...')
-  await prisma.profile.deleteMany({
-    where: { email: 'test@test.com' }
-  })
-  await prisma.profile.create({
+  // Create test users
+  console.log('Creating test users...');
+  const testUser = await prisma.user.create({
     data: {
-      id: testUserId,
       email: 'test@test.com',
-      fullName: 'Test User',
-      isAdmin: false
+      name: 'Test User',
+      emailVerified: new Date(),
+      isAdmin: false,
     }
-  })
+  });
 
-  // Create admin user
-  if (!SKIP_AUTH) {
-    console.log('Creating admin user in Supabase Auth...')
-    try {
-      const { data: adminUser, error: adminError } = await supabase.auth.admin.createUser({
-        email: 'admin@test.com',
-        password: 'admin123',
-        email_confirm: true
-      })
-      if (adminError && !adminError.message.includes('already been registered')) {
-        console.warn('Could not create admin auth user:', adminError.message)
-      } else if (adminUser?.user) {
-        adminUserId = adminUser.user.id
-        console.log(`  Admin auth user created/found with ID: ${adminUserId}`)
-      } else {
-        // Admin already exists, get their ID
-        const { data: existingUsers } = await supabase.auth.admin.listUsers()
-        const adminAuthUser = existingUsers?.users?.find(u => u.email === 'admin@test.com')
-        if (adminAuthUser) {
-          adminUserId = adminAuthUser.id
-          console.log(`  Existing admin auth user found with ID: ${adminUserId}`)
-        }
-      }
-    } catch (e) {
-      console.warn('Could not create admin auth user, using default ID')
-    }
-  }
-
-  console.log('Creating admin profile...')
-  await prisma.profile.deleteMany({
-    where: { email: 'admin@test.com' }
-  })
-  await prisma.profile.create({
+  const adminUser = await prisma.user.create({
     data: {
-      id: adminUserId,
       email: 'admin@test.com',
-      fullName: 'Admin User',
-      isAdmin: true
+      name: 'Admin User',
+      emailVerified: new Date(),
+      isAdmin: true,
     }
-  })
+  });
 
   // Create tags
-  console.log('Creating tags...')
+  console.log('Creating tags...');
   const tags = await Promise.all([
-    prisma.tag.upsert({
-      where: { name: 'JavaScript' },
-      update: {},
-      create: { name: 'JavaScript', category: 'language', color: '#f7df1e' }
+    prisma.tag.create({
+      data: { name: 'JavaScript', slug: 'javascript', tagType: 'hack', category: 'language', color: '#f7df1e' }
     }),
-    prisma.tag.upsert({
-      where: { name: 'TypeScript' },
-      update: {},
-      create: { name: 'TypeScript', category: 'language', color: '#3178c6' }
+    prisma.tag.create({
+      data: { name: 'TypeScript', slug: 'typescript', tagType: 'hack', category: 'language', color: '#3178c6' }
     }),
-    prisma.tag.upsert({
-      where: { name: 'React' },
-      update: {},
-      create: { name: 'React', category: 'framework', color: '#61dafb' }
+    prisma.tag.create({
+      data: { name: 'React', slug: 'react', tagType: 'hack', category: 'framework', color: '#61dafb' }
     }),
-    prisma.tag.upsert({
-      where: { name: 'Node.js' },
-      update: {},
-      create: { name: 'Node.js', category: 'runtime', color: '#339933' }
+    prisma.tag.create({
+      data: { name: 'Node.js', slug: 'nodejs', tagType: 'hack', category: 'runtime', color: '#339933' }
     }),
-    prisma.tag.upsert({
-      where: { name: 'Beginner' },
-      update: {},
-      create: { name: 'Beginner', category: 'level', color: '#4caf50' }
+    prisma.tag.create({
+      data: { name: 'Beginner', slug: 'beginner', tagType: 'user_experience', category: 'level', color: '#4caf50' }
     }),
-    prisma.tag.upsert({
-      where: { name: 'Intermediate' },
-      update: {},
-      create: { name: 'Intermediate', category: 'level', color: '#ff9800' }
+    prisma.tag.create({
+      data: { name: 'Intermediate', slug: 'intermediate', tagType: 'user_experience', category: 'level', color: '#ff9800' }
     }),
-    prisma.tag.upsert({
-      where: { name: 'Advanced' },
-      update: {},
-      create: { name: 'Advanced', category: 'level', color: '#f44336' }
-    })
-  ])
+    prisma.tag.create({
+      data: { name: 'Advanced', slug: 'advanced', tagType: 'user_experience', category: 'level', color: '#f44336' }
+    }),
+    prisma.tag.create({
+      data: { name: 'Web Security', slug: 'web-security', tagType: 'user_interest', category: 'topic', color: '#ff5722' }
+    }),
+  ]);
 
   // Create hacks
-  console.log('Creating hacks...')
-
-  // Helper to create or get hack
-  async function upsertHack(data: any) {
-    const existing = await prisma.hack.findFirst({
-      where: { name: data.name }
-    })
-    if (existing) return existing
-    return prisma.hack.create({ data })
-  }
+  console.log('Creating hacks...');
 
   const hacks = await Promise.all([
-    upsertHack({
+    prisma.hack.create({
+      data: {
         name: 'Learn JavaScript Basics',
         slug: 'learn-javascript-basics',
         description: 'Master the fundamentals of JavaScript programming',
+        imageUrl: 'https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a',
         contentType: 'content',
-        contentBody: `# JavaScript Basics
-
-## Variables
-Learn about let, const, and var
-
-## Functions
-Understanding function declarations and expressions
-
-## Arrays and Objects
-Working with data structures`
+        contentBody: `<h1>JavaScript Basics</h1>
+<h2>Variables</h2>
+<p>Learn about let, const, and var</p>
+<h2>Functions</h2>
+<p>Understanding function declarations and expressions</p>
+<h2>Arrays and Objects</h2>
+<p>Working with data structures</p>`,
+        difficulty: 'Beginner',
+        timeMinutes: 30,
+        createdBy: adminUser.id
+      }
     }),
-    upsertHack({
+    prisma.hack.create({
+      data: {
         name: 'Build Your First React App',
         slug: 'build-your-first-react-app',
         description: 'Create a todo application with React and hooks',
+        imageUrl: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee',
         contentType: 'content',
-        contentBody: `# React Todo App
-
-## Setup
-1. Create React App
-2. Install dependencies
-
-## Components
-- TodoList
-- TodoItem
-- AddTodo
-
-## State Management
-Using useState and useEffect hooks`
+        contentBody: `<h1>React Todo App</h1>
+<h2>Setup</h2>
+<ol>
+<li>Create React App</li>
+<li>Install dependencies</li>
+</ol>
+<h2>Components</h2>
+<ul>
+<li>TodoList</li>
+<li>TodoItem</li>
+<li>AddTodo</li>
+</ul>
+<h2>State Management</h2>
+<p>Using useState and useEffect hooks</p>`,
+        difficulty: 'Intermediate',
+        timeMinutes: 45,
+        createdBy: adminUser.id
+      }
     }),
-    upsertHack({
+    prisma.hack.create({
+      data: {
         name: 'TypeScript Deep Dive',
         slug: 'typescript-deep-dive',
         description: 'Advanced TypeScript patterns and best practices',
+        imageUrl: 'https://images.unsplash.com/photo-1516116216624-53e697fedbea',
         contentType: 'link',
-        externalLink: 'https://basarat.gitbook.io/typescript/'
+        externalLink: 'https://basarat.gitbook.io/typescript/',
+        difficulty: 'Advanced',
+        timeMinutes: 60,
+        createdBy: adminUser.id
+      }
     }),
-    upsertHack({
+    prisma.hack.create({
+      data: {
         name: 'Node.js REST API',
         slug: 'nodejs-rest-api',
         description: 'Build a RESTful API with Express and PostgreSQL',
+        imageUrl: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479',
         contentType: 'content',
-        contentBody: `# Building a REST API
-
-## Setup Express
-\`\`\`javascript
-const express = require('express')
-const app = express()
-\`\`\`
-
-## Routes
-- GET /users
-- POST /users
-- PUT /users/:id
-- DELETE /users/:id
-
-## Database Integration
-Using Prisma ORM for PostgreSQL`
+        contentBody: `<h1>Building a REST API</h1>
+<h2>Setup Express</h2>
+<pre><code>const express = require('express')
+const app = express()</code></pre>
+<h2>Routes</h2>
+<ul>
+<li>GET /users</li>
+<li>POST /users</li>
+<li>PUT /users/:id</li>
+<li>DELETE /users/:id</li>
+</ul>
+<h2>Database Integration</h2>
+<p>Using Prisma ORM for PostgreSQL</p>`,
+        difficulty: 'Intermediate',
+        timeMinutes: 50,
+        createdBy: adminUser.id
+      }
     }),
-    upsertHack({
+    prisma.hack.create({
+      data: {
         name: 'CSS Grid Layout',
         slug: 'css-grid-layout',
         description: 'Master modern CSS Grid techniques',
+        imageUrl: 'https://images.unsplash.com/photo-1523437113738-bbd3cc89fb19',
         contentType: 'content',
-        contentBody: `# CSS Grid Layout
-
-## Grid Container
-\`\`\`css
-.container {
+        contentBody: `<h1>CSS Grid Layout</h1>
+<h2>Grid Container</h2>
+<pre><code>.container {
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
   gap: 20px;
-}
-\`\`\`
-
-## Grid Items
-Positioning and spanning cells`
+}</code></pre>
+<h2>Grid Items</h2>
+<p>Positioning and spanning cells</p>`,
+        difficulty: 'Beginner',
+        timeMinutes: 25,
+        createdBy: adminUser.id
+      }
     })
-  ])
+  ]);
 
   // Add hack tags
-  console.log('Adding hack tags...')
+  console.log('Adding hack tags...');
   await Promise.all([
     // JavaScript basics - JavaScript, Beginner
-    prisma.hackTag.upsert({
-      where: { hackId_tagId: { hackId: hacks[0].id, tagId: tags[0].id }},
-      update: {},
-      create: { hackId: hacks[0].id, tagId: tags[0].id }
+    prisma.hackTag.create({
+      data: { hackId: hacks[0].id, tagId: tags[0].id }
     }),
-    prisma.hackTag.upsert({
-      where: { hackId_tagId: { hackId: hacks[0].id, tagId: tags[4].id }},
-      update: {},
-      create: { hackId: hacks[0].id, tagId: tags[4].id }
+    prisma.hackTag.create({
+      data: { hackId: hacks[0].id, tagId: tags[4].id }
     }),
     // React app - React, Intermediate
-    prisma.hackTag.upsert({
-      where: { hackId_tagId: { hackId: hacks[1].id, tagId: tags[2].id }},
-      update: {},
-      create: { hackId: hacks[1].id, tagId: tags[2].id }
+    prisma.hackTag.create({
+      data: { hackId: hacks[1].id, tagId: tags[2].id }
     }),
-    prisma.hackTag.upsert({
-      where: { hackId_tagId: { hackId: hacks[1].id, tagId: tags[5].id }},
-      update: {},
-      create: { hackId: hacks[1].id, tagId: tags[5].id }
+    prisma.hackTag.create({
+      data: { hackId: hacks[1].id, tagId: tags[5].id }
     }),
     // TypeScript - TypeScript, Advanced
-    prisma.hackTag.upsert({
-      where: { hackId_tagId: { hackId: hacks[2].id, tagId: tags[1].id }},
-      update: {},
-      create: { hackId: hacks[2].id, tagId: tags[1].id }
+    prisma.hackTag.create({
+      data: { hackId: hacks[2].id, tagId: tags[1].id }
     }),
-    prisma.hackTag.upsert({
-      where: { hackId_tagId: { hackId: hacks[2].id, tagId: tags[6].id }},
-      update: {},
-      create: { hackId: hacks[2].id, tagId: tags[6].id }
+    prisma.hackTag.create({
+      data: { hackId: hacks[2].id, tagId: tags[6].id }
     }),
     // Node.js API - Node.js, Intermediate
-    prisma.hackTag.upsert({
-      where: { hackId_tagId: { hackId: hacks[3].id, tagId: tags[3].id }},
-      update: {},
-      create: { hackId: hacks[3].id, tagId: tags[3].id }
+    prisma.hackTag.create({
+      data: { hackId: hacks[3].id, tagId: tags[3].id }
     }),
-    prisma.hackTag.upsert({
-      where: { hackId_tagId: { hackId: hacks[3].id, tagId: tags[5].id }},
-      update: {},
-      create: { hackId: hacks[3].id, tagId: tags[5].id }
+    prisma.hackTag.create({
+      data: { hackId: hacks[3].id, tagId: tags[5].id }
     }),
     // CSS Grid - Beginner
-    prisma.hackTag.upsert({
-      where: { hackId_tagId: { hackId: hacks[4].id, tagId: tags[4].id }},
-      update: {},
-      create: { hackId: hacks[4].id, tagId: tags[4].id }
+    prisma.hackTag.create({
+      data: { hackId: hacks[4].id, tagId: tags[4].id }
     })
-  ])
+  ]);
 
   // Create hack prerequisites (React requires JavaScript)
-  const existingPrereq = await prisma.hackPrerequisite.findFirst({
-    where: {
-      hackId: hacks[1].id,
-      prerequisiteHackId: hacks[0].id
+  console.log('Creating hack prerequisites...');
+  await prisma.hackPrerequisite.create({
+    data: {
+      hackId: hacks[1].id, // React app
+      prerequisiteHackId: hacks[0].id // JavaScript basics
     }
-  })
-
-  if (!existingPrereq) {
-    await prisma.hackPrerequisite.create({
-      data: {
-        hackId: hacks[1].id, // React app
-        prerequisiteHackId: hacks[0].id // JavaScript basics
-      }
-    })
-  }
-
+  });
 
   // Add user interactions
-  console.log('Adding user interactions...')
+  console.log('Adding user interactions...');
 
-  // User likes some hacks
-  await prisma.userHack.upsert({
-    where: {
-      userId_hackId: {
-        userId: testUserId,
-        hackId: hacks[0].id
-      }
-    },
-    update: {
-      status: 'liked'
-    },
-    create: {
-      userId: testUserId,
+  // Test user interactions
+  await prisma.userHack.create({
+    data: {
+      userId: testUser.id,
       hackId: hacks[0].id,
-      status: 'liked'
+      liked: true,
+      viewed: true,
+      viewedAt: new Date()
     }
-  })
+  });
 
-  await prisma.userHack.upsert({
-    where: {
-      userId_hackId: {
-        userId: testUserId,
-        hackId: hacks[1].id
-      }
-    },
-    update: {
-      status: 'visited',
-      completedAt: new Date()
-    },
-    create: {
-      userId: testUserId,
+  await prisma.userHack.create({
+    data: {
+      userId: testUser.id,
       hackId: hacks[1].id,
-      status: 'visited',
-      completedAt: new Date()
+      viewed: true,
+      viewedAt: new Date()
     }
-  })
+  });
 
-  // User has interests
-  await prisma.userTag.upsert({
-    where: {
-      userId_tagId: {
-        userId: testUserId,
-        tagId: tags[0].id
-      }
-    },
-    update: {},
-    create: {
-      userId: testUserId,
-      tagId: tags[0].id // JavaScript
+  // Admin user interactions
+  await prisma.userHack.create({
+    data: {
+      userId: adminUser.id,
+      hackId: hacks[0].id,
+      viewed: true,
+      viewedAt: new Date()
     }
-  })
+  });
 
-  await prisma.userTag.upsert({
-    where: {
-      userId_tagId: {
-        userId: testUserId,
-        tagId: tags[2].id
-      }
-    },
-    update: {},
-    create: {
-      userId: testUserId,
-      tagId: tags[2].id // React
+  await prisma.userHack.create({
+    data: {
+      userId: adminUser.id,
+      hackId: hacks[2].id,
+      liked: true,
+      viewed: true,
+      viewedAt: new Date()
     }
-  })
+  });
 
+  // User tags
+  console.log('Adding user tags...');
+  await prisma.userTag.create({
+    data: {
+      userId: testUser.id,
+      tagId: tags[4].id, // Beginner
+      source: 'onboarding'
+    }
+  });
 
-  console.log('✅ Seed completed successfully!')
-  console.log('\nTest accounts created:')
-  console.log('  User: test@test.com / test123')
-  console.log('  Admin: admin@test.com / admin123')
+  await prisma.userTag.create({
+    data: {
+      userId: testUser.id,
+      tagId: tags[7].id, // Web Security
+      source: 'onboarding'
+    }
+  });
+
+  await prisma.userTag.create({
+    data: {
+      userId: adminUser.id,
+      tagId: tags[6].id, // Advanced
+      source: 'onboarding'
+    }
+  });
+
+  console.log('✅ Seed completed successfully!');
+  console.log('\nTest accounts created (for Auth.js):');
+  console.log('  User: test@test.com');
+  console.log('  Admin: admin@test.com');
+  console.log('\nNote: Use OAuth or magic links to sign in');
+  console.log(`  - Created ${await prisma.user.count()} users`);
+  console.log(`  - Created ${await prisma.tag.count()} tags`);
+  console.log(`  - Created ${await prisma.hack.count()} hacks`);
+  console.log(`  - Created ${await prisma.userHack.count()} user interactions`);
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Seed failed:', e)
-    process.exit(1)
+    console.error('❌ Seed failed:', e);
+    process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect()
-  })
+    await prisma.$disconnect();
+  });

@@ -1,21 +1,22 @@
-import { createClient } from '@/lib/supabase/server';
-import { HackCard } from '@/components/hacks/HackCard';
-import { getHacks } from '@/lib/hacks/prisma-utils';
+import { HacksList } from '@/components/hacks/HacksList';
+import { getHacks } from '@/lib/hacks/utils';
+import { getCurrentUser } from '@/lib/auth/user';
+import { cookies } from 'next/headers';
 import prisma from '@/lib/db';
 
 export default async function HacksPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const user = await getCurrentUser();
+
   const hacks = await getHacks();
 
-  // Get user's completed hacks to check prerequisites using Prisma
+  // Get user's completed hacks to check prerequisites
   let completedHackIds: string[] = [];
   if (user) {
+    // For authenticated users, get from database
     const completions = await prisma.userHack.findMany({
       where: {
         userId: user.id,
-        status: 'completed'
+        viewed: true
       },
       select: {
         hackId: true
@@ -23,6 +24,18 @@ export default async function HacksPage() {
     });
 
     completedHackIds = completions.map(c => c.hackId).filter((id): id is string => id !== null);
+  } else {
+    // For anonymous users, get from cookies
+    const cookieStore = await cookies();
+    const visitedCookie = cookieStore.get('visited_hacks');
+
+    if (visitedCookie) {
+      try {
+        completedHackIds = JSON.parse(visitedCookie.value) as string[];
+      } catch {
+        completedHackIds = [];
+      }
+    }
   }
 
   // Get all prerequisites to check which hacks are locked using Prisma
@@ -38,10 +51,28 @@ export default async function HacksPage() {
     const hasIncompletePrerequisites = prerequisites.some(
       p => p.prerequisiteHackId && !completedHackIds.includes(p.prerequisiteHackId)
     );
-    
+
+    // Get prerequisite IDs for client-side checking (for anonymous users)
+    const prerequisiteIds = prerequisites
+      .map(p => p.prerequisiteHackId)
+      .filter((id): id is string => id !== null);
+
+    // Transform to match HackCard expectations
     return {
-      ...hack,
+      id: hack.id,
+      name: hack.name,
+      slug: hack.slug,
+      description: hack.description,
+      image_url: hack.imageUrl || '',
+      image_path: hack.imagePath,
+      content_type: hack.contentType as 'content' | 'link',
+      external_link: hack.externalLink,
+      like_count: hack.likeCount,
+      is_liked: hack.isLiked,
+      is_completed: hack.isViewed,
+      tags: hack.tags,
       hasIncompletePrerequisites,
+      prerequisiteIds, // Add prerequisite IDs for client-side checking
     };
   });
 
@@ -54,23 +85,10 @@ export default async function HacksPage() {
         </p>
       </div>
 
-      {hacks.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500">No hacks available yet. Check back later!</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {hacksWithPrerequisiteStatus.map(hack => (
-            <HackCard
-              key={hack.id}
-              hack={hack}
-              hasIncompletePrerequisites={hack.hasIncompletePrerequisites}
-              isAdmin={false}
-              showActions={true}
-            />
-          ))}
-        </div>
-      )}
+      <HacksList
+        hacks={hacksWithPrerequisiteStatus}
+        isAuthenticated={!!user}
+      />
     </div>
   );
 }

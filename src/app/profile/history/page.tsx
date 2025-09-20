@@ -1,6 +1,6 @@
-import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { getUserCompletedHacks } from '@/lib/hacks/utils';
+import { getCurrentUser } from '@/lib/auth/user';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,9 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Calendar, ExternalLink, BookOpen } from 'lucide-react';
 
 export default async function HistoryPage() {
-  const supabase = await createClient();
-  
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) {
     redirect('/login');
   }
@@ -18,8 +16,8 @@ export default async function HistoryPage() {
   const completedHacks = await getUserCompletedHacks(user.id);
 
   // Group by date
-  const groupedByDate = completedHacks.reduce((acc, hack) => {
-    const date = new Date(hack.completed_at).toLocaleDateString('en-US', {
+  const groupedByDate = completedHacks.reduce((acc, hackData) => {
+    const date = new Date(hackData.viewedAt || hackData.createdAt).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -28,7 +26,7 @@ export default async function HistoryPage() {
     if (!acc[date]) {
       acc[date] = [];
     }
-    acc[date].push(hack);
+    acc[date].push(hackData);
     return acc;
   }, {} as Record<string, typeof completedHacks>);
 
@@ -76,16 +74,18 @@ export default async function HistoryPage() {
                 </div>
                 
                 <div className="space-y-3">
-                  {hacks.map((hack) => (
+                  {hacks.map((hackData) => {
+                    const hack = hackData.hack;
+                    return (
                     <Link key={hack.id} href={`/hacks/${hack.id}`}>
                       <Card className="hover:shadow-md transition-shadow cursor-pointer">
                         <CardContent className="p-4">
                           <div className="flex items-center gap-4">
                             <div className="relative w-20 h-20 flex-shrink-0">
                               <Image
-                                src={hack.image_path 
-                                  ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/hack-images/${hack.image_path}`
-                                  : hack.image_url || '/placeholder-hack.svg'}
+                                src={hack.imagePath
+                                  ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/hack-images/${hack.imagePath}`
+                                  : hack.imageUrl || '/placeholder-hack.svg'}
                                 alt={hack.name}
                                 fill
                                 className="object-cover rounded"
@@ -100,7 +100,7 @@ export default async function HistoryPage() {
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-2 ml-4">
-                                  {hack.content_type === 'link' ? (
+                                  {hack.contentType === 'link' ? (
                                     <Badge variant="outline" className="text-xs">
                                       <ExternalLink className="h-3 w-3 mr-1" />
                                       External
@@ -114,7 +114,7 @@ export default async function HistoryPage() {
                                 </div>
                               </div>
                               <div className="mt-2 text-xs text-gray-500">
-                                Completed at {new Date(hack.completed_at).toLocaleTimeString('en-US', {
+                                Completed at {new Date(hackData.viewedAt || hackData.createdAt).toLocaleTimeString('en-US', {
                                   hour: '2-digit',
                                   minute: '2-digit',
                                 })}
@@ -124,7 +124,8 @@ export default async function HistoryPage() {
                         </CardContent>
                       </Card>
                     </Link>
-                  ))}
+                  );
+                  })}
                 </div>
               </div>
             ))}

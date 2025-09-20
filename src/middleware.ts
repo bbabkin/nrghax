@@ -1,101 +1,19 @@
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 
-export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
+// Simple middleware that doesn't require Auth.js
+// Auth checks will be done in the page components/route handlers
+export function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
-          supabaseResponse = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
-
-  // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make your user
-  // vulnerable to session hijacking!
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  // Check if user is trying to access admin routes
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    if (!user) {
-      // No user, redirect to auth
-      const url = request.nextUrl.clone()
-      url.pathname = '/auth'
-      url.searchParams.set('redirect', request.nextUrl.pathname)
-      return NextResponse.redirect(url)
-    }
-
-    // Check if user is admin
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', user.id)
-      .single()
-
-    // Debug logging in production
-    if (process.env.NODE_ENV === 'production') {
-      console.log('[Middleware] Admin check:', {
-        userId: user.id,
-        userEmail: user.email,
-        profileFound: !!profile,
-        isAdmin: profile?.is_admin,
-        error: error?.message
-      })
-    }
-
-    if (!profile?.is_admin) {
-      // Not an admin, redirect to home
-      const url = request.nextUrl.clone()
-      url.pathname = '/'
-      return NextResponse.redirect(url)
-    }
+  // Allow API routes and auth callbacks
+  if (pathname.startsWith('/api/auth') || pathname === '/auth') {
+    return NextResponse.next()
   }
 
-  // Check for other protected routes
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    !request.nextUrl.pathname.startsWith('/api/auth') &&
-    (request.nextUrl.pathname.startsWith('/dashboard') ||
-     request.nextUrl.pathname.startsWith('/account') ||
-     request.nextUrl.pathname.startsWith('/profile'))
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone()
-    url.pathname = '/auth'
-    url.searchParams.set('redirect', request.nextUrl.pathname)
-    return NextResponse.redirect(url)
-  }
-
-  // IMPORTANT: You *must* return the supabaseResponse object as it is.
-  // If you're trying to modify the response, do it above.
-  return supabaseResponse
-}
-
-export async function middleware(request: NextRequest) {
-  return await updateSession(request)
+  // For now, just pass through all requests
+  // Auth checks are handled in individual pages
+  return NextResponse.next()
 }
 
 export const config = {
@@ -106,7 +24,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public files (public folder)
-     * - api routes that don't need protection
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],

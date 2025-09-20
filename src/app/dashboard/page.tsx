@@ -1,36 +1,21 @@
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth/user'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import prisma from '@/lib/db'
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/auth')
-  }
+  const user = await requireAuth()
 
   // Check if user has completed onboarding
-  const { data: userTags } = await supabase
-    .from('user_tags')
-    .select(`
-      tag_id,
-      source,
-      tags (
-        id,
-        name,
-        slug,
-        tag_type,
-        description
-      )
-    `)
-    .eq('user_id', user.id)
+  const userTags = await prisma.userTag.findMany({
+    where: { userId: user.id },
+    include: {
+      tag: true
+    }
+  })
 
   const hasCompletedOnboarding = userTags && userTags.some(ut => ut.source === 'onboarding')
 
@@ -40,14 +25,25 @@ export default async function DashboardPage() {
   }
 
   // Get personalized hack recommendations
-  const { data: recommendedHacks } = await supabase
-    .rpc('get_personalized_hacks', { p_user_id: user.id })
-    .limit(6)
+  // For now, just get recent hacks - we'll implement personalization later
+  const recommendedHacks = await prisma.hack.findMany({
+    take: 6,
+    include: {
+      hackTags: {
+        include: {
+          tag: true
+        }
+      }
+    },
+    orderBy: {
+      createdAt: 'desc'
+    }
+  })
 
   // Organize user tags by type
-  const experienceTag = userTags?.find(ut => (ut as any).tags?.tag_type === 'user_experience')?.tags as any
-  const interestTags = userTags?.filter(ut => (ut as any).tags?.tag_type === 'user_interest').map(ut => (ut as any).tags) as any[]
-  const specialTags = userTags?.filter(ut => (ut as any).tags?.tag_type === 'user_special').map(ut => (ut as any).tags) as any[]
+  const experienceTag = userTags?.find(ut => ut.tag.tagType === 'user_experience')?.tag
+  const interestTags = userTags?.filter(ut => ut.tag.tagType === 'user_interest').map(ut => ut.tag)
+  const specialTags = userTags?.filter(ut => ut.tag.tagType === 'user_special').map(ut => ut.tag)
 
   return (
     <div className="container mx-auto py-10">
@@ -85,35 +81,35 @@ export default async function DashboardPage() {
 
         {recommendedHacks && recommendedHacks.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {recommendedHacks.map((hack: any) => (
-              <Card key={hack.hack_id} className="hover:shadow-lg transition-shadow">
+            {recommendedHacks.map((hack) => (
+              <Card key={hack.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
-                  <CardTitle className="line-clamp-1">{hack.hack_name}</CardTitle>
+                  <CardTitle className="line-clamp-1">{hack.name}</CardTitle>
                   <CardDescription className="line-clamp-2">
-                    {hack.hack_description}
+                    {hack.description}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex justify-between items-center mb-3">
                     <Badge variant="outline">
-                      {hack.hack_difficulty || 'Medium'}
+                      {hack.difficulty || 'Medium'}
                     </Badge>
-                    {hack.hack_time_minutes && (
+                    {hack.timeMinutes && (
                       <span className="text-sm text-muted-foreground">
-                        {hack.hack_time_minutes} min
+                        {hack.timeMinutes} min
                       </span>
                     )}
                   </div>
-                  {hack.matching_tags && hack.matching_tags.length > 0 && (
+                  {hack.hackTags && hack.hackTags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-3">
-                      {hack.matching_tags.map((tag: string) => (
-                        <Badge key={tag} variant="secondary" className="text-xs">
-                          {tag}
+                      {hack.hackTags.map(ht => (
+                        <Badge key={ht.tag.id} variant="secondary" className="text-xs">
+                          {ht.tag.name}
                         </Badge>
                       ))}
                     </div>
                   )}
-                  <Link href={`/hacks/${hack.hack_id}`}>
+                  <Link href={`/hacks/${hack.slug || hack.id}`}>
                     <Button className="w-full" size="sm">
                       Start Challenge
                     </Button>

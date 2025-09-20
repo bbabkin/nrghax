@@ -1,5 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
+import { requireAdmin } from '@/lib/auth/user';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { HackCard } from '@/components/hacks/HackCard';
@@ -7,25 +6,25 @@ import { getHacks } from '@/lib/hacks/utils';
 import { PlusCircle } from 'lucide-react';
 
 export default async function AdminHacksPage() {
-  const supabase = await createClient();
-  
-  // Check if user is admin
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    redirect('/login');
-  }
-  
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('is_admin')
-    .eq('id', user.id)
-    .single();
-    
-  if (!profile?.is_admin) {
-    redirect('/');
-  }
+  await requireAdmin();
 
   const hacks = await getHacks();
+
+  // Transform hacks to match HackCard expectations
+  const transformedHacks = hacks.map(hack => ({
+    id: hack.id,
+    name: hack.name,
+    slug: hack.slug,
+    description: hack.description,
+    image_url: hack.imageUrl || '',
+    image_path: hack.imagePath,
+    content_type: hack.contentType as 'content' | 'link',
+    external_link: hack.externalLink,
+    like_count: hack.likeCount,
+    is_liked: hack.isLiked,
+    is_completed: hack.isViewed,
+    tags: hack.tags
+  }));
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -39,7 +38,7 @@ export default async function AdminHacksPage() {
         </Link>
       </div>
 
-      {hacks.length === 0 ? (
+      {transformedHacks.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500 mb-4">No hacks created yet.</p>
           <Link href="/admin/hacks/new">
@@ -48,7 +47,7 @@ export default async function AdminHacksPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {hacks.map(hack => (
+          {transformedHacks.map(hack => (
             <HackCard
               key={hack.id}
               hack={hack}

@@ -1,69 +1,44 @@
-import { createClient } from '@/lib/supabase/server';
+import { getCurrentUser } from '@/lib/auth/user';
 import { NextResponse } from 'next/server';
+import prisma from '@/lib/db';
 
 export async function GET() {
-  const supabase = await createClient();
+  const user = await getCurrentUser();
 
-  // Get current user
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-  if (userError || !user) {
+  if (!user) {
     return NextResponse.json({
       error: 'Not authenticated',
       details: 'Please log in first'
     }, { status: 401 });
   }
 
-  // Get profile with admin status
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id, email, full_name, is_admin, created_at')
-    .eq('id', user.id)
-    .single();
-
-  if (profileError) {
-    return NextResponse.json({
-      error: 'Profile fetch failed',
-      details: profileError.message,
-      hint: 'The profiles table might be missing or the schema might be outdated'
-    }, { status: 500 });
-  }
-
   // Get all admins count
-  const { count: adminCount } = await supabase
-    .from('profiles')
-    .select('*', { count: 'exact' })
-    .eq('is_admin', true);
+  const adminCount = await prisma.user.count({
+    where: { isAdmin: true }
+  });
 
   // Get total users count
-  const { count: totalUsers } = await supabase
-    .from('profiles')
-    .select('*', { count: 'exact' });
+  const totalUsers = await prisma.user.count();
 
   return NextResponse.json({
     currentUser: {
       id: user.id,
       email: user.email,
-      profileEmail: profile?.email,
-      fullName: profile?.full_name,
-      isAdmin: profile?.is_admin || false,
-      createdAt: profile?.created_at
+      name: user.name,
+      isAdmin: user.isAdmin,
     },
     stats: {
-      totalAdmins: adminCount || 0,
-      totalUsers: totalUsers || 0,
+      totalAdmins: adminCount,
+      totalUsers: totalUsers,
       isFirstUser: totalUsers === 1
     },
     schema: {
-      hasIsAdminColumn: profile && 'is_admin' in profile,
-      profileExists: !!profile
+      profileExists: true
     },
-    recommendations: profile && !profile.is_admin ? [
+    recommendations: !user.isAdmin ? [
       'User is NOT admin. To fix:',
-      '1. Go to Supabase Dashboard > Table Editor > profiles',
-      `2. Find user with ID: ${user.id}`,
-      '3. Set is_admin to true',
-      '4. Save changes'
-    ] : profile?.is_admin ? ['User is already an admin ✅'] : ['Profile not found - schema might be outdated']
+      '1. Update user in database',
+      `2. Set isAdmin to true for user ID: ${user.id}`,
+    ] : ['User is already an admin ✅']
   });
 }
