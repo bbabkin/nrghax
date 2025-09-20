@@ -64,7 +64,7 @@ export async function getHacks(): Promise<Hack[]> {
         category: ht.tag.category
       })),
       isLiked: user && hack.userHacks ? hack.userHacks.some(uh => uh.status === 'liked') : false,
-      isCompleted: user && hack.userHacks ? hack.userHacks.some(uh => uh.status === 'completed') : false,
+      isCompleted: user && hack.userHacks ? hack.userHacks.some(uh => uh.status === 'visited') : false,
       likeCount: 0, // Can be calculated if needed
       completionCount: 0, // Can be calculated if needed
     }));
@@ -120,7 +120,7 @@ export async function getHackById(id: string): Promise<Hack | null> {
         category: ht.tag.category
       })),
       isLiked: user && hack.userHacks ? hack.userHacks.some(uh => uh.status === 'liked') : false,
-      isCompleted: user && hack.userHacks ? hack.userHacks.some(uh => uh.status === 'completed') : false,
+      isCompleted: user && hack.userHacks ? hack.userHacks.some(uh => uh.status === 'visited') : false,
     };
   } catch (error) {
     console.error('Error fetching hack by ID:', error);
@@ -169,10 +169,46 @@ export async function getHackBySlug(slug: string): Promise<Hack | null> {
         category: ht.tag.category
       })),
       isLiked: user && hack.userHacks ? hack.userHacks.some(uh => uh.status === 'liked') : false,
-      isCompleted: user && hack.userHacks ? hack.userHacks.some(uh => uh.status === 'completed') : false,
+      isCompleted: user && hack.userHacks ? hack.userHacks.some(uh => uh.status === 'visited') : false,
     };
   } catch (error) {
     console.error('Error fetching hack by slug:', error);
     return null;
+  }
+}
+
+export async function checkPrerequisitesCompletedPrisma(hackId: string, userId: string): Promise<boolean> {
+  try {
+    // Get prerequisites for this hack
+    const prerequisites = await prisma.hackPrerequisite.findMany({
+      where: {
+        hackId: hackId
+      },
+      select: {
+        prerequisiteHackId: true
+      }
+    });
+
+    if (!prerequisites || prerequisites.length === 0) {
+      return true; // No prerequisites, so they're "completed"
+    }
+
+    // Check if user has completed all prerequisites
+    const prerequisiteIds = prerequisites.map(p => p.prerequisiteHackId).filter(Boolean) as string[];
+
+    const completedCount = await prisma.userHack.count({
+      where: {
+        userId: userId,
+        hackId: {
+          in: prerequisiteIds
+        },
+        status: 'visited'
+      }
+    });
+
+    return completedCount === prerequisites.length;
+  } catch (error) {
+    console.error('Error checking prerequisites:', error);
+    return false;
   }
 }

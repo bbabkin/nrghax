@@ -49,11 +49,11 @@ describe('HackCard Component', () => {
     expect(screen.getByText('10')).toBeDefined() // likes
   })
 
-  it('should show completed badge when hack is completed', () => {
-    const completedHack = { ...mockHack, is_completed: true }
-    render(<HackCard hack={completedHack} />)
-    
-    expect(screen.getByText('Completed')).toBeDefined()
+  it('should show visited badge when hack is visited', () => {
+    const visitedHack = { ...mockHack, is_completed: true }
+    render(<HackCard hack={visitedHack} />)
+
+    expect(screen.getByText('Visited')).toBeDefined()
   })
 
   it('should show locked state when prerequisites not met', () => {

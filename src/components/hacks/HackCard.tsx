@@ -117,9 +117,9 @@ export function HackCard({
           </div>
         )}
         {hack.is_completed && (
-          <Badge className="absolute top-2 right-2 bg-green-500">
+          <Badge className="absolute top-2 right-2 bg-blue-500">
             <CheckCircle className="h-3 w-3 mr-1" />
-            Completed
+            Visited
           </Badge>
         )}
       </div>

@@ -72,7 +72,7 @@ export async function getHacks() {
       like_count: 0, // Simplified for now
       completion_count: 0, // Simplified for now
       is_liked: hackUserInteractions.some(uh => uh.status === 'liked'),
-      is_completed: hackUserInteractions.some(uh => uh.status === 'completed'),
+      is_completed: hackUserInteractions.some(uh => uh.status === 'visited'),
       tags,
     };
   });
@@ -114,7 +114,7 @@ export async function getHackById(id: string) {
 
   const userHacks = hack.user_hacks || [];
   const likes = userHacks.filter((uh: any) => uh.status === 'liked');
-  const completions = userHacks.filter((uh: any) => uh.status === 'completed');
+  const completions = userHacks.filter((uh: any) => uh.status === 'visited');
   const prerequisites = hack.hack_prerequisites?.map((p: any) => p.prerequisite) || [];
 
   return {
@@ -160,7 +160,7 @@ export async function getHackBySlug(slug: string) {
 
   const userHacks = hack.user_hacks || [];
   const likes = userHacks.filter((uh: any) => uh.status === 'liked');
-  const completions = userHacks.filter((uh: any) => uh.status === 'completed');
+  const completions = userHacks.filter((uh: any) => uh.status === 'visited');
   const prerequisites = hack.hack_prerequisites?.map((p: any) => p.prerequisite) || [];
 
   return {
@@ -334,7 +334,7 @@ export async function getRecommendedHacks(userId?: string) {
   return hacks.map(hack => {
     const userHacks = hack.user_hacks || [];
     const likes = userHacks.filter((uh: any) => uh.status === 'liked');
-    const completions = userHacks.filter((uh: any) => uh.status === 'completed');
+    const completions = userHacks.filter((uh: any) => uh.status === 'visited');
     const tags = hack.hack_tags?.map((ht: any) => ht.tag).filter(Boolean) || [];
 
     return {

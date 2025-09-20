@@ -37,6 +37,15 @@ async function main() {
         console.warn('Could not create auth user, using default ID:', authError.message)
       } else if (authUser?.user) {
         testUserId = authUser.user.id
+        console.log(`  Auth user created/found with ID: ${testUserId}`)
+      } else {
+        // User already exists, get their ID
+        const { data: existingUser } = await supabase.auth.admin.listUsers()
+        const testUser = existingUser?.users?.find(u => u.email === 'test@test.com')
+        if (testUser) {
+          testUserId = testUser.id
+          console.log(`  Existing auth user found with ID: ${testUserId}`)
+        }
       }
     } catch (e) {
       console.warn('Skipping auth user creation, using default ID')
@@ -45,12 +54,13 @@ async function main() {
     console.log('Skipping auth user creation (SKIP_AUTH=true)')
   }
 
-  // Create profile
+  // Create profile - DELETE existing first to ensure correct ID
   console.log('Creating profile...')
-  await prisma.profile.upsert({
-    where: { email: 'test@test.com' },
-    update: {},
-    create: {
+  await prisma.profile.deleteMany({
+    where: { email: 'test@test.com' }
+  })
+  await prisma.profile.create({
+    data: {
       id: testUserId,
       email: 'test@test.com',
       fullName: 'Test User',
@@ -62,13 +72,24 @@ async function main() {
   if (!SKIP_AUTH) {
     console.log('Creating admin user in Supabase Auth...')
     try {
-      const { data: adminUser } = await supabase.auth.admin.createUser({
+      const { data: adminUser, error: adminError } = await supabase.auth.admin.createUser({
         email: 'admin@test.com',
         password: 'admin123',
         email_confirm: true
       })
-      if (adminUser?.user) {
+      if (adminError && !adminError.message.includes('already been registered')) {
+        console.warn('Could not create admin auth user:', adminError.message)
+      } else if (adminUser?.user) {
         adminUserId = adminUser.user.id
+        console.log(`  Admin auth user created/found with ID: ${adminUserId}`)
+      } else {
+        // Admin already exists, get their ID
+        const { data: existingUsers } = await supabase.auth.admin.listUsers()
+        const adminAuthUser = existingUsers?.users?.find(u => u.email === 'admin@test.com')
+        if (adminAuthUser) {
+          adminUserId = adminAuthUser.id
+          console.log(`  Existing admin auth user found with ID: ${adminUserId}`)
+        }
       }
     } catch (e) {
       console.warn('Could not create admin auth user, using default ID')
@@ -76,10 +97,11 @@ async function main() {
   }
 
   console.log('Creating admin profile...')
-  await prisma.profile.upsert({
-    where: { email: 'admin@test.com' },
-    update: { isAdmin: true },
-    create: {
+  await prisma.profile.deleteMany({
+    where: { email: 'admin@test.com' }
+  })
+  await prisma.profile.create({
+    data: {
       id: adminUserId,
       email: 'admin@test.com',
       fullName: 'Admin User',
@@ -327,13 +349,13 @@ Positioning and spanning cells`
       }
     },
     update: {
-      status: 'completed',
+      status: 'visited',
       completedAt: new Date()
     },
     create: {
       userId: testUserId,
       hackId: hacks[1].id,
-      status: 'completed',
+      status: 'visited',
       completedAt: new Date()
     }
   })

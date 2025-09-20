@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect, notFound } from 'next/navigation';
 import { getHackById, getHackBySlug, checkPrerequisitesCompleted } from '@/lib/hacks/utils';
-import { markHackViewed, toggleLike } from '@/lib/hacks/actions';
+import { markHackVisited, toggleLike } from '@/lib/hacks/actions';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -61,9 +61,9 @@ export default async function HackPage({ params }: { params: Promise<{ id: strin
     // Mark as viewed before redirecting (only for authenticated users)
     if (user) {
       try {
-        await markHackViewed(hack.id);
+        await markHackVisited(hack.id);
       } catch (error) {
-        console.error('Failed to mark hack as viewed:', error);
+        console.error('Failed to mark hack as visited:', error);
         // Continue with redirect even if marking fails
       }
     }
@@ -73,7 +73,7 @@ export default async function HackPage({ params }: { params: Promise<{ id: strin
   // Mark as viewed for internal content (only for authenticated users)
   if (hack.content_type === 'content' && canAccess && user) {
     try {
-      await markHackViewed(hack.id);
+      await markHackVisited(hack.id);
     } catch (error) {
       console.error('Failed to mark hack as viewed:', error);
       // Continue showing content even if marking fails
@@ -97,7 +97,7 @@ export default async function HackPage({ params }: { params: Promise<{ id: strin
             </p>
             <div className="space-y-3 max-w-md mx-auto">
               {hack.prerequisites?.map(prereq => (
-                <Link key={prereq.id} href={`/hacks/${prereq.id}`}>
+                <Link key={prereq.id} href={`/hacks/${prereq.slug || prereq.id}`}>
                   <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
                     <div className="flex items-center gap-3">
                       <div className="relative w-16 h-16 flex-shrink-0">
@@ -145,9 +145,9 @@ export default async function HackPage({ params }: { params: Promise<{ id: strin
               </div>
               <div className="flex items-center gap-2">
                 {hack.is_completed && (
-                  <Badge className="bg-green-500">
+                  <Badge className="bg-blue-500">
                     <CheckCircle className="h-3 w-3 mr-1" />
-                    Completed
+                    Visited
                   </Badge>
                 )}
                 {hack.content_type === 'link' && (
@@ -160,13 +160,13 @@ export default async function HackPage({ params }: { params: Promise<{ id: strin
             </div>
 
             <div className="flex items-center gap-4">
-              <LikeButton 
-                hackId={resolvedParams.id} 
+              <LikeButton
+                hackId={hack.id}
                 isLiked={hack.is_liked || false}
                 likeCount={hack.like_count || 0}
               />
               <span className="text-sm text-gray-500">
-                {hack.completion_count || 0} completions
+                {hack.completion_count || 0} visits
               </span>
             </div>
           </div>

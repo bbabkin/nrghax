@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { createHack, updateHack, deleteHack, toggleLike, HackFormData } from './actions'
+import { createHack, updateHack, deleteHack, toggleLike, markHackVisited, HackFormData } from './actions'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
@@ -15,6 +15,19 @@ vi.mock('next/cache', () => ({
 // Mock Supabase server client
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn()
+}))
+
+// Mock Prisma client
+vi.mock('@/lib/db', () => ({
+  default: {
+    userHack: {
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+    $disconnect: vi.fn(),
+  },
 }))
 
 describe('Hack Server Actions', () => {
@@ -437,6 +450,201 @@ describe('Hack Server Actions', () => {
       })
 
       await expect(toggleCompletion(hackId)).rejects.toThrow('User not authenticated')
+    })
+  })
+
+  describe('markHackVisited', () => {
+    const hackId = 'test-hack-id'
+    const userId = 'test-user-id'
+
+    beforeEach(() => {
+      // Reset Prisma mocks
+      const prisma = require('@/lib/db').default
+      vi.clearAllMocks()
+    })
+
+    it('should create new interaction when user views hack for first time', async () => {
+      const prisma = require('@/lib/db').default
+
+      // Mock user authentication
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: userId } },
+        error: null
+      })
+
+      // Mock no existing interaction
+      prisma.userHack.findUnique.mockResolvedValue(null)
+
+      // Mock successful creation
+      prisma.userHack.create.mockResolvedValue({
+        id: 'interaction-123',
+        userId,
+        hackId,
+        status: 'visited',
+        completedAt: new Date()
+      })
+
+      await markHackVisited(hackId)
+
+      expect(prisma.userHack.findUnique).toHaveBeenCalledWith({
+        where: {
+          userId_hackId: {
+            userId,
+            hackId
+          }
+        }
+      })
+
+      expect(prisma.userHack.create).toHaveBeenCalledWith({
+        data: {
+          userId,
+          hackId,
+          status: 'visited',
+          completedAt: expect.any(Date)
+        }
+      })
+
+      expect(revalidatePath).toHaveBeenCalledWith('/hacks')
+      expect(revalidatePath).toHaveBeenCalledWith(`/hacks/${hackId}`)
+      expect(revalidatePath).toHaveBeenCalledWith('/profile')
+    })
+
+    it('should update existing interaction to completed if not already completed', async () => {
+      const prisma = require('@/lib/db').default
+
+      // Mock user authentication
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: userId } },
+        error: null
+      })
+
+      // Mock existing interaction that is not completed
+      const existingInteraction = {
+        id: 'interaction-123',
+        userId,
+        hackId,
+        status: 'liked',
+        completedAt: null
+      }
+
+      prisma.userHack.findUnique.mockResolvedValue(existingInteraction)
+
+      // Mock successful update
+      prisma.userHack.update.mockResolvedValue({
+        ...existingInteraction,
+        status: 'visited',
+        completedAt: new Date()
+      })
+
+      await markHackVisited(hackId)
+
+      expect(prisma.userHack.update).toHaveBeenCalledWith({
+        where: {
+          id: existingInteraction.id
+        },
+        data: {
+          status: 'visited',
+          completedAt: expect.any(Date)
+        }
+      })
+
+      expect(prisma.userHack.create).not.toHaveBeenCalled()
+    })
+
+    it('should not update if already marked as completed', async () => {
+      const prisma = require('@/lib/db').default
+
+      // Mock user authentication
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: userId } },
+        error: null
+      })
+
+      // Mock existing completed interaction
+      const existingInteraction = {
+        id: 'interaction-123',
+        userId,
+        hackId,
+        status: 'visited',
+        completedAt: new Date()
+      }
+
+      prisma.userHack.findUnique.mockResolvedValue(existingInteraction)
+
+      await markHackVisited(hackId)
+
+      expect(prisma.userHack.update).not.toHaveBeenCalled()
+      expect(prisma.userHack.create).not.toHaveBeenCalled()
+    })
+
+    it('should throw error if user is not authenticated', async () => {
+      // Mock no user
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: null },
+        error: null
+      })
+
+      await expect(markHackViewed(hackId)).rejects.toThrow('Must be logged in to track viewed hacks')
+
+      const prisma = require('@/lib/db').default
+      expect(prisma.userHack.findUnique).not.toHaveBeenCalled()
+      expect(prisma.userHack.create).not.toHaveBeenCalled()
+    })
+
+    it('should handle database errors gracefully', async () => {
+      const prisma = require('@/lib/db').default
+
+      // Mock user authentication
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: userId } },
+        error: null
+      })
+
+      // Mock database error
+      prisma.userHack.findUnique.mockRejectedValue(new Error('Database connection failed'))
+
+      await expect(markHackViewed(hackId)).rejects.toThrow('Failed to mark as viewed: Database connection failed')
+    })
+
+    it('should never use "viewed" status, always "completed"', async () => {
+      const prisma = require('@/lib/db').default
+
+      // Mock user authentication
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: userId } },
+        error: null
+      })
+
+      // Test new interaction
+      prisma.userHack.findUnique.mockResolvedValue(null)
+      prisma.userHack.create.mockResolvedValue({ id: 'new-interaction' })
+
+      await markHackVisited(hackId)
+
+      expect(prisma.userHack.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          status: 'completed' // NOT 'viewed'
+        })
+      })
+
+      // Reset mocks
+      vi.clearAllMocks()
+
+      // Test update interaction
+      prisma.userHack.findUnique.mockResolvedValue({
+        id: 'existing-interaction',
+        status: 'liked'
+      })
+      prisma.userHack.update.mockResolvedValue({ id: 'existing-interaction' })
+
+      await markHackVisited(hackId)
+
+      expect(prisma.userHack.update).toHaveBeenCalledWith({
+        where: expect.any(Object),
+        data: expect.objectContaining({
+          status: 'completed' // NOT 'viewed'
+        })
+      })
     })
   })
 })

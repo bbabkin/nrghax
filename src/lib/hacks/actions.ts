@@ -257,104 +257,111 @@ export async function toggleLike(hackId: string) {
     throw new Error('Must be logged in to like hacks');
   }
 
-  // Check if user has any interaction with this hack
-  const { data: existingHack } = await supabase
-    .from('user_hacks')
-    .select('id, status')
-    .eq('user_id', user.id)
-    .eq('hack_id', hackId)
-    .single();
+  try {
+    // Import Prisma client
+    const { default: prisma } = await import('@/lib/db');
 
-  if (existingHack) {
-    if (existingHack.status === 'liked') {
-      // Unlike (remove the record)
-      const { error } = await supabase
-        .from('user_hacks')
-        .delete()
-        .eq('id', existingHack.id);
+    // Check if user has any interaction with this hack
+    const existingInteraction = await prisma.userHack.findUnique({
+      where: {
+        userId_hackId: {
+          userId: user.id,
+          hackId: hackId
+        }
+      }
+    });
 
-      if (error) {
-        throw new Error(`Failed to unlike: ${error.message}`);
+    if (existingInteraction) {
+      if (existingInteraction.status === 'liked') {
+        // Unlike (remove the record)
+        await prisma.userHack.delete({
+          where: {
+            id: existingInteraction.id
+          }
+        });
+      } else {
+        // Update status to liked
+        await prisma.userHack.update({
+          where: {
+            id: existingInteraction.id
+          },
+          data: {
+            status: 'liked'
+          }
+        });
       }
     } else {
-      // Update status to liked
-      const { error } = await supabase
-        .from('user_hacks')
-        .update({ status: 'liked' })
-        .eq('id', existingHack.id);
-
-      if (error) {
-        throw new Error(`Failed to like: ${error.message}`);
-      }
-    }
-  } else {
-    // Create new like with generated UUID
-    const { error } = await supabase
-      .from('user_hacks')
-      .insert({
-        id: crypto.randomUUID(),
-        user_id: user.id,
-        hack_id: hackId,
-        status: 'liked',
+      // Create new like
+      await prisma.userHack.create({
+        data: {
+          userId: user.id,
+          hackId: hackId,
+          status: 'liked'
+        }
       });
-
-    if (error) {
-      throw new Error(`Failed to like: ${error.message}`);
     }
+  } catch (error: any) {
+    console.error('Error toggling like:', error);
+    throw new Error(`Failed to toggle like: ${error.message}`);
   }
 
   revalidatePath('/hacks');
   revalidatePath(`/hacks/${hackId}`);
 }
 
-export async function markHackViewed(hackId: string) {
+export async function markHackVisited(hackId: string) {
   const supabase = await createClient();
-
   const { data: { user } } = await supabase.auth.getUser();
+
   if (!user) {
-    throw new Error('Must be logged in to track viewed hacks');
+    throw new Error('Must be logged in to track visited hacks');
   }
 
-  // Check if user has any interaction with this hack
-  const { data: existingHack } = await supabase
-    .from('user_hacks')
-    .select('id, status')
-    .eq('user_id', user.id)
-    .eq('hack_id', hackId)
-    .single();
+  try {
+    // Import Prisma client
+    const { default: prisma } = await import('@/lib/db');
 
-  if (existingHack) {
-    if (existingHack.status !== 'viewed') {
-      // Update to viewed status
-      const { error } = await supabase
-        .from('user_hacks')
-        .update({
-          status: 'viewed',
-          completed_at: new Date().toISOString() // Keep as completed_at for backward compatibility
-        })
-        .eq('id', existingHack.id);
-
-      if (error) {
-        throw new Error(`Failed to mark as viewed: ${error.message}`);
+    // Check if user has any interaction with this hack
+    const existingInteraction = await prisma.userHack.findUnique({
+      where: {
+        userId_hackId: {
+          userId: user.id,
+          hackId: hackId
+        }
       }
-    }
-  } else {
-    // Create new viewed record with generated UUID
-    const { error } = await supabase
-      .from('user_hacks')
-      .insert({
-        id: crypto.randomUUID(),
-        user_id: user.id,
-        hack_id: hackId,
-        status: 'viewed',
-        completed_at: new Date().toISOString() // Keep as completed_at for backward compatibility
-      });
+    });
 
-    if (error) {
-      throw new Error(`Failed to mark as viewed: ${error.message}`);
+    if (existingInteraction) {
+      // Only update if not already marked as visited
+      if (existingInteraction.status !== 'visited') {
+        await prisma.userHack.update({
+          where: {
+            id: existingInteraction.id
+          },
+          data: {
+            status: 'visited',
+            completedAt: new Date()
+          }
+        });
+      }
+    } else {
+      // Create new interaction record
+      await prisma.userHack.create({
+        data: {
+          userId: user.id,
+          hackId: hackId,
+          status: 'visited',
+          completedAt: new Date()
+        }
+      });
     }
+  } catch (error: any) {
+    console.error('Error marking hack as visited:', error);
+    throw new Error(`Failed to mark as visited: ${error.message}`);
   }
 
-  // Note: revalidatePath cannot be called during render
-  // These paths will be revalidated on next navigation
+  // Revalidate paths to update the UI
+  revalidatePath('/hacks');
+  revalidatePath(`/hacks/${hackId}`);
+  revalidatePath('/profile');
 }
