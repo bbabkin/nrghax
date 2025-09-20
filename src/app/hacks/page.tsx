@@ -1,5 +1,6 @@
-import { HacksList } from '@/components/hacks/HacksList';
+import { HacksPageContent } from '@/components/hacks/HacksPageContent';
 import { getHacks } from '@/lib/hacks/utils';
+import { getPublicRoutines } from '@/lib/routines/utils';
 import { getCurrentUser } from '@/lib/auth/user';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/db';
@@ -7,7 +8,11 @@ import prisma from '@/lib/db';
 export default async function HacksPage() {
   const user = await getCurrentUser();
 
+  // Fetch hacks
   const hacks = await getHacks();
+
+  // Fetch public routines
+  const routines = await getPublicRoutines();
 
   // Get user's completed hacks to check prerequisites
   let completedHackIds: string[] = [];
@@ -73,21 +78,24 @@ export default async function HacksPage() {
       tags: hack.tags,
       hasIncompletePrerequisites,
       prerequisiteIds, // Add prerequisite IDs for client-side checking
+      created_at: hack.createdAt,
     };
   });
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Learning Hacks</h1>
+        <h1 className="text-3xl font-bold mb-2">Learning Resources</h1>
         <p className="text-gray-600">
-          Explore our collection of learning materials. Complete prerequisites to unlock advanced content.
+          Explore our collection of hacks and curated routines. Start your learning journey today.
         </p>
       </div>
 
-      <HacksList
+      <HacksPageContent
         hacks={hacksWithPrerequisiteStatus}
+        routines={routines}
         isAuthenticated={!!user}
+        currentUserId={user?.id}
       />
     </div>
   );

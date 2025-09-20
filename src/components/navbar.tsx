@@ -27,12 +27,14 @@ export function Navbar({ user }: NavbarProps) {
     { href: '/', label: 'Home' },
     { href: '/hacks', label: 'Hacks' },
     ...(user ? [
+      { href: '/routines', label: 'My Routines' },
       { href: '/dashboard', label: 'Dashboard' },
       { href: '/profile/history', label: 'My History' },
       { href: '/account', label: 'Account' },
       ...(user?.isAdmin ? [
         { href: '/admin/users', label: 'Users' },
         { href: '/admin/hacks', label: 'Manage Hacks' },
+        { href: '/admin/routines', label: 'Manage Routines' },
         { href: '/admin/tags', label: 'Tags' },
         { href: '/admin/onboarding', label: 'Onboarding' },
       ] : []),
