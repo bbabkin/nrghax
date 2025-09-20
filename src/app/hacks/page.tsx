@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { HackCard } from '@/components/hacks/HackCard';
-import { getHacks } from '@/lib/hacks/utils';
+import { getHacks } from '@/lib/hacks/prisma-utils';
+import prisma from '@/lib/db';
 
 export default async function HacksPage() {
   const supabase = await createClient();
@@ -8,26 +9,34 @@ export default async function HacksPage() {
   
   const hacks = await getHacks();
 
-  // Get user's completed hacks to check prerequisites
+  // Get user's completed hacks to check prerequisites using Prisma
   let completedHackIds: string[] = [];
   if (user) {
-    const { data: completions } = await supabase
-      .from('user_hack_completions')
-      .select('hack_id')
-      .eq('user_id', user.id);
-    
-    completedHackIds = completions?.map(c => c.hack_id) || [];
+    const completions = await prisma.userHack.findMany({
+      where: {
+        userId: user.id,
+        status: 'completed'
+      },
+      select: {
+        hackId: true
+      }
+    });
+
+    completedHackIds = completions.map(c => c.hackId).filter((id): id is string => id !== null);
   }
 
-  // Get all prerequisites to check which hacks are locked
-  const { data: allPrerequisites } = await supabase
-    .from('hack_prerequisites')
-    .select('hack_id, prerequisite_hack_id');
+  // Get all prerequisites to check which hacks are locked using Prisma
+  const allPrerequisites = await prisma.hackPrerequisite.findMany({
+    select: {
+      hackId: true,
+      prerequisiteHackId: true
+    }
+  });
 
   const hacksWithPrerequisiteStatus = hacks.map(hack => {
-    const prerequisites = allPrerequisites?.filter(p => p.hack_id === hack.id) || [];
+    const prerequisites = allPrerequisites?.filter(p => p.hackId === hack.id) || [];
     const hasIncompletePrerequisites = prerequisites.some(
-      p => !completedHackIds.includes(p.prerequisite_hack_id)
+      p => p.prerequisiteHackId && !completedHackIds.includes(p.prerequisiteHackId)
     );
     
     return {

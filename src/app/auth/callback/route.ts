@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import prisma from '@/lib/db'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -14,31 +15,28 @@ export async function GET(request: Request) {
       const { data: { user } } = await supabase.auth.getUser()
 
       if (user) {
-        // Check if profile exists
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', user.id)
-          .single()
-
-        // Create profile if it doesn't exist
-        if (!profile) {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .upsert({
+        // JIT Sync: Ensure profile exists using Prisma
+        try {
+          await prisma.profile.upsert({
+            where: { id: user.id },
+            update: {
+              email: user.email!,
+              fullName: user.user_metadata?.full_name || user.user_metadata?.name,
+              avatarUrl: user.user_metadata?.avatar_url,
+              updatedAt: new Date(),
+            },
+            create: {
               id: user.id,
               email: user.email!,
-              full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
-              avatar_url: user.user_metadata?.avatar_url || null,
-              updated_at: new Date().toISOString()
-            }, {
-              onConflict: 'id'
-            })
-
-          if (profileError) {
-            console.error('Failed to create profile:', profileError)
-            // Don't fail the auth flow, just log the error
-          }
+              fullName: user.user_metadata?.full_name || user.user_metadata?.name,
+              avatarUrl: user.user_metadata?.avatar_url,
+              isAdmin: false,
+            }
+          })
+          console.log('Profile synced for OAuth user:', user.email)
+        } catch (profileError) {
+          console.error('Failed to sync profile:', profileError)
+          // Don't fail the auth flow, just log the error
         }
       }
 

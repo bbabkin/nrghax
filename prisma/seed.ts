@@ -142,6 +142,7 @@ async function main() {
   const hacks = await Promise.all([
     upsertHack({
         name: 'Learn JavaScript Basics',
+        slug: 'learn-javascript-basics',
         description: 'Master the fundamentals of JavaScript programming',
         contentType: 'content',
         contentBody: `# JavaScript Basics
@@ -157,6 +158,7 @@ Working with data structures`
     }),
     upsertHack({
         name: 'Build Your First React App',
+        slug: 'build-your-first-react-app',
         description: 'Create a todo application with React and hooks',
         contentType: 'content',
         contentBody: `# React Todo App
@@ -175,12 +177,14 @@ Using useState and useEffect hooks`
     }),
     upsertHack({
         name: 'TypeScript Deep Dive',
+        slug: 'typescript-deep-dive',
         description: 'Advanced TypeScript patterns and best practices',
         contentType: 'link',
         externalLink: 'https://basarat.gitbook.io/typescript/'
     }),
     upsertHack({
         name: 'Node.js REST API',
+        slug: 'nodejs-rest-api',
         description: 'Build a RESTful API with Express and PostgreSQL',
         contentType: 'content',
         contentBody: `# Building a REST API
@@ -202,6 +206,7 @@ Using Prisma ORM for PostgreSQL`
     }),
     upsertHack({
         name: 'CSS Grid Layout',
+        slug: 'css-grid-layout',
         description: 'Master modern CSS Grid techniques',
         contentType: 'content',
         contentBody: `# CSS Grid Layout

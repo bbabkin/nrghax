@@ -126,7 +126,12 @@ export function HackCard({
 
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-2">
-          <h3 className="font-semibold text-lg line-clamp-1">{hack.name}</h3>
+          <div>
+            <h3 className="font-semibold text-lg line-clamp-1">{hack.name}</h3>
+            {hack.content_type === 'link' && (
+              <p className="text-xs text-gray-500 mt-0.5">External Link</p>
+            )}
+          </div>
           {hack.content_type === 'link' ? (
             <ExternalLink className="h-4 w-4 text-gray-500 flex-shrink-0 ml-2" />
           ) : (
@@ -214,6 +219,18 @@ export function HackCard({
     );
   }
 
+  // For external links, open in new tab but still go through our page for tracking
+  if (hack.content_type === 'link' && hack.external_link) {
+    return (
+      <Link href={`/hacks/${hack.slug || hack.id}`} target="_blank">
+        <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+          {cardContent}
+        </Card>
+      </Link>
+    );
+  }
+
+  // For internal content, use Next.js Link normally
   return (
     <Link href={`/hacks/${hack.slug || hack.id}`}>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
