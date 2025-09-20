@@ -51,7 +51,7 @@ export default async function HackPage({ params }: { params: Promise<{ id: strin
   // Check if user has completed prerequisites
   let canAccess = true;
   if (user) {
-    canAccess = await checkPrerequisitesCompleted(resolvedParams.id, user.id);
+    canAccess = await checkPrerequisitesCompleted(hack.id, user.id);
   } else if (hack.prerequisites && hack.prerequisites.length > 0) {
     canAccess = false;
   }
@@ -61,7 +61,7 @@ export default async function HackPage({ params }: { params: Promise<{ id: strin
     // Mark as viewed before redirecting (only for authenticated users)
     if (user) {
       try {
-        await markHackViewed(resolvedParams.id);
+        await markHackViewed(hack.id);
       } catch (error) {
         console.error('Failed to mark hack as viewed:', error);
         // Continue with redirect even if marking fails
@@ -73,7 +73,7 @@ export default async function HackPage({ params }: { params: Promise<{ id: strin
   // Mark as viewed for internal content (only for authenticated users)
   if (hack.content_type === 'content' && canAccess && user) {
     try {
-      await markHackViewed(resolvedParams.id);
+      await markHackViewed(hack.id);
     } catch (error) {
       console.error('Failed to mark hack as viewed:', error);
       // Continue showing content even if marking fails
