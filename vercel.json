@@ -1,9 +1,3 @@
 {
-  "buildCommand": "npm run vercel-build",
-  "framework": "nextjs",
-  "installCommand": "npm install",
-  "regions": ["iad1"],
-  "env": {
-    "PRISMA_HIDE_UPDATE_MESSAGE": "1"
-  }
+  "regions": ["iad1"]
 }

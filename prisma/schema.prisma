@@ -7,7 +7,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("POSTGRES_PRISMA_URL") // Uses pooling for Prisma
+  directUrl = env("POSTGRES_URL_NON_POOLING") // Uses a direct connection for migrations
 }
 
 // Enums
