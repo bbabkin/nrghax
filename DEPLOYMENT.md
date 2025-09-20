@@ -12,10 +12,14 @@ Go to your Vercel project → Settings → Environment Variables and add:
 ### Required Environment Variables
 
 ```bash
-# Database (Production Supabase)
+# Database - Vercel Postgres (automatically provided when you connect Vercel Postgres)
+POSTGRES_URL="postgres://default:[password]@[host].postgres.vercel-storage.com:5432/verceldb?sslmode=require"
+POSTGRES_URL_NON_POOLING="postgres://default:[password]@[host].postgres.vercel-storage.com:5432/verceldb?sslmode=require"
+
+# OR if using external database (Supabase, etc)
 DATABASE_URL="postgresql://postgres:[password]@[host].supabase.co:5432/postgres?pgbouncer=true&connection_limit=1"
 
-# Supabase (Production)
+# Supabase Auth (Production)
 NEXT_PUBLIC_SUPABASE_URL="https://[your-project].supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
 SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
@@ -147,7 +151,9 @@ Go to Vercel Dashboard → Functions → Logs to monitor:
 ## Common Issues & Solutions
 
 ### Issue: "Can't reach database server"
-**Solution**: Add `?pgbouncer=true&connection_limit=1` to DATABASE_URL
+**Solution**:
+- If using Vercel Postgres: Ensure POSTGRES_URL is set (automatically provided)
+- If using external DB: Add `?pgbouncer=true&connection_limit=1` to DATABASE_URL
 
 ### Issue: "Too many database connections"
 **Solution**: Use connection pooling:
