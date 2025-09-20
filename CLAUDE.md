@@ -29,17 +29,27 @@ npx prisma migrate status                        # Check status
 
 ### Environment Variables
 
+**IMPORTANT: Use Vercel/Supabase standard variable names**
+
 ```bash
 # Development (.env.local)
-DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres"
+POSTGRES_URL="postgresql://postgres:postgres@localhost:54322/postgres"
+POSTGRES_URL_NON_POOLING="postgresql://postgres:postgres@localhost:54322/postgres"
 
-# Production (.env.production)
-DATABASE_URL="postgresql://postgres:[password]@[host].supabase.co:5432/postgres"
+# Production (Vercel/Supabase)
+POSTGRES_URL="postgresql://postgres.[project]:[password]@[region].pooler.supabase.com:6543/postgres?pgbouncer=true"
+POSTGRES_URL_NON_POOLING="postgresql://postgres:[password]@db.[project].supabase.co:5432/postgres"
 ```
+
+**Never use `DATABASE_URL` or `DIRECT_URL`** - These are not Vercel/Supabase standards. Always use:
+- `POSTGRES_URL` - For connection pooling (app queries)
+- `POSTGRES_URL_NON_POOLING` - For direct connections (migrations)
 
 ## Project Structure
 
 - `/prisma/schema.prisma` - Database schema (source of truth)
+  - Must use `url = env("POSTGRES_URL")` for pooled connections
+  - Must use `directUrl = env("POSTGRES_URL_NON_POOLING")` for migrations
 - `/prisma/migrations/` - Migration history (DO NOT EDIT)
 - No Drizzle - we migrated to Prisma due to connection issues
 
