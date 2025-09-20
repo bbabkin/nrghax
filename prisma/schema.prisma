@@ -43,22 +43,67 @@ enum UserHackStatus {
   visited
 }
 
-// Core Models
-model Profile {
-  id                  String    @id @db.Uuid
-  email               String    @unique
-  fullName            String?   @map("full_name")
-  avatarUrl           String?   @map("avatar_url")
-  isAdmin             Boolean   @default(false) @map("is_admin")
-  createdAt           DateTime  @default(now()) @map("created_at")
-  updatedAt           DateTime  @default(now()) @updatedAt @map("updated_at")
+// Auth.js Models
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  email         String    @unique
+  emailVerified DateTime? @map("email_verified")
+  name          String?
+  image         String?
+  isAdmin       Boolean   @default(false) @map("is_admin")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
 
-  // Relations
-  createdHacks        Hack[]    @relation("HackCreator")
-  userHacks           UserHack[]
-  userTags            UserTag[]
+  // Auth.js relations
+  accounts      Account[]
+  sessions      Session[]
 
-  @@map("profiles")
+  // App relations
+  createdHacks  Hack[]    @relation("HackCreator")
+  userHacks     UserHack[]
+  userTags      UserTag[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id") @db.Uuid
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id") @db.Uuid
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
 }
 
 model Hack {
@@ -77,7 +122,7 @@ model Hack {
   updatedBy     String?     @map("updated_by") @db.Uuid
 
   // Relations
-  creator               Profile?             @relation("HackCreator", fields: [createdBy], references: [id])
+  creator               User?                @relation("HackCreator", fields: [createdBy], references: [id])
   userHacks             UserHack[]
   hackTags              HackTag[]
   prerequisites         HackPrerequisite[]   @relation("HackPrerequisites")
@@ -112,7 +157,7 @@ model UserHack {
   updatedAt     DateTime?   @default(now()) @updatedAt @map("updated_at")
 
   // Relations
-  user          Profile?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
   hack          Hack?       @relation(fields: [hackId], references: [id], onDelete: Cascade)
 
   @@unique([userId, hackId])
@@ -153,7 +198,7 @@ model UserTag {
   createdAt     DateTime? @default(now()) @map("created_at")
 
   // Relations
-  user          Profile?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
   tag           Tag?      @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@unique([userId, tagId])
