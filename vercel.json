@@ -1,3 +1,7 @@
 {
-  "regions": ["iad1"]
+  "regions": ["iad1"],
+  "buildCommand": "prisma generate && prisma migrate deploy && next build",
+  "env": {
+    "DATABASE_URL": "@postgres_url_non_pooling"
+  }
 }
