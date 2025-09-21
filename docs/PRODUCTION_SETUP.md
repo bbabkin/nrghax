@@ -159,20 +159,52 @@ openssl rand -base64 32
 
 ## Database Schema Updates
 
-### Adding hashedPassword Column (Required for Auth.js)
+### CRITICAL: Add Auth.js Required Tables
 
-The Auth.js credentials provider requires a hashedPassword column. Add it to your production database:
+**⚠️ IMPORTANT: Run this BEFORE attempting OAuth login in production!**
+
+The Auth.js adapter requires specific tables for OAuth providers. Execute the complete script in `scripts/add-authjs-tables.sql` in your Supabase SQL Editor:
 
 ```sql
--- Add hashedPassword column to User table
-ALTER TABLE "User"
-ADD COLUMN IF NOT EXISTS "hashed_password" TEXT;
+-- Create accounts table for OAuth providers
+CREATE TABLE IF NOT EXISTS "accounts" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "user_id" UUID NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+    "type" TEXT NOT NULL,
+    "provider" TEXT NOT NULL,
+    "provider_account_id" TEXT NOT NULL,
+    "refresh_token" TEXT,
+    "access_token" TEXT,
+    "expires_at" INTEGER,
+    "token_type" TEXT,
+    "scope" TEXT,
+    "id_token" TEXT,
+    "session_state" TEXT,
+    UNIQUE("provider", "provider_account_id")
+);
 
--- Verify the column was added
-SELECT column_name, data_type, is_nullable
-FROM information_schema.columns
-WHERE table_name = 'User' AND column_name = 'hashed_password';
+-- Create sessions table
+CREATE TABLE IF NOT EXISTS "sessions" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "session_token" TEXT NOT NULL UNIQUE,
+    "user_id" UUID NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+    "expires" TIMESTAMPTZ NOT NULL
+);
+
+-- Create verification_tokens table
+CREATE TABLE IF NOT EXISTS "verification_tokens" (
+    "identifier" TEXT NOT NULL,
+    "token" TEXT NOT NULL UNIQUE,
+    "expires" TIMESTAMPTZ NOT NULL,
+    UNIQUE("identifier", "token")
+);
+
+-- Add hashedPassword column for credentials provider
+ALTER TABLE "users"
+ADD COLUMN IF NOT EXISTS "hashed_password" TEXT;
 ```
+
+Run the full script from: `scripts/add-authjs-tables.sql`
 
 ### Main Tables
 
