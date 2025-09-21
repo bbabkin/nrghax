@@ -1,9 +1,8 @@
 import { HacksPageContent } from '@/components/hacks/HacksPageContent';
-import { getHacks } from '@/lib/hacks/utils';
-import { getPublicRoutines } from '@/lib/routines/utils';
+import { getHacks, getUserCompletedHackIds, getHackPrerequisites } from '@/lib/hacks/supabase-utils';
+import { getPublicRoutines } from '@/lib/routines/supabase-utils';
 import { getCurrentUser } from '@/lib/auth/user';
 import { cookies } from 'next/headers';
-import prisma from '@/lib/db';
 
 export default async function HacksPage() {
   const user = await getCurrentUser();
@@ -18,17 +17,7 @@ export default async function HacksPage() {
   let completedHackIds: string[] = [];
   if (user) {
     // For authenticated users, get from database
-    const completions = await prisma.userHack.findMany({
-      where: {
-        userId: user.id,
-        viewed: true
-      },
-      select: {
-        hackId: true
-      }
-    });
-
-    completedHackIds = completions.map(c => c.hackId).filter((id): id is string => id !== null);
+    completedHackIds = await getUserCompletedHackIds(user.id);
   } else {
     // For anonymous users, get from cookies
     const cookieStore = await cookies();
@@ -43,23 +32,18 @@ export default async function HacksPage() {
     }
   }
 
-  // Get all prerequisites to check which hacks are locked using Prisma
-  const allPrerequisites = await prisma.hackPrerequisite.findMany({
-    select: {
-      hackId: true,
-      prerequisiteHackId: true
-    }
-  });
+  // Get all prerequisites to check which hacks are locked
+  const allPrerequisites = await getHackPrerequisites();
 
   const hacksWithPrerequisiteStatus = hacks.map(hack => {
-    const prerequisites = allPrerequisites?.filter(p => p.hackId === hack.id) || [];
+    const prerequisites = allPrerequisites?.filter(p => p.hack_id === hack.id) || [];
     const hasIncompletePrerequisites = prerequisites.some(
-      p => p.prerequisiteHackId && !completedHackIds.includes(p.prerequisiteHackId)
+      p => p.prerequisite_hack_id && !completedHackIds.includes(p.prerequisite_hack_id)
     );
 
     // Get prerequisite IDs for client-side checking (for anonymous users)
     const prerequisiteIds = prerequisites
-      .map(p => p.prerequisiteHackId)
+      .map(p => p.prerequisite_hack_id)
       .filter((id): id is string => id !== null);
 
     // Transform to match HackCard expectations
