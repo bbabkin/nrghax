@@ -75,13 +75,65 @@ DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@db.iwvfegsrtgpqkctxvzqk.supaba
 
 ### Environment Variables
 
-Ensure `.env.production` has:
+Ensure your production environment (Vercel, Railway, etc.) has these variables:
+
+#### Database Configuration
 ```env
-DATABASE_URL="postgresql://postgres.iwvfegsrtgpqkctxvzqk:[PASSWORD]@aws-1-us-east-1.pooler.supabase.com:5432/postgres"
+# Use POSTGRES_URL instead of DATABASE_URL for Vercel/Supabase standard
+POSTGRES_URL="postgresql://postgres.iwvfegsrtgpqkctxvzqk:[PASSWORD]@aws-1-us-east-1.pooler.supabase.com:5432/postgres"
+POSTGRES_URL_NON_POOLING="postgresql://postgres:[PASSWORD]@db.iwvfegsrtgpqkctxvzqk.supabase.co:5432/postgres"
+
+# Supabase (if using Supabase features directly)
 NEXT_PUBLIC_SUPABASE_URL=https://iwvfegsrtgpqkctxvzqk.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
 ```
+
+#### Auth.js Configuration
+```env
+# Required for NextAuth.js/Auth.js
+AUTH_SECRET=<generate-with-openssl-rand-base64-32>
+NEXTAUTH_URL=https://www.nrghax.com  # Your production URL
+
+# OAuth Providers
+GOOGLE_CLIENT_ID=<from-google-cloud-console>
+GOOGLE_CLIENT_SECRET=<from-google-cloud-console>
+DISCORD_CLIENT_ID=<from-discord-developer-portal>
+DISCORD_CLIENT_SECRET=<from-discord-developer-portal>
+
+# Email Provider (optional for magic links)
+EMAIL_SERVER_HOST=smtp.example.com
+EMAIL_SERVER_PORT=587
+EMAIL_SERVER_USER=your-email@example.com
+EMAIL_SERVER_PASSWORD=your-password
+EMAIL_FROM=noreply@nrghax.com
+```
+
+### Generating AUTH_SECRET
+
+Run this command to generate a secure secret:
+```bash
+openssl rand -base64 32
+```
+
+### OAuth Provider Setup
+
+#### Google OAuth
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing
+3. Enable Google+ API
+4. Create OAuth 2.0 credentials
+5. Add authorized redirect URIs:
+   - `https://www.nrghax.com/api/auth/callback/google`
+   - `http://localhost:3000/api/auth/callback/google` (for local dev)
+
+#### Discord OAuth
+1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
+2. Create a new application
+3. Go to OAuth2 settings
+4. Add redirect URLs:
+   - `https://www.nrghax.com/api/auth/callback/discord`
+   - `http://localhost:3000/api/auth/callback/discord` (for local dev)
 
 ### Deploy to Vercel/Railway/etc
 
@@ -105,16 +157,34 @@ SUPABASE_SERVICE_ROLE_KEY=...
 
 **Solution**: Wipe and recreate. Since the app is new, this is the cleanest approach.
 
-## Database Schema
+## Database Schema Updates
+
+### Adding hashedPassword Column (Required for Auth.js)
+
+The Auth.js credentials provider requires a hashedPassword column. Add it to your production database:
+
+```sql
+-- Add hashedPassword column to User table
+ALTER TABLE "User"
+ADD COLUMN IF NOT EXISTS "hashed_password" TEXT;
+
+-- Verify the column was added
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'User' AND column_name = 'hashed_password';
+```
+
+### Main Tables
 
 The application uses these main tables:
-- `profiles` - User profiles linked to auth.users
+- `User` - User accounts (replaces profiles, now managed by Auth.js)
 - `hacks` - Learning materials/challenges
 - `user_hacks` - Tracks user interactions (liked, completed status)
 - `tags` - Categories for hacks
 - `hack_tags` - Many-to-many relationship
 - `user_tags` - User interests
 - `hack_prerequisites` - Hack dependencies
+- `Account`, `Session`, `VerificationToken` - Auth.js tables
 
 ## Key Changes from Drizzle
 
