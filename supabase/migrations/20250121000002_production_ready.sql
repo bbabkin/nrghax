@@ -63,4 +63,3 @@ COMMENT ON TABLE public.hacks IS 'Energy system learning challenges';
 COMMENT ON TABLE public.user_hacks IS 'User progress and interaction with hacks';
 COMMENT ON TABLE public.hack_prerequisites IS 'Prerequisites required before accessing certain hacks';
 COMMENT ON COLUMN public.profiles.is_admin IS 'Admin users can create/edit/delete hacks';
-COMMENT ON COLUMN public.hacks.is_locked IS 'Whether hack requires prerequisites to unlock';
