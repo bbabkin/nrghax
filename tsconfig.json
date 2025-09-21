@@ -39,6 +39,13 @@
     "node_modules",
     "nrgbot",
     "bot/**/*",
-    "bot"
+    "bot",
+    "test/**/*",
+    "__tests__/**/*",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "vitest.config.ts"
   ]
 }

@@ -2,25 +2,27 @@ export interface Tag {
   id: string;
   name: string;
   slug: string;
+  tag_type?: string;
+  description?: string | null;
+  category?: string | null;
+  color?: string | null;
   created_at: string;
   updated_at: string;
-  created_by: string | null;
-  deleted_at: string | null;
 }
 
 export interface UserTag {
+  id?: string;
   user_id: string;
   tag_id: string;
-  assigned_at: string;
-  source: 'discord' | 'manual' | 'system';
+  source?: string;
+  created_at?: string;
   tag?: Tag; // For joined queries
 }
 
 export interface HackTag {
   hack_id: string;
   tag_id: string;
-  assigned_at: string;
-  assigned_by: string | null;
+  created_at: string;
   tag?: Tag; // For joined queries
 }
 

@@ -21,6 +21,8 @@ export class TagService {
       .from('tags')
       .insert({
         name: input.name,
+        slug: input.name.toLowerCase().replace(/\s+/g, '-'),
+        tag_type: 'user_interest' // Default type
       })
       .select()
       .single();
@@ -29,8 +31,8 @@ export class TagService {
       console.error('Error creating tag:', error);
       throw new Error(error.message);
     }
-    
-    return data;
+
+    return data as any as Tag;
   }
   
   /**
@@ -42,17 +44,15 @@ export class TagService {
     // Check if it's a UUID
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
     
-    const { data, error } = isUuid 
+    const { data, error } = isUuid
       ? await supabase
           .from('tags')
           .select('*')
-          .is('deleted_at', null)
           .eq('id', idOrSlug)
           .single()
       : await supabase
           .from('tags')
           .select('*')
-          .is('deleted_at', null)
           .eq('slug', idOrSlug)
           .single();
     
@@ -60,7 +60,7 @@ export class TagService {
       console.error('Error fetching tag:', error);
     }
     
-    return data;
+    return data as any as Tag;
   }
   
   /**
@@ -72,15 +72,13 @@ export class TagService {
     const { data, error } = await supabase
       .from('tags')
       .select('*')
-      .is('deleted_at', null)
       .order('name');
     
     if (error) {
       console.error('Error fetching tags:', error);
       return [];
     }
-    
-    return data || [];
+    return (data || []) as Tag[];
   }
   
   /**
@@ -101,18 +99,18 @@ export class TagService {
       throw new Error(error.message);
     }
     
-    return data;
+    return data as any as Tag;
   }
   
   /**
-   * Soft delete a tag (admin only)
+   * Delete a tag (admin only)
    */
   static async deleteTag(id: string): Promise<boolean> {
     const supabase = await createClient();
-    
+
     const { error } = await supabase
       .from('tags')
-      .update({ deleted_at: new Date().toISOString() })
+      .delete()
       .eq('id', id);
     
     if (error) {
@@ -130,15 +128,12 @@ export class TagService {
    */
   static async assignTagToHack(hack_id: string, tag_id: string): Promise<HackTag | null> {
     const supabase = await createClient();
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    
+
     const { data, error } = await supabase
       .from('hack_tags')
       .insert({
         hack_id,
-        tag_id,
-        assigned_by: user?.id || null
+        tag_id
       })
       .select()
       .single();
@@ -150,8 +145,8 @@ export class TagService {
         throw new Error(error.message);
       }
     }
-    
-    return data;
+
+    return data as any as HackTag;
   }
   
   /**
@@ -179,7 +174,6 @@ export class TagService {
    */
   static async bulkAssignTagsToHack(hack_id: string, tag_ids: string[]): Promise<boolean> {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
     
     // First, remove all existing tags for this hack
     await supabase
@@ -191,8 +185,7 @@ export class TagService {
     if (tag_ids.length > 0) {
       const inserts = tag_ids.map(tag_id => ({
         hack_id,
-        tag_id,
-        assigned_by: user?.id || null
+        tag_id
       }));
       
       const { error } = await supabase
@@ -213,15 +206,13 @@ export class TagService {
    */
   static async bulkAssignTagsToHacks(input: BulkAssignTagsInput): Promise<boolean> {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
     
     const inserts = [];
     for (const hack_id of input.hack_ids) {
       for (const tag_id of input.tag_ids) {
         inserts.push({
           hack_id,
-          tag_id,
-          assigned_by: user?.id || null
+          tag_id
         });
       }
     }
@@ -288,8 +279,8 @@ export class TagService {
         throw new Error(error.message);
       }
     }
-    
-    return data;
+
+    return data as any as UserTag;
   }
   
   /**
@@ -381,7 +372,6 @@ export class TagService {
       .from('tags')
       .select('id')
       .ilike('name', name)
-      .is('deleted_at', null)
       .single();
     
     return !!data;
