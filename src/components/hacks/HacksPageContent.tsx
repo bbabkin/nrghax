@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
@@ -8,6 +8,7 @@ import { HacksList } from './HacksList';
 import { HackCard } from './HackCard';
 import { RoutineCard } from '@/components/routines/RoutineCard';
 import { cn } from '@/lib/utils';
+import { useLocalVisits } from '@/hooks/useLocalVisits';
 
 interface HacksPageContentProps {
   hacks: any[];
@@ -24,9 +25,30 @@ export function HacksPageContent({
 }: HacksPageContentProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const { visitedHacks } = useLocalVisits();
+
+  // Update prerequisite status for anonymous users
+  const hacksWithUpdatedStatus = useMemo(() => {
+    if (!isAuthenticated) {
+      return hacks.map(hack => {
+        if (hack.prerequisiteIds && hack.prerequisiteIds.length > 0) {
+          // Check if all prerequisites are visited
+          const allPrerequisitesCompleted = hack.prerequisiteIds.every(id =>
+            visitedHacks.has(id)
+          );
+          return {
+            ...hack,
+            hasIncompletePrerequisites: !allPrerequisitesCompleted
+          };
+        }
+        return hack;
+      });
+    }
+    return hacks;
+  }, [hacks, isAuthenticated, visitedHacks]);
 
   // Filter hacks based on search query
-  const filteredHacks = hacks.filter(hack => {
+  const filteredHacks = hacksWithUpdatedStatus.filter(hack => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
