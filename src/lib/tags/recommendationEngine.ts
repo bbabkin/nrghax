@@ -8,20 +8,31 @@ export class RecommendationEngine {
    */
   static async getRecommendedHacks(userId: string): Promise<TaggedHack[]> {
     const supabase = await createClient();
-    
+
     try {
-      // Call the database function to get recommended hacks
-      const { data, error } = await supabase
-        .rpc('get_recommended_hacks', {
-          user_uuid: userId
-        });
-      
+      // For now, just return recent hacks
+      // TODO: Implement proper recommendation logic based on user tags
+      const { data: hacks, error } = await supabase
+        .from('hacks')
+        .select(`
+          *,
+          hack_tags(
+            tag:tags(*)
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(6);
+
       if (error) {
         console.error('Error fetching recommended hacks:', error);
         return [];
       }
-      
-      return data || [];
+
+      // Map to TaggedHack format
+      return (hacks || []).map(hack => ({
+        ...hack,
+        matching_tags: []  // TODO: Implement tag matching logic
+      }));
     } catch (error) {
       console.error('Failed to get recommended hacks:', error);
       return [];
@@ -39,7 +50,6 @@ export class RecommendationEngine {
       const { data, error } = await supabase
         .from('hacks')
         .select('*')
-        .eq('status', 'active')
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -47,7 +57,7 @@ export class RecommendationEngine {
         return [];
       }
       
-      return data || [];
+      return (data || []) as any as Hack[];
     }
     
     // Get hacks that have ALL specified tags
@@ -102,8 +112,7 @@ export class RecommendationEngine {
               tag:tags(id, name, slug)
             )
           `)
-          .eq('status', 'active')
-          .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false });
         
         if (error) {
           console.error('Error fetching all hacks:', error);
@@ -126,7 +135,6 @@ export class RecommendationEngine {
             tag:tags(id, name, slug)
           )
         `)
-        .eq('status', 'active')
         .order('created_at', { ascending: false });
       
       if (error) {

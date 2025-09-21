@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import type { Database } from '@/types/supabase'
 
 export async function createClient() {
   const cookieStore = await cookies()
@@ -12,7 +13,7 @@ export async function createClient() {
     throw new Error('Missing Supabase environment variables')
   }
 
-  return createServerClient(
+  return createServerClient<Database>(
     supabaseUrl,
     supabaseAnonKey,
     {
@@ -32,6 +33,35 @@ export async function createClient() {
           }
         },
       },
+    }
+  )
+}
+
+// Admin client with service role key for server-side operations
+export async function createAdminClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error('Missing Supabase admin environment variables')
+  }
+
+  return createServerClient<Database>(
+    supabaseUrl,
+    serviceRoleKey,
+    {
+      cookies: {
+        getAll() {
+          return []
+        },
+        setAll() {
+          // Admin client doesn't need cookies
+        },
+      },
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
     }
   )
 }

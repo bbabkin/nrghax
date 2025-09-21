@@ -29,7 +29,6 @@ export default async function TagAssignmentPage() {
   const { data: hacks } = await supabase
     .from('hacks')
     .select('id, name, description')
-    .eq('status', 'active')
     .order('name');
   
   return (

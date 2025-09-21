@@ -1,4 +1,4 @@
-import { getCurrentUser } from '@/lib/auth/user'
+import { getCurrentUser } from '@/lib/auth/supabase-user'
 import { Navbar } from './navbar'
 
 export async function NavbarWrapper() {

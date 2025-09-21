@@ -1,53 +1,67 @@
-# Supabase CLI
+# NRGHax - Energy Optimization Platform
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+A modern web application for discovering and implementing energy optimization hacks, built with Next.js 15.3, Supabase, and TypeScript.
 
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
+## 🚀 Tech Stack
 
-This repository contains all the functionality for Supabase CLI.
+- **Framework**: Next.js 15.3 with App Router
+- **Database**: PostgreSQL via Supabase
+- **Auth**: Supabase Auth (OAuth + Email/Password)
+- **Styling**: Tailwind CSS + shadcn/ui
+- **Testing**: Vitest + React Testing Library
+- **Deployment**: Vercel
 
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
+## 📋 Prerequisites
 
-## Getting started
+- Node.js 18+
+- npm or yarn
+- Supabase CLI (`npm install -g supabase`)
+- PostgreSQL (via Supabase local or cloud)
 
-### Install the CLI
+## 🛠️ Setup
 
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
-
-```bash
-npm i supabase --save-dev
-```
-
-To install the beta release channel:
+### 1. Clone and Install
 
 ```bash
-npm i supabase@beta --save-dev
+git clone https://github.com/yourusername/nrghax.git
+cd nrghax
+npm install
 ```
 
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
+### 2. Environment Variables
 
+Copy the example environment file:
+
+```bash
+cp .env.example .env.local
 ```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
+
+Update `.env.local` with your values:
+
+```bash
+# Local Supabase (default values)
+NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
+SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
+
+# Production Supabase
+# NEXT_PUBLIC_SUPABASE_URL=https://[project].supabase.co
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=[anon-key]
+# SUPABASE_SERVICE_ROLE_KEY=[service-role-key]
 ```
 
-> **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
+### 3. Start Supabase Locally
 
-<details>
-  <summary><b>macOS</b></summary>
+```bash
+npm run db:start
+```
 
-  Available via [Homebrew](https://brew.sh). To install:
+This will:
+- Start local Supabase services
+- Apply all migrations
+- Seed the database with sample data
 
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To install the beta release channel:
+Supabase Studio will be available at http://localhost:54323
   
   ```sh
   brew install supabase/tap/supabase-beta
@@ -181,3 +195,133 @@ To run from source:
 # Go >= 1.22
 go run . help
 ```
+
+
+### 4. Generate TypeScript Types
+
+```bash
+npm run db:types
+```
+
+This generates TypeScript types from your database schema.
+
+### 5. Start Development Server
+
+```bash
+npm run dev
+```
+
+Open http://localhost:3000
+
+## 📝 Development Workflow
+
+### Database Changes
+
+1. Create a new migration:
+```bash
+npm run db:migrate add_new_feature
+```
+
+2. Edit the migration file in `supabase/migrations/`
+
+3. Apply migrations:
+```bash
+npm run db:reset  # Resets DB and applies all migrations
+```
+
+4. Generate new types:
+```bash
+npm run db:types
+```
+
+### Testing
+
+```bash
+npm test              # Run tests in watch mode
+npm run test:coverage # Generate coverage report
+npm run test:e2e     # Run E2E tests
+```
+
+### Code Quality
+
+```bash
+npm run lint         # Lint code
+npm run typecheck   # Type checking
+```
+
+## 🏗️ Project Structure
+
+```
+├── app/                     # Next.js App Router
+│   ├── (auth)/             # Authentication pages
+│   ├── (dashboard)/        # Protected user pages
+│   └── api/                # API routes
+├── components/
+│   ├── ui/                 # shadcn/ui components
+│   └── features/           # Feature components
+├── lib/
+│   ├── supabase/          # Supabase clients
+│   └── utils.ts           # Utilities
+├── server/
+│   ├── actions/           # Server Actions
+│   └── queries/           # Database queries
+├── supabase/
+│   ├── migrations/        # SQL migrations
+│   └── seed.sql          # Seed data
+└── types/                 # TypeScript types
+```
+
+## 🚀 Deployment
+
+### Deploy to Vercel
+
+1. Push to GitHub
+2. Import project in Vercel
+3. Add environment variables:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `POSTGRES_URL` (if using external DB)
+   - `POSTGRES_URL_NON_POOLING`
+
+### Deploy Database
+
+For production Supabase:
+
+```bash
+supabase link --project-ref [project-id]
+supabase db push
+```
+
+## 🔑 Key Features
+
+- **Authentication**: Email/password and OAuth (Google, Discord)
+- **User Profiles**: Automatic profile creation on signup
+- **Energy Hacks**: Browse, search, and track energy optimization techniques
+- **Routines**: Create and follow custom energy optimization routines
+- **Progress Tracking**: Track your implementation progress
+- **Admin Panel**: Content management for administrators
+- **Real-time Updates**: Live updates via Supabase Realtime
+
+## 📚 Documentation
+
+- [Development Guidelines](./CLAUDE.md)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🙏 Acknowledgments
+
+- [Next.js](https://nextjs.org/)
+- [Supabase](https://supabase.com/)
+- [shadcn/ui](https://ui.shadcn.com/)
+- [Tailwind CSS](https://tailwindcss.com/)

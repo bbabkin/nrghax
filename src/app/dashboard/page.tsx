@@ -1,23 +1,25 @@
-import { requireAuth } from '@/lib/auth/user'
+import { requireAuth } from '@/lib/auth/supabase-user'
+import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import prisma from '@/lib/db'
 
 export default async function DashboardPage() {
   const user = await requireAuth()
 
   // Check if user has completed onboarding
-  const userTags = await prisma.userTag.findMany({
-    where: { userId: user.id },
-    include: {
-      tag: true
-    }
-  })
+  const supabase = await createClient()
+  const { data: userTags } = await supabase
+    .from('user_tags')
+    .select(`
+      *,
+      tag:tags(*)
+    `)
+    .eq('user_id', user.id)
 
-  const hasCompletedOnboarding = userTags && userTags.some(ut => ut.source === 'onboarding')
+  const hasCompletedOnboarding = userTags && userTags.some((ut: any) => ut.source === 'onboarding')
 
   // If user hasn't completed onboarding, redirect them
   if (!hasCompletedOnboarding) {
@@ -26,24 +28,21 @@ export default async function DashboardPage() {
 
   // Get personalized hack recommendations
   // For now, just get recent hacks - we'll implement personalization later
-  const recommendedHacks = await prisma.hack.findMany({
-    take: 6,
-    include: {
-      hackTags: {
-        include: {
-          tag: true
-        }
-      }
-    },
-    orderBy: {
-      createdAt: 'desc'
-    }
-  })
+  const { data: recommendedHacks } = await supabase
+    .from('hacks')
+    .select(`
+      *,
+      hack_tags(
+        tag:tags(*)
+      )
+    `)
+    .order('created_at', { ascending: false })
+    .limit(6)
 
   // Organize user tags by type
-  const experienceTag = userTags?.find(ut => ut.tag.tagType === 'user_experience')?.tag
-  const interestTags = userTags?.filter(ut => ut.tag.tagType === 'user_interest').map(ut => ut.tag)
-  const specialTags = userTags?.filter(ut => ut.tag.tagType === 'user_special').map(ut => ut.tag)
+  const experienceTag = userTags?.find((ut: any) => ut.tag.tag_type === 'user_experience')?.tag
+  const interestTags = userTags?.filter((ut: any) => ut.tag.tag_type === 'user_interest').map((ut: any) => ut.tag)
+  const specialTags = userTags?.filter((ut: any) => ut.tag.tag_type === 'user_special').map((ut: any) => ut.tag)
 
   return (
     <div className="container mx-auto py-10">
@@ -94,15 +93,15 @@ export default async function DashboardPage() {
                     <Badge variant="outline">
                       {hack.difficulty || 'Medium'}
                     </Badge>
-                    {hack.timeMinutes && (
+                    {hack.time_minutes && (
                       <span className="text-sm text-muted-foreground">
-                        {hack.timeMinutes} min
+                        {hack.time_minutes} min
                       </span>
                     )}
                   </div>
-                  {hack.hackTags && hack.hackTags.length > 0 && (
+                  {hack.hack_tags && hack.hack_tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-3">
-                      {hack.hackTags.map(ht => (
+                      {hack.hack_tags.map((ht: any) => (
                         <Badge key={ht.tag.id} variant="secondary" className="text-xs">
                           {ht.tag.name}
                         </Badge>

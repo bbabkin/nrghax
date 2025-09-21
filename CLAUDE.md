@@ -1,57 +1,250 @@
-# Claude Development Guidelines
+# NRGHax Development Guidelines
 
-## Database Management
+## 🚀 Core Architecture
 
-This project uses **Prisma ORM**. Custom SQL is LAST RESORT.
+This project uses **Supabase** for the complete backend stack:
+- **Database**: PostgreSQL with Supabase
+- **Auth**: Supabase Auth (replacing Auth.js)
+- **Real-time**: Supabase Realtime subscriptions
+- **Storage**: Supabase Storage for images/files
 
-### Key Commands
+## 📁 Project Structure
 
-**Development:**
-```bash
-npx prisma migrate dev --name describe_changes  # Create & apply migration
-npx prisma migrate reset                         # Reset DB (dev only)
+```
+├── app/                     # Next.js 15.3 App Router
+│   ├── (auth)/             # Auth routes (signin, signup)
+│   ├── (dashboard)/        # Protected user routes
+│   ├── (admin)/           # Admin-only routes
+│   └── api/               # API endpoints
+├── components/
+│   ├── ui/                # shadcn/ui components
+│   └── features/          # Feature-specific components
+├── lib/
+│   ├── supabase/         # Supabase client configs
+│   └── utils.ts          # Helper functions
+├── server/
+│   ├── queries/          # Database queries (cached)
+│   └── actions/          # Server Actions
+├── hooks/                 # Custom React hooks
+├── test/                  # Test configuration & setup
+├── types/                 # TypeScript types
+└── supabase/
+    ├── migrations/       # SQL migrations (source of truth)
+    ├── seed.sql         # Development seed data
+    └── config.toml      # Supabase configuration
 ```
 
-**Production:**
-```bash
-npx prisma migrate deploy                        # Deploy migrations
-npx prisma migrate status                        # Check status
-```
+## 🗄️ Database Management
 
-**Never use `prisma db push` in production** - it's for prototyping only.
+### Migration-First Development
 
-### Workflow
-
-1. Edit `prisma/schema.prisma`
-2. Run `npx prisma migrate dev --name your_change`
-3. Test locally
-4. Deploy with `npx prisma migrate deploy`
-
-### Environment Variables
-
-**IMPORTANT: Use Vercel/Supabase standard variable names**
+**NEVER modify the database directly!** Always use migrations:
 
 ```bash
-# Development (.env.local)
-POSTGRES_URL="postgresql://postgres:postgres@localhost:54322/postgres"
-POSTGRES_URL_NON_POOLING="postgresql://postgres:postgres@localhost:54322/postgres"
+# Development workflow
+supabase start                                    # Start local Supabase
+supabase migration new descriptive_name_here      # Create migration
+# Edit the migration file in supabase/migrations/
+supabase db reset                                 # Apply migrations + seed
+npm run db:types                                  # Generate TypeScript types
 
-# Production (Vercel/Supabase)
-POSTGRES_URL="postgresql://postgres.[project]:[password]@[region].pooler.supabase.com:6543/postgres?pgbouncer=true"
-POSTGRES_URL_NON_POOLING="postgresql://postgres:[password]@db.[project].supabase.co:5432/postgres"
+# Production deployment
+supabase db push                                  # Deploy to production
 ```
 
-**Never use `DATABASE_URL` or `DIRECT_URL`** - These are not Vercel/Supabase standards. Always use:
-- `POSTGRES_URL` - For connection pooling (app queries)
-- `POSTGRES_URL_NON_POOLING` - For direct connections (migrations)
+### Naming Conventions
 
-## Project Structure
+- **Migrations**: `create_[table]_table`, `add_[column]_to_[table]`, `update_[table]_[change]`
+- **Tables**: Plural, snake_case (e.g., `user_hacks`, `routine_tags`)
+- **Columns**: snake_case (e.g., `created_at`, `is_admin`)
 
-- `/prisma/schema.prisma` - Database schema (source of truth)
-  - Must use `url = env("POSTGRES_URL")` for pooled connections
-  - Must use `directUrl = env("POSTGRES_URL_NON_POOLING")` for migrations
-- `/prisma/migrations/` - Migration history (DO NOT EDIT)
-- No Drizzle - we migrated to Prisma due to connection issues
+### Required for ALL Tables
+
+1. Enable RLS: `ALTER TABLE table_name ENABLE ROW LEVEL SECURITY;`
+2. Add updated_at trigger
+3. Create appropriate RLS policies
+4. Add indexes for foreign keys and commonly queried fields
+
+## 🔐 Authentication
+
+### Supabase Auth Setup
+
+```typescript
+// Client-side (browser)
+import { createClient } from '@/lib/supabase/client'
+
+// Server-side (Server Components, Server Actions)
+import { createClient } from '@/lib/supabase/server'
+
+// Admin operations (service role)
+import { createAdminClient } from '@/lib/supabase/server'
+```
+
+### Auth Flow
+
+1. User signs up → Trigger creates profile automatically
+2. OAuth providers: Google, Discord
+3. Session management via Supabase middleware
+4. Protected routes check auth in layout
+
+## 🎯 Development Patterns
+
+### Server Components by Default
+
+```typescript
+// ✅ Server Component (default)
+export default async function Page() {
+  const data = await getServerData()
+  return <ClientComponent initialData={data} />
+}
+
+// ✅ Client Component (when needed)
+'use client'
+export function InteractiveComponent() { ... }
+```
+
+### Server Actions with Validation
+
+```typescript
+'use server'
+
+import { z } from 'zod'
+import { revalidatePath } from 'next/cache'
+
+const Schema = z.object({
+  name: z.string().min(1),
+  // ...
+})
+
+export async function createItem(formData: FormData) {
+  const validated = Schema.parse(Object.fromEntries(formData))
+
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('items')
+    .insert(validated)
+    .select()
+    .single()
+
+  if (error) throw error
+
+  revalidatePath('/items')
+  return data
+}
+```
+
+### Type-Safe Queries
+
+```typescript
+import type { Tables } from '@/types/supabase'
+
+type Hack = Tables<'hacks'>
+type Profile = Tables<'profiles'>
+
+// Always use generated types!
+```
+
+## 🧪 Testing Strategy
+
+### Test Configuration
+
+```bash
+npm test                    # Run tests in watch mode
+npm run test:coverage      # Generate coverage report
+npm run test:e2e          # Run E2E tests
+```
+
+### What to Test
+
+- ✅ Server Actions (business logic)
+- ✅ Utility functions
+- ✅ Custom hooks
+- ✅ Critical user flows (E2E)
+- ❌ Don't test: Supabase internals, UI appearance only
+
+## 📝 Environment Variables
+
+### Development (.env.local)
+
+```bash
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# OAuth (optional)
+GOOGLE_OAUTH_CLIENT_ID=...
+GOOGLE_OAUTH_CLIENT_SECRET=...
+DISCORD_CLIENT_ID=...
+DISCORD_CLIENT_SECRET=...
+
+# Database (for Prisma compatibility if needed)
+POSTGRES_URL=postgresql://postgres:postgres@localhost:54322/postgres
+POSTGRES_URL_NON_POOLING=postgresql://postgres:postgres@localhost:54322/postgres
+```
+
+### Production (Vercel/Supabase)
+
+```bash
+# Set in Vercel dashboard
+NEXT_PUBLIC_SUPABASE_URL=https://[project].supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=[anon-key]
+SUPABASE_SERVICE_ROLE_KEY=[service-role-key]
+```
+
+## 🚀 Key Commands
+
+```bash
+# Development
+npm run dev               # Start Next.js with Turbopack
+supabase start           # Start local Supabase
+supabase stop            # Stop local Supabase
+
+# Database
+supabase migration new   # Create new migration
+supabase db reset       # Reset + migrate + seed
+npm run db:types        # Generate TypeScript types
+
+# Testing
+npm test                # Run tests
+npm run test:e2e       # Run E2E tests
+
+# Production
+npm run build          # Build for production
+supabase db push      # Deploy migrations
+```
+
+## ⚠️ Critical Rules
+
+1. **NEVER commit secrets** - Use environment variables
+2. **ALWAYS use migrations** - Never modify DB directly
+3. **ALWAYS enable RLS** - Security by default
+4. **ALWAYS validate inputs** - Use Zod schemas
+5. **ALWAYS regenerate types** after schema changes
+6. **PREFER Server Components** - Client only when needed
+7. **USE generated types** - Never hardcode DB types
+
+## 🔍 Common Issues & Solutions
+
+### Issue: Types out of sync
+```bash
+npm run db:types  # Regenerate from database
+```
+
+### Issue: Migration conflicts
+```bash
+supabase db reset  # Reset to clean state
+```
+
+### Issue: Auth not working
+- Check middleware configuration
+- Verify environment variables
+- Check Supabase dashboard for auth settings
+
+### Issue: RLS blocking access
+- Check policies in Supabase dashboard
+- Use `createAdminClient()` for admin operations
+- Verify auth.uid() in policies
 
 ## File Organization
 
@@ -62,10 +255,10 @@ POSTGRES_URL_NON_POOLING="postgresql://postgres:[password]@db.[project].supabase
 - README.md, LICENSE, CLAUDE.md
 
 **Never put in root:**
-- Test scripts → Use `__tests__/` or `tests/`
+- Test scripts → Use `test/` or `__tests__/`
 - Documentation → Use `docs/`
 - Screenshots → Delete after use
-- SQL files → Use Prisma migrations
+- SQL files → Use Supabase migrations
 - Temporary files → Delete immediately
 
 ## Security
@@ -78,11 +271,12 @@ POSTGRES_URL_NON_POOLING="postgresql://postgres:[password]@db.[project].supabase
 
 Always use environment variables for secrets.
 
-## Testing
+## Pre-Commit Checklist
 
 Always run before commits:
 ```bash
-npm run lint
-npm run typecheck  # if available
-npm test           # if available
+npm run lint          # Check code style
+npm run typecheck    # Verify TypeScript types
+npm test             # Run unit tests
+npm run db:types     # Update types if schema changed
 ```

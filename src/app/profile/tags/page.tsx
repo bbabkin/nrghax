@@ -39,12 +39,14 @@ export default async function ProfileTagsPage() {
     .order('updated_at', { ascending: false })
 
   // Get sync logs for the user
-  const { data: syncLogs } = await supabase
-    .from('tag_sync_log')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(10)
+  // TODO: Re-enable when tag_sync_log table is created
+  // const { data: syncLogs } = await supabase
+  //   .from('tag_sync_log')
+  //   .select('*')
+  //   .eq('user_id', user.id)
+  //   .order('created_at', { ascending: false })
+  //   .limit(10)
+  const syncLogs = null
 
   // Organize tags by type
   const tagsByType = {

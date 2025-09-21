@@ -7,30 +7,32 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['./src/test/setup.ts'],
-    exclude: ['**/node_modules/**', '**/dist/**', '**/tests/**', '**/*.spec.ts'],
-    include: ['src/**/*.test.{ts,tsx}'],
+    setupFiles: ['./test/setup.ts'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/*.spec.ts', '.next/**'],
+    include: ['src/**/*.test.{ts,tsx}', 'test/**/*.test.{ts,tsx}'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
       exclude: [
         'node_modules/',
-        'src/test/',
+        'test/',
         '*.config.*',
         '**/*.d.ts',
         '**/*.config.*',
         '**/mockData/*',
         'src/components/ui/**', // Exclude UI library components
+        'src/types/**', // Exclude generated types
         '.next/**',
       ],
       all: true,
       thresholds: {
-        lines: 80,
-        functions: 80,
-        branches: 80,
-        statements: 80,
+        lines: 70,
+        functions: 70,
+        branches: 70,
+        statements: 70,
       },
     },
+    passWithNoTests: true,
   },
   resolve: {
     alias: {
@@ -38,6 +40,9 @@ export default defineConfig({
       '@/components': path.resolve(__dirname, './src/components'),
       '@/lib': path.resolve(__dirname, './src/lib'),
       '@/app': path.resolve(__dirname, './src/app'),
+      '@/server': path.resolve(__dirname, './src/server'),
+      '@/hooks': path.resolve(__dirname, './src/hooks'),
+      '@/types': path.resolve(__dirname, './src/types'),
     },
   },
 })

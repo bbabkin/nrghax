@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { signOut } from 'next-auth/react'
+import { usePathname, useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Menu, X } from 'lucide-react'
 
@@ -12,14 +12,22 @@ interface NavbarProps {
     id: string
     email: string
     name?: string | null
-    image?: string | null
-    isAdmin: boolean
+    avatar_url?: string | null
+    is_admin: boolean
   } | null
 }
 
 export function Navbar({ user }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
+
+  const handleSignOut = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/')
+    router.refresh()
+  }
 
   const isActive = (path: string) => pathname === path
 
@@ -31,7 +39,7 @@ export function Navbar({ user }: NavbarProps) {
       { href: '/dashboard', label: 'Dashboard' },
       { href: '/profile/history', label: 'My History' },
       { href: '/account', label: 'Account' },
-      ...(user?.isAdmin ? [
+      ...(user?.is_admin ? [
         { href: '/admin/users', label: 'Users' },
         { href: '/admin/hacks', label: 'Manage Hacks' },
         { href: '/admin/routines', label: 'Manage Routines' },
@@ -76,9 +84,9 @@ export function Navbar({ user }: NavbarProps) {
             {user ? (
               <>
                 <div className="flex items-center space-x-3">
-                  {user.image ? (
+                  {user.avatar_url ? (
                     <img
-                      src={user.image}
+                      src={user.avatar_url}
                       alt="Profile"
                       className="h-8 w-8 rounded-full object-cover border border-border"
                     />
@@ -96,7 +104,7 @@ export function Navbar({ user }: NavbarProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => signOut({ callbackUrl: '/' })}
+                  onClick={handleSignOut}
                 >
                   Sign Out
                 </Button>
@@ -146,9 +154,9 @@ export function Navbar({ user }: NavbarProps) {
                 {user ? (
                   <>
                     <div className="flex items-center space-x-3 px-2 py-2">
-                      {user.image ? (
+                      {user.avatar_url ? (
                         <img
-                          src={user.image}
+                          src={user.avatar_url}
                           alt="Profile"
                           className="h-10 w-10 rounded-full object-cover border border-border"
                         />
@@ -172,7 +180,7 @@ export function Navbar({ user }: NavbarProps) {
                       variant="outline"
                       size="sm"
                       className="w-full"
-                      onClick={() => signOut({ callbackUrl: '/' })}
+                      onClick={handleSignOut}
                     >
                       Sign Out
                     </Button>

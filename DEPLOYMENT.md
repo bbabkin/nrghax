@@ -1,113 +1,131 @@
-# Vercel Production Deployment Guide
+# Vercel + Supabase Production Deployment Guide
 
 ## Prerequisites
 - Vercel account (https://vercel.com)
 - Production Supabase project (https://supabase.com)
 - GitHub repository connected to Vercel
 
-## Step 1: Set Environment Variables in Vercel
+## Step 1: Create Production Supabase Project
+
+1. Go to https://supabase.com/dashboard
+2. Click "New project"
+3. Configure:
+   - Name: `nrghax-prod` (or your preference)
+   - Database Password: Generate a strong password
+   - Region: Choose closest to your users
+   - Plan: Free tier is fine to start
+
+## Step 2: Set Environment Variables in Vercel
 
 Go to your Vercel project → Settings → Environment Variables and add:
 
 ### Required Environment Variables
 
 ```bash
-# Database - Vercel Postgres (automatically provided when you connect Vercel Postgres)
-POSTGRES_URL="postgres://default:[password]@[host].postgres.vercel-storage.com:5432/verceldb?sslmode=require"
-POSTGRES_URL_NON_POOLING="postgres://default:[password]@[host].postgres.vercel-storage.com:5432/verceldb?sslmode=require"
-
-# OR if using external database (Supabase, etc)
-DATABASE_URL="postgresql://postgres:[password]@[host].supabase.co:5432/postgres?pgbouncer=true&connection_limit=1"
-
-# Supabase Auth (Production)
+# Supabase (Production)
 NEXT_PUBLIC_SUPABASE_URL="https://[your-project].supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
 SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
 
-# OAuth (if using)
-GOOGLE_CLIENT_ID="your-google-client-id"
-GOOGLE_CLIENT_SECRET="your-google-client-secret"
+# Database (from Supabase Dashboard → Settings → Database)
+POSTGRES_URL="postgresql://postgres.[project]:[password]@[region].pooler.supabase.com:6543/postgres?pgbouncer=true"
+POSTGRES_URL_NON_POOLING="postgresql://postgres:[password]@db.[project].supabase.co:5432/postgres"
 
-# NextAuth (if needed)
-NEXTAUTH_URL="https://your-domain.vercel.app"
-NEXTAUTH_SECRET="generate-with-openssl-rand-base64-32"
+# OAuth Callback URL
+NEXT_PUBLIC_SITE_URL="https://your-domain.vercel.app"
 ```
 
-## Step 2: Database Setup
+### Getting Supabase Keys
+1. Go to Supabase Dashboard → Settings → API
+2. Copy:
+   - `URL` → `NEXT_PUBLIC_SUPABASE_URL`
+   - `anon public` → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `service_role` → `SUPABASE_SERVICE_ROLE_KEY`
 
-### 2.1 Run Migrations on Production Database
+## Step 3: Apply Database Migrations
 
+### 3.1 Link to Remote Project
 ```bash
-# Set production DATABASE_URL locally
-export DATABASE_URL="postgresql://postgres:[password]@[host].supabase.co:5432/postgres"
+# Login to Supabase CLI
+npx supabase login
 
-# Run migrations
-npx prisma migrate deploy
-
-# Generate Prisma Client
-npx prisma generate
-
-# Optional: Seed production data (be careful!)
-# npm run db:seed
+# Link to your production project
+npx supabase link --project-ref [your-project-ref]
+# Project ref found in: Supabase Dashboard → Settings → General
 ```
 
-### 2.2 Enable Row Level Security (RLS) in Supabase
+### 3.2 Push Migrations to Production
+```bash
+# Push all migrations
+npx supabase db push
 
-Go to Supabase Dashboard → SQL Editor and run:
-
-```sql
--- Enable RLS on all tables
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE hacks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_hacks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tags ENABLE ROW LEVEL SECURITY;
-ALTER TABLE hack_tags ENABLE ROW LEVEL SECURITY;
-ALTER TABLE hack_prerequisites ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_tags ENABLE ROW LEVEL SECURITY;
-
--- Create basic policies (adjust as needed)
-CREATE POLICY "Profiles are viewable by everyone" ON profiles
-  FOR SELECT USING (true);
-
-CREATE POLICY "Hacks are viewable by everyone" ON hacks
-  FOR SELECT USING (true);
-
-CREATE POLICY "Users can manage their own data" ON user_hacks
-  FOR ALL USING (auth.uid() = user_id);
+# Or apply specific migration
+npx supabase migration up --remote
 ```
 
-## Step 3: Configure Build Settings
+### 3.3 Verify Migration Status
+```bash
+npx supabase migration list --remote
+```
 
-### 3.1 Create vercel.json (optional)
+## Step 4: Configure Authentication
 
+### 4.1 Set Site URL
+In Supabase Dashboard → Authentication → URL Configuration:
+- Site URL: `https://your-domain.vercel.app`
+- Redirect URLs:
+  - `https://your-domain.vercel.app/auth/callback`
+  - `https://your-domain.vercel.app/**`
+
+### 4.2 Configure OAuth Providers (Optional)
+
+#### Google OAuth
+1. Go to [Google Cloud Console](https://console.cloud.google.com)
+2. Create OAuth 2.0 Client ID
+3. Add to Authorized redirect URIs:
+   - `https://[your-project].supabase.co/auth/v1/callback`
+4. In Supabase Dashboard → Authentication → Providers → Google:
+   - Enable Google
+   - Add Client ID and Secret
+
+#### Discord OAuth
+1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
+2. Create New Application
+3. OAuth2 → Add Redirect:
+   - `https://[your-project].supabase.co/auth/v1/callback`
+4. In Supabase Dashboard → Authentication → Providers → Discord:
+   - Enable Discord
+   - Add Client ID and Secret
+
+## Step 5: Configure Build Settings
+
+### 5.1 Update vercel.json
 ```json
 {
-  "buildCommand": "prisma generate && next build",
+  "buildCommand": "npm run build",
   "installCommand": "npm install",
   "framework": "nextjs",
   "outputDirectory": ".next",
   "regions": ["iad1"],
   "env": {
-    "PRISMA_HIDE_UPDATE_MESSAGE": "1"
+    "NEXT_TELEMETRY_DISABLED": "1"
   }
 }
 ```
 
-### 3.2 Update package.json build script
-
+### 5.2 Update package.json scripts
 ```json
 {
   "scripts": {
-    "build": "prisma generate && next build",
-    "postinstall": "prisma generate"
+    "build": "next build",
+    "postinstall": "npx supabase gen types typescript --local > src/types/supabase.ts || true"
   }
 }
 ```
 
-## Step 4: Deploy
+## Step 6: Deploy
 
 ### Option A: Deploy via Vercel CLI
-
 ```bash
 # Install Vercel CLI
 npm i -g vercel
@@ -117,103 +135,141 @@ vercel --prod
 ```
 
 ### Option B: Auto-deploy via GitHub
+1. Push to main/master branch
+2. Vercel will auto-deploy
 
-1. Connect your GitHub repo to Vercel
-2. Push to main/master branch
-3. Vercel will auto-deploy
+## Step 7: Post-Deployment Setup
 
-## Step 5: Post-Deployment Checks
-
-### 5.1 Verify Database Connection
-
-```bash
-# Check if migrations are applied
-npx prisma migrate status
-
-# Test database connection
-npx prisma db pull
+### 7.1 Create Admin User
+```sql
+-- In Supabase SQL Editor
+UPDATE profiles
+SET is_admin = true
+WHERE email = 'your-admin@email.com';
 ```
 
-### 5.2 Monitor Logs
+### 7.2 Add Initial Data (Optional)
+```bash
+# Create seed file for production data
+cat > seed-production.sql << 'EOF'
+-- Add tags
+INSERT INTO tags (name, slug, tag_type) VALUES
+  ('Beginner', 'beginner', 'user_experience'),
+  ('Intermediate', 'intermediate', 'user_experience'),
+  ('Advanced', 'advanced', 'user_experience')
+ON CONFLICT (slug) DO NOTHING;
+EOF
 
-Go to Vercel Dashboard → Functions → Logs to monitor:
-- Authentication errors
-- Database connection issues
-- Profile sync operations
+# Apply via Supabase Dashboard SQL Editor
+```
 
-### 5.3 Test Critical Flows
+## Step 8: Verification Checklist
 
-1. **Test Login**: Try email/password login
-2. **Test OAuth**: Try Google/Discord login
-3. **Test Data**: Check if hacks are displayed
-4. **Test Admin**: Verify admin access works
+### Test Authentication
+- [ ] Email/password signup works
+- [ ] Email confirmation works
+- [ ] Login works
+- [ ] OAuth providers work (if configured)
+- [ ] Password reset works
+
+### Test Core Features
+- [ ] Hacks display correctly
+- [ ] User progress tracking works
+- [ ] Prerequisites/unlocking works
+- [ ] Admin panel accessible (for admin users)
+
+### Monitor Health
+- [ ] Check Vercel Functions logs for errors
+- [ ] Check Supabase Dashboard → Logs for database errors
+- [ ] Verify RLS policies are working
 
 ## Common Issues & Solutions
 
-### Issue: "Can't reach database server"
-**Solution**:
-- If using Vercel Postgres: Ensure POSTGRES_URL is set (automatically provided)
-- If using external DB: Add `?pgbouncer=true&connection_limit=1` to DATABASE_URL
+### Issue: "Failed to fetch data"
+**Solution**: Check if NEXT_PUBLIC_SUPABASE_URL is set correctly (must start with https://)
 
-### Issue: "Too many database connections"
-**Solution**: Use connection pooling:
-```javascript
-// In src/lib/db/index.ts
-export const prisma = new PrismaClient({
-  log: ['error'],
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
-  },
-})
+### Issue: "Auth session missing"
+**Solution**:
+- Verify NEXT_PUBLIC_SITE_URL matches your deployment URL
+- Check Authentication → URL Configuration in Supabase
+
+### Issue: "RLS policy violation"
+**Solution**: Ensure RLS policies are properly configured:
+```sql
+-- Check which policies exist
+SELECT tablename, policyname, permissive, roles, cmd, qual
+FROM pg_policies
+WHERE schemaname = 'public';
 ```
 
-### Issue: "Prisma Client not generated"
-**Solution**: Add `"postinstall": "prisma generate"` to package.json
+### Issue: "Too many connections"
+**Solution**: Use pooled connection string (with pgbouncer=true)
 
-### Issue: "Auth not working in production"
-**Solution**:
-1. Check NEXT_PUBLIC_SUPABASE_URL is https (not http)
-2. Verify callback URLs in Supabase Dashboard
-3. Add your production domain to OAuth provider
-
-## Production Checklist
-
-- [ ] All environment variables set in Vercel
-- [ ] Database migrations applied
-- [ ] Prisma Client generated
-- [ ] RLS policies configured
-- [ ] OAuth redirect URLs updated
-- [ ] Custom domain configured (optional)
-- [ ] Error monitoring setup (optional)
-- [ ] Analytics configured (optional)
+### Issue: "Types out of sync"
+**Solution**: Regenerate types after schema changes:
+```bash
+npx supabase gen types typescript --project-id [your-project-ref] > src/types/supabase.ts
+```
 
 ## Monitoring & Maintenance
 
-### Database Backups
-- Supabase provides automatic daily backups
-- Enable Point-in-Time Recovery for critical data
+### Database
+- Supabase provides automatic daily backups (Pro plan: 7 days, Free: 1 day)
+- Monitor usage in Supabase Dashboard → Database → Statistics
+- Set up alerts for high usage
 
-### Performance Monitoring
+### Performance
 - Use Vercel Analytics (free tier available)
-- Monitor database query performance in Supabase
+- Monitor Supabase Dashboard → API → Metrics
+- Check slow queries in Database → Query Performance
 
 ### Security
-- Regularly update dependencies: `npm audit fix`
+- Regularly rotate database passwords
 - Review RLS policies periodically
-- Monitor for suspicious auth attempts
+- Monitor auth logs for suspicious activity
+- Keep dependencies updated: `npm audit fix`
 
 ## Rollback Strategy
 
-If deployment fails:
-1. Vercel automatically keeps previous deployments
-2. Go to Vercel Dashboard → Deployments
-3. Click "..." menu on previous deployment
-4. Select "Promote to Production"
+### Database Rollback
+```bash
+# List migrations
+npx supabase migration list --remote
 
-## Support
+# Create a rollback migration if needed
+npx supabase migration new rollback_[description]
+```
+
+### Application Rollback
+1. Go to Vercel Dashboard → Deployments
+2. Find previous working deployment
+3. Click "..." → "Promote to Production"
+
+## Scaling Considerations
+
+When you need to scale:
+
+### Database
+- Upgrade Supabase plan for:
+  - More connections
+  - Better performance
+  - Longer backup retention
+  - Point-in-time recovery
+
+### Application
+- Enable Vercel Edge Functions for global distribution
+- Implement caching strategies
+- Use ISR (Incremental Static Regeneration) for static content
+
+## Support Resources
 
 - Vercel Docs: https://vercel.com/docs
 - Supabase Docs: https://supabase.com/docs
-- Prisma Docs: https://www.prisma.io/docs
+- Next.js Docs: https://nextjs.org/docs
+- Discord Community: https://discord.gg/supabase
+
+## Emergency Contacts
+
+- Supabase Status: https://status.supabase.com
+- Vercel Status: https://vercel-status.com
+- Support Email: Set up your own monitoring/alerting

@@ -38,15 +38,16 @@ export async function assignTagsFromOnboarding(
     }
 
     // Mark onboarding as skipped
-    await supabase
-      .from('onboarding_responses')
-      .insert({
-        user_id: userId,
-        question_id: 'onboarding_skipped',
-        answer: { skipped: true },
-        skipped: true,
-        completed_at: new Date().toISOString()
-      })
+    // TODO: Re-enable when onboarding_responses table is created
+    // await supabase
+    //   .from('onboarding_responses')
+    //   .insert({
+    //     user_id: userId,
+    //     question_id: 'onboarding_skipped',
+    //     answer: { skipped: true },
+    //     skipped: true,
+    //     completed_at: new Date().toISOString()
+    //   })
 
     return
   }
@@ -120,44 +121,47 @@ export async function assignTagsFromOnboarding(
     }
   }
 
-  if (responses.length > 0) {
-    await supabase
-      .from('onboarding_responses')
-      .upsert(responses)
-  }
+  // TODO: Re-enable when onboarding_responses table is created
+  // if (responses.length > 0) {
+  //   await supabase
+  //     .from('onboarding_responses')
+  //     .upsert(responses)
+  // }
 
   // Log the tag assignments for sync tracking
-  for (const assignment of tagAssignments) {
-    await supabase
-      .from('tag_sync_log')
-      .insert({
-        user_id: userId,
-        tag_id: assignment.tag_id,
-        action: 'added',
-        source: 'onboarding',
-        target: 'web',
-        new_value: { source: 'onboarding_completion' }
-      })
-  }
+  // TODO: Re-enable when tag_sync_log table is created
+  // for (const assignment of tagAssignments) {
+  //   await supabase
+  //     .from('tag_sync_log')
+  //     .insert({
+  //       user_id: userId,
+  //       tag_id: assignment.tag_id,
+  //       action: 'added',
+  //       source: 'onboarding',
+  //       target: 'web',
+  //       new_value: { source: 'onboarding_completion' }
+  //     })
+  // }
 
   // Trigger Discord sync if user has Discord connected
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('discord_id')
-    .eq('id', userId)
-    .single()
+  // TODO: Re-enable when Discord integration is added
+  // const { data: profile } = await supabase
+  //   .from('profiles')
+  //   .select('discord_id')
+  //   .eq('id', userId)
+  //   .single()
 
-  if (profile?.discord_id && tagAssignments.length > 0) {
-    // Fire and forget - don't wait for sync to complete
-    fetch('/api/discord/sync', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        changes: tagAssignments.map(ta => ({
-          tagId: ta.tag_id,
-          action: 'add'
-        }))
-      })
-    }).catch(err => console.error('Discord sync trigger failed:', err))
-  }
+  // if (profile?.discord_id && tagAssignments.length > 0) {
+  //   // Fire and forget - don't wait for sync to complete
+  //   fetch('/api/discord/sync', {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({
+  //       changes: tagAssignments.map(ta => ({
+  //         tagId: ta.tag_id,
+  //         action: 'add'
+  //       }))
+  //     })
+  //   }).catch(err => console.error('Discord sync trigger failed:', err))
+  // }
 }

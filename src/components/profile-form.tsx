@@ -33,14 +33,14 @@ export function ProfileForm({ user }: ProfileFormProps) {
       setLoading(true)
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, avatar_url')
+        .select('name, avatar_url')
         .eq('id', user.id)
         .single()
 
       if (error) {
         console.error('Error loading profile:', error)
       } else if (data) {
-        setFullName(data.full_name || '')
+        setFullName(data.name || '')
         setAvatarUrl(data.avatar_url || '')
       }
     } catch (error) {
@@ -57,7 +57,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
       const { error } = await supabase
         .from('profiles')
         .update({
-          full_name: fullName,
+          name: fullName,
           avatar_url: avatarUrl,
           updated_at: new Date().toISOString(),
         })

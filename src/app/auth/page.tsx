@@ -1,11 +1,12 @@
-import { AuthForm } from '@/components/auth/auth-form';
+import { SupabaseAuthForm } from '@/components/auth/supabase-auth-form-new';
 import { redirect } from 'next/navigation';
-import { auth } from '@/auth';
+import { createClient } from '@/lib/supabase/server';
 
 export default async function AuthPage() {
-  const session = await auth();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (session?.user) {
+  if (user) {
     redirect('/dashboard');
   }
 
@@ -15,7 +16,7 @@ export default async function AuthPage() {
         <h1 className="text-3xl font-bold mb-2">Welcome to NRGHax</h1>
         <p className="text-gray-600">Sign in to track your learning progress</p>
       </div>
-      <AuthForm />
+      <SupabaseAuthForm />
     </div>
   );
 }
