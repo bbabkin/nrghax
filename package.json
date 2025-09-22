@@ -18,7 +18,8 @@
     "db:push": "supabase db push",
     "db:types": "supabase gen types --local > src/types/supabase.ts",
     "db:migrate": "supabase migration new",
-    "db:seed": "supabase db reset"
+    "db:seed": "tsx scripts/seed-database.ts",
+    "db:reset": "supabase db reset"
   },
   "workspaces": [
     "supabase/tests"
