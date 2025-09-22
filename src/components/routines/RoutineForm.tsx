@@ -139,16 +139,29 @@ export function RoutineForm({
     });
 
     try {
+      let result;
       if (routine) {
-        await updateRoutine(routine.id, formData);
+        result = await updateRoutine(routine.id, formData);
       } else {
-        await createRoutine(formData);
+        result = await createRoutine(formData);
       }
-    } catch (error) {
+
+      if (result.success) {
+        // Redirect to the routine page
+        router.push(`/routines/${result.slug}`);
+        toast({
+          title: 'Success',
+          description: routine ? 'Routine updated successfully!' : 'Routine created successfully!',
+        });
+        return;
+      } else {
+        throw new Error(result.error || 'Failed to save routine');
+      }
+    } catch (error: any) {
       console.error('Error saving routine:', error);
       toast({
         title: 'Error',
-        description: 'Failed to save routine. Please try again.',
+        description: error.message || 'Failed to save routine. Please try again.',
         variant: 'destructive'
       });
       setIsSubmitting(false);

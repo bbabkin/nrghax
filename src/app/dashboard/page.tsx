@@ -11,6 +11,8 @@ export default async function DashboardPage() {
 
   // Check if user has completed onboarding
   const supabase = await createClient()
+
+  // First check if user has ANY tags
   const { data: userTags } = await supabase
     .from('user_tags')
     .select(`
@@ -19,7 +21,17 @@ export default async function DashboardPage() {
     `)
     .eq('user_id', user.id)
 
-  const hasCompletedOnboarding = userTags && userTags.some((ut: any) => ut.source === 'onboarding')
+  // Check if user has onboarding tags or has been marked as onboarded
+  const hasOnboardingTags = userTags && userTags.some((ut: any) => ut.source === 'onboarding')
+
+  // Also check profile for onboarding status
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('onboarded')
+    .eq('id', user.id)
+    .single()
+
+  const hasCompletedOnboarding = hasOnboardingTags || profile?.onboarded
 
   // If user hasn't completed onboarding, redirect them
   if (!hasCompletedOnboarding) {

@@ -140,10 +140,12 @@ export async function createRoutine(formData: FormData) {
 
     revalidatePath('/routines');
     revalidatePath('/hacks');
-    redirect(`/routines/${routine.slug}`);
+
+    // Return the slug for client-side redirect instead of using server redirect
+    return { success: true, slug: routine.slug };
   } catch (error) {
     console.error('Error creating routine:', error);
-    throw new Error('Failed to create routine');
+    return { success: false, error: 'Failed to create routine' };
   }
 }
 
@@ -243,10 +245,12 @@ export async function updateRoutine(routineId: string, formData: FormData) {
     revalidatePath('/routines');
     revalidatePath(`/routines/${slug}`);
     revalidatePath('/hacks');
-    redirect(`/routines/${slug}`);
+
+    // Return the slug for client-side redirect instead of using server redirect
+    return { success: true, slug };
   } catch (error) {
     console.error('Error updating routine:', error);
-    throw new Error('Failed to update routine');
+    return { success: false, error: 'Failed to update routine' };
   }
 }
 

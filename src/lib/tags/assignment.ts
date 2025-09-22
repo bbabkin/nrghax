@@ -22,8 +22,8 @@ export async function assignTagsFromOnboarding(
     const { data: beginnerTag } = await supabase
       .from('tags')
       .select('id')
-      .eq('slug', 'beginner')
-      .eq('tag_type', 'user_experience')
+      .or('slug.eq.beginner,slug.eq.beginner-friendly,name.ilike.%beginner%')
+      .limit(1)
       .single()
 
     if (beginnerTag) {
@@ -36,6 +36,12 @@ export async function assignTagsFromOnboarding(
           updated_at: new Date().toISOString()
         })
     }
+
+    // Mark user as onboarded even if skipped
+    await supabase
+      .from('profiles')
+      .update({ onboarded: true })
+      .eq('id', userId)
 
     // Mark onboarding as skipped
     // TODO: Re-enable when onboarding_responses table is created
@@ -64,11 +70,21 @@ export async function assignTagsFromOnboarding(
 
   // Assign experience level tag (mutually exclusive)
   if (fullAnswers.experience_level) {
+    // Map experience levels to existing tags
+    const expLevelMap: Record<string, string[]> = {
+      'beginner': ['beginner', 'beginner-friendly'],
+      'intermediate': ['energy', 'focus'],
+      'advanced': ['advanced'],
+      'expert': ['advanced']
+    }
+
+    const possibleSlugs = expLevelMap[fullAnswers.experience_level] || [fullAnswers.experience_level]
+
     const { data: expTag } = await supabase
       .from('tags')
       .select('id')
-      .eq('slug', fullAnswers.experience_level)
-      .eq('tag_type', 'user_experience')
+      .in('slug', possibleSlugs)
+      .limit(1)
       .single()
 
     if (expTag) {
@@ -83,11 +99,27 @@ export async function assignTagsFromOnboarding(
 
   // Assign interest area tags (can have multiple)
   if (fullAnswers.interest_areas && fullAnswers.interest_areas.length > 0) {
+    // Map interest areas to existing tags
+    const interestMap: Record<string, string[]> = {
+      'energy': ['energy', 'morning'],
+      'focus': ['focus', 'breathing'],
+      'fitness': ['exercise', 'cold-therapy'],
+      'nutrition': ['nutrition'],
+      'sleep': ['sleep'],
+      'stress': ['breathing'],
+      'productivity': ['focus', 'energy']
+    }
+
+    const allSlugs: string[] = []
+    fullAnswers.interest_areas.forEach(interest => {
+      const mapped = interestMap[interest] || [interest]
+      allSlugs.push(...mapped)
+    })
+
     const { data: interestTags } = await supabase
       .from('tags')
       .select('id, slug')
-      .in('slug', fullAnswers.interest_areas)
-      .eq('tag_type', 'user_interest')
+      .in('slug', [...new Set(allSlugs)]) // Remove duplicates
 
     if (interestTags) {
       interestTags.forEach(tag => {
@@ -107,6 +139,12 @@ export async function assignTagsFromOnboarding(
       .from('user_tags')
       .insert(tagAssignments)
   }
+
+  // Mark user as onboarded in their profile
+  await supabase
+    .from('profiles')
+    .update({ onboarded: true })
+    .eq('id', userId)
 
   // Store onboarding responses
   const responses = []
