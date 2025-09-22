@@ -40,7 +40,7 @@ export default async function RoutinesPage() {
                 key={routine.id}
                 routine={routine}
                 currentUserId={user.id}
-                isAdmin={user.isAdmin}
+                isAdmin={user.is_admin}
                 showActions={true}
               />
             ))}
@@ -58,7 +58,7 @@ export default async function RoutinesPage() {
                 key={routine.id}
                 routine={routine}
                 currentUserId={user.id}
-                isAdmin={user.isAdmin}
+                isAdmin={user.is_admin}
                 showActions={true}
               />
             ))}

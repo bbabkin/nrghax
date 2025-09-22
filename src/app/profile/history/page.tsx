@@ -74,18 +74,16 @@ export default async function HistoryPage() {
                 </div>
                 
                 <div className="space-y-3">
-                  {hacks.map((hackData) => {
-                    const hack = hackData.hack;
-                    return (
+                  {hacks.map((hack) => (
                     <Link key={hack.id} href={`/hacks/${hack.id}`}>
                       <Card className="hover:shadow-md transition-shadow cursor-pointer">
                         <CardContent className="p-4">
                           <div className="flex items-center gap-4">
                             <div className="relative w-20 h-20 flex-shrink-0">
                               <Image
-                                src={hack.imagePath
-                                  ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/hack-images/${hack.imagePath}`
-                                  : hack.imageUrl || '/placeholder-hack.svg'}
+                                src={hack.image_path
+                                  ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/hack-images/${hack.image_path}`
+                                  : hack.image_url || '/placeholder-hack.svg'}
                                 alt={hack.name}
                                 fill
                                 className="object-cover rounded"
@@ -100,7 +98,7 @@ export default async function HistoryPage() {
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-2 ml-4">
-                                  {hack.contentType === 'link' ? (
+                                  {hack.content_type === 'link' ? (
                                     <Badge variant="outline" className="text-xs">
                                       <ExternalLink className="h-3 w-3 mr-1" />
                                       External
@@ -114,7 +112,7 @@ export default async function HistoryPage() {
                                 </div>
                               </div>
                               <div className="mt-2 text-xs text-gray-500">
-                                Completed at {new Date(hackData.viewedAt || hackData.createdAt).toLocaleTimeString('en-US', {
+                                Completed at {new Date(hack.viewedAt || hack.createdAt).toLocaleTimeString('en-US', {
                                   hour: '2-digit',
                                   minute: '2-digit',
                                 })}
@@ -124,8 +122,7 @@ export default async function HistoryPage() {
                         </CardContent>
                       </Card>
                     </Link>
-                  );
-                  })}
+                  ))}
                 </div>
               </div>
             ))}

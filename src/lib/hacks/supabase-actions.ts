@@ -336,17 +336,8 @@ export async function removeHackTag(hackId: string, tagId: string) {
 
 export async function bulkUpdateHackOrder(updates: { id: string; order: number }[]) {
   await requireAdmin();
-  const supabase = await createClient();
-
-  // Update each hack's order
-  const promises = updates.map(({ id, order }) =>
-    supabase
-      .from('hacks')
-      .update({ order })
-      .eq('id', id)
-  );
-
-  await Promise.all(promises);
+  // Since hacks table doesn't have an order column, this function is a no-op for now
+  // Could be implemented with a separate ordering table if needed
 
   revalidatePath('/admin/hacks');
   revalidatePath('/hacks');

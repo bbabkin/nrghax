@@ -376,6 +376,7 @@ export async function getUserCompletedHacks(userId: string) {
           description,
           image_url,
           image_path,
+          content_type,
           difficulty,
           time_minutes,
           created_at
@@ -391,7 +392,15 @@ export async function getUserCompletedHacks(userId: string) {
     }
 
     return data?.map(item => ({
-      ...item.hacks,
+      id: item.hacks.id,
+      name: item.hacks.name,
+      slug: item.hacks.slug,
+      description: item.hacks.description,
+      image_url: item.hacks.image_url,
+      image_path: item.hacks.image_path,
+      difficulty: item.hacks.difficulty,
+      time_minutes: item.hacks.time_minutes,
+      content_type: item.hacks.content_type as 'content' | 'link',
       isViewed: item.viewed,
       isLiked: item.liked,
       viewedAt: item.updated_at,

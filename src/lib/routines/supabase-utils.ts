@@ -43,6 +43,7 @@ export type RoutineWithDetails = {
   isStarted?: boolean;
   isCompleted?: boolean;
   progress?: number;
+  likeCount?: number;
 };
 
 export async function getPublicRoutines() {
@@ -412,6 +413,13 @@ export async function getRoutineBySlug(slug: string, userId?: string) {
       userInteraction = data;
     }
 
+    // Get like count
+    const { count: likeCount } = await supabase
+      .from('user_routines')
+      .select('*', { count: 'exact' })
+      .eq('routine_id', routine.id)
+      .eq('liked', true);
+
     // Sort hacks by position
     const sortedHacks = routine.routine_hacks
       ?.sort((a: any, b: any) => a.position - b.position)
@@ -446,7 +454,8 @@ export async function getRoutineBySlug(slug: string, userId?: string) {
       isLiked: userInteraction?.liked || false,
       isStarted: userInteraction?.started || false,
       isCompleted: userInteraction?.completed || false,
-      progress: 0
+      progress: 0,
+      likeCount: likeCount || 0
     };
   } catch (error) {
     console.error('Error in getRoutineBySlug:', error);

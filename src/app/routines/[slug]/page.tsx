@@ -79,7 +79,7 @@ export default async function RoutinePage({ params }: { params: Promise<{ slug: 
   }
 
   const isOwner = user?.id === routine.createdBy;
-  const canEdit = isOwner || user?.isAdmin;
+  const canEdit = isOwner || user?.is_admin;
 
   // Calculate total time
   const totalMinutes = routine.hacks.reduce((sum, hack) =>

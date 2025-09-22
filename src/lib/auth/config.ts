@@ -41,15 +41,18 @@ export async function signIn(provider: 'google' | 'discord' | 'email', credentia
     }
   }
 
-  // OAuth providers
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider,
-    options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
-    },
-  })
+  // OAuth providers - email is handled above, so this is only for OAuth
+  if (provider === 'google' || provider === 'discord') {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+      },
+    })
+    return { data, error }
+  }
 
-  return { data, error }
+  return { data: null, error: new Error('Invalid provider') }
 }
 
 export async function signUp(email: string, password: string, name?: string) {

@@ -9,10 +9,8 @@ interface AdminCheckData {
   currentUser: {
     id: string;
     email: string;
-    profileEmail: string;
-    fullName: string;
+    name?: string;
     isAdmin: boolean;
-    createdAt: string;
   };
   stats: {
     totalAdmins: number;
@@ -20,7 +18,6 @@ interface AdminCheckData {
     isFirstUser: boolean;
   };
   schema: {
-    hasIsAdminColumn: boolean;
     profileExists: boolean;
   };
   recommendations: string[];
@@ -111,10 +108,8 @@ export default function AdminCheckPage() {
         </CardHeader>
         <CardContent className="space-y-2">
           <div><strong>Email:</strong> {data.currentUser.email}</div>
-          <div><strong>Profile Email:</strong> {data.currentUser.profileEmail}</div>
-          <div><strong>Name:</strong> {data.currentUser.fullName || 'Not set'}</div>
+          <div><strong>Name:</strong> {data.currentUser.name || 'Not set'}</div>
           <div><strong>User ID:</strong> <code className="text-xs bg-gray-100 p-1 rounded">{data.currentUser.id}</code></div>
-          <div><strong>Created:</strong> {new Date(data.currentUser.createdAt).toLocaleString()}</div>
         </CardContent>
       </Card>
 
@@ -144,14 +139,6 @@ export default function AdminCheckPage() {
                 <XCircle className="text-red-500 mr-2" />
               )}
               <span>Profile exists in database</span>
-            </div>
-            <div className="flex items-center">
-              {data.schema.hasIsAdminColumn ? (
-                <CheckCircle className="text-green-500 mr-2" />
-              ) : (
-                <XCircle className="text-red-500 mr-2" />
-              )}
-              <span>is_admin column exists</span>
             </div>
           </div>
         </CardContent>
