@@ -1,9 +1,10 @@
-import { getCurrentUser } from '@/lib/auth/user';
+import { getCurrentUser } from '@/lib/auth/supabase-user';
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/db';
+import { createClient } from '@/lib/supabase/server';
 
 export async function GET() {
   const user = await getCurrentUser();
+  const supabase = await createClient();
 
   if (!user) {
     return NextResponse.json({
@@ -13,32 +14,35 @@ export async function GET() {
   }
 
   // Get all admins count
-  const adminCount = await prisma.user.count({
-    where: { isAdmin: true }
-  });
+  const { count: adminCount } = await supabase
+    .from('profiles')
+    .select('*', { count: 'exact' })
+    .eq('is_admin', true);
 
   // Get total users count
-  const totalUsers = await prisma.user.count();
+  const { count: totalUsers } = await supabase
+    .from('profiles')
+    .select('*', { count: 'exact' });
 
   return NextResponse.json({
     currentUser: {
       id: user.id,
       email: user.email,
       name: user.name,
-      isAdmin: user.isAdmin,
+      isAdmin: user.is_admin,
     },
     stats: {
-      totalAdmins: adminCount,
-      totalUsers: totalUsers,
+      totalAdmins: adminCount || 0,
+      totalUsers: totalUsers || 0,
       isFirstUser: totalUsers === 1
     },
     schema: {
       profileExists: true
     },
-    recommendations: !user.isAdmin ? [
+    recommendations: !user.is_admin ? [
       'User is NOT admin. To fix:',
       '1. Update user in database',
-      `2. Set isAdmin to true for user ID: ${user.id}`,
+      `2. Set is_admin to true for user ID: ${user.id}`,
     ] : ['User is already an admin ✅']
   });
 }

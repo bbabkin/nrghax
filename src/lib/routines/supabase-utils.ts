@@ -257,6 +257,99 @@ export async function getRoutines(userId?: string) {
   }
 }
 
+export async function getUserRoutines(userId: string) {
+  try {
+    const supabase = await createClient();
+
+    const { data: userRoutines, error } = await supabase
+      .from('user_routines')
+      .select(`
+        *,
+        routines (
+          *,
+          profiles!routines_created_by_fkey (
+            id,
+            name,
+            email,
+            avatar_url
+          ),
+          routine_hacks (
+            position,
+            hacks (
+              id,
+              name,
+              slug,
+              description,
+              image_url,
+              image_path,
+              content_type,
+              difficulty,
+              time_minutes
+            )
+          ),
+          routine_tags (
+            tags (
+              id,
+              name,
+              slug
+            )
+          )
+        )
+      `)
+      .eq('user_id', userId)
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching user routines:', error);
+      return [];
+    }
+
+    return (userRoutines || []).map((userRoutine: any) => {
+      const routine = userRoutine.routines;
+
+      // Sort hacks by position
+      const sortedHacks = routine.routine_hacks
+        ?.sort((a: any, b: any) => a.position - b.position)
+        .map((rh: any) => ({
+          ...rh.hacks,
+          position: rh.position
+        })) || [];
+
+      return {
+        id: routine.id,
+        name: routine.name,
+        slug: routine.slug,
+        description: routine.description,
+        imageUrl: routine.image_url,
+        imagePath: routine.image_path,
+        isPublic: routine.is_public,
+        createdBy: routine.created_by,
+        createdAt: new Date(routine.created_at),
+        updatedAt: new Date(routine.updated_at),
+        creator: {
+          id: routine.profiles?.id || routine.created_by,
+          name: routine.profiles?.name || null,
+          email: routine.profiles?.email || '',
+          image: routine.profiles?.avatar_url || null
+        },
+        hacks: sortedHacks,
+        tags: routine.routine_tags?.map((rt: any) => rt.tags).filter(Boolean) || [],
+        _count: {
+          userRoutines: 0,
+          routineHacks: sortedHacks.length
+        },
+        isLiked: userRoutine.liked || false,
+        isStarted: userRoutine.started || false,
+        isCompleted: userRoutine.completed || false,
+        progress: userRoutine.progress || 0
+      };
+    });
+  } catch (error) {
+    console.error('Error in getUserRoutines:', error);
+    return [];
+  }
+}
+
 export async function getRoutineBySlug(slug: string, userId?: string) {
   try {
     const supabase = await createClient();

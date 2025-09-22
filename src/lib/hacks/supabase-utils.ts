@@ -256,3 +256,149 @@ export async function getHackPrerequisites() {
     return [];
   }
 }
+
+export async function getAllHacksForSelect() {
+  try {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('hacks')
+      .select('id, name')
+      .order('name');
+
+    if (error) {
+      console.error('Error fetching hacks for select:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching hacks for select:', error);
+    return [];
+  }
+}
+
+export async function getHackWithPrerequisites(id: string) {
+  try {
+    const hack = await getHackById(id);
+    if (!hack) return null;
+
+    const supabase = await createClient();
+
+    // Get prerequisites
+    const { data: prerequisites } = await supabase
+      .from('hack_prerequisites')
+      .select(`
+        prerequisite_hack_id,
+        prerequisite:hacks!hack_prerequisites_prerequisite_hack_id_fkey (
+          id,
+          name
+        )
+      `)
+      .eq('hack_id', id);
+
+    return {
+      ...hack,
+      prerequisites: prerequisites?.map(p => p.prerequisite).filter(Boolean) || [],
+      prerequisiteIds: prerequisites?.map(p => p.prerequisite_hack_id).filter(Boolean) || []
+    };
+  } catch (error) {
+    console.error('Error fetching hack with prerequisites:', error);
+    return null;
+  }
+}
+
+export async function checkPrerequisitesCompleted(hackId: string, userId?: string): Promise<boolean> {
+  try {
+    const supabase = await createClient();
+
+    // Get hack prerequisites
+    const { data: prerequisites } = await supabase
+      .from('hack_prerequisites')
+      .select('prerequisite_hack_id')
+      .eq('hack_id', hackId);
+
+    if (!prerequisites || prerequisites.length === 0) {
+      return true; // No prerequisites
+    }
+
+    if (!userId) {
+      // For anonymous users, check cookies
+      const { cookies } = await import('next/headers');
+      const cookieStore = await cookies();
+      const visitedCookie = cookieStore.get('visited_hacks');
+
+      if (!visitedCookie) {
+        return false;
+      }
+
+      try {
+        const visitedHacks = JSON.parse(visitedCookie.value) as string[];
+        return prerequisites.every(p => visitedHacks.includes(p.prerequisite_hack_id!));
+      } catch {
+        return false;
+      }
+    }
+
+    // For authenticated users
+    const prerequisiteIds = prerequisites.map(p => p.prerequisite_hack_id!);
+
+    const { data: completedHacks } = await supabase
+      .from('user_hacks')
+      .select('hack_id')
+      .eq('user_id', userId)
+      .eq('viewed', true)
+      .in('hack_id', prerequisiteIds);
+
+    const completedIds = completedHacks?.map(h => h.hack_id) || [];
+    return prerequisiteIds.every(id => completedIds.includes(id));
+  } catch (error) {
+    console.error('Error checking prerequisites:', error);
+    return false;
+  }
+}
+
+export async function getUserCompletedHacks(userId: string) {
+  try {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('user_hacks')
+      .select(`
+        hack_id,
+        viewed,
+        liked,
+        updated_at,
+        hacks (
+          id,
+          name,
+          slug,
+          description,
+          image_url,
+          image_path,
+          difficulty,
+          time_minutes,
+          created_at
+        )
+      `)
+      .eq('user_id', userId)
+      .eq('viewed', true)
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching user completed hacks:', error);
+      return [];
+    }
+
+    return data?.map(item => ({
+      ...item.hacks,
+      isViewed: item.viewed,
+      isLiked: item.liked,
+      viewedAt: item.updated_at,
+      createdAt: item.hacks.created_at
+    })) || [];
+  } catch (error) {
+    console.error('Error fetching user completed hacks:', error);
+    return [];
+  }
+}

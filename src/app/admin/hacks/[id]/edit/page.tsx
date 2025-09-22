@@ -27,7 +27,7 @@ export default async function EditHackPage({ params }: { params: Promise<{ id: s
     external_link: hack.externalLink || null,
     difficulty: hack.difficulty,
     time_minutes: hack.timeMinutes,
-    prerequisite_ids: hack.prerequisites?.map(p => p.prerequisiteHackId).filter(Boolean) as string[] || []
+    prerequisite_ids: hack.prerequisiteIds || []
   };
 
   return (
