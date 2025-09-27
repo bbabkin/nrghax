@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/components/ui/confirmation-dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { useLocalVisits } from '@/hooks/useLocalVisits';
+import { useAuth } from '@/hooks/useAuth';
 
 interface HackCardProps {
   hack: {
@@ -43,6 +44,7 @@ export function HackCard({
   const router = useRouter();
   const { toast } = useToast();
   const { isVisited } = useLocalVisits();
+  const { isAuthenticated } = useAuth();
   const [isLiked, setIsLiked] = useState(hack.is_liked || false);
   const [likeCount, setLikeCount] = useState(hack.like_count || 0);
   const [isLiking, setIsLiking] = useState(false);
@@ -57,6 +59,25 @@ export function HackCard({
 
     if (isLiking) return;
 
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      toast({
+        title: 'Sign in required',
+        description: 'Please sign in to like hacks',
+        variant: 'default',
+        action: (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => router.push('/auth')}
+          >
+            Sign In
+          </Button>
+        ),
+      });
+      return;
+    }
+
     setIsLiking(true);
     setIsLiked(!isLiked);
     setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
@@ -67,6 +88,11 @@ export function HackCard({
       // Revert on error
       setIsLiked(isLiked);
       setLikeCount(hack.like_count || 0);
+      toast({
+        title: 'Error',
+        description: 'Failed to update like status. Please try again.',
+        variant: 'destructive',
+      });
       console.error('Failed to toggle like:', error);
     } finally {
       setIsLiking(false);
@@ -164,13 +190,17 @@ export function HackCard({
         <CardFooter className="p-4 pt-0 flex items-center justify-between">
           <button
             onClick={handleLike}
-            className="flex items-center gap-1 text-sm"
+            className={cn(
+              "flex items-center gap-1 text-sm",
+              !isAuthenticated && "hover:opacity-70"
+            )}
             disabled={isLiking}
+            title={!isAuthenticated ? "Sign in to like" : undefined}
           >
             <Heart
               className={cn(
                 "h-4 w-4 transition-colors",
-                isLiked ? "fill-red-500 text-red-500" : "text-gray-500"
+                isLiked && isAuthenticated ? "fill-red-500 text-red-500" : "text-gray-500"
               )}
             />
             <span>{likeCount}</span>
