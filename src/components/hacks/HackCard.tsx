@@ -61,20 +61,8 @@ export function HackCard({
 
     // Check if user is authenticated
     if (!isAuthenticated) {
-      toast({
-        title: 'Sign in required',
-        description: 'Please sign in to like hacks',
-        variant: 'default',
-        action: (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => router.push('/auth')}
-          >
-            Sign In
-          </Button>
-        ),
-      });
+      // Redirect to auth page
+      router.push('/auth');
       return;
     }
 
