@@ -13,6 +13,7 @@ import { TagSelector } from './TagSelector';
 import { createHackWithImage, updateHackWithImage } from '@/lib/hacks/client-actions';
 import { Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
+import { MediaInput } from '@/components/ui/media-input';
 
 interface HackFormProps {
   hack?: {
@@ -24,6 +25,9 @@ interface HackFormProps {
     content_type: 'content' | 'link';
     content_body: string | null;
     external_link: string | null;
+    media_type?: string | null;
+    media_url?: string | null;
+    media_thumbnail_url?: string | null;
     prerequisite_ids?: string[];
   };
   availableHacks: { id: string; name: string }[];
@@ -40,6 +44,8 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
     hack?.prerequisite_ids || []
   );
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [mediaType, setMediaType] = useState(hack?.media_type || '');
+  const [mediaUrl, setMediaUrl] = useState(hack?.media_url || '');
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(
@@ -127,6 +133,8 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
         content_type: contentType,
         content_body: contentType === 'content' ? contentBody : null,
         external_link: contentType === 'link' ? (formData.get('external_link') as string) : null,
+        media_type: mediaType || null,
+        media_url: mediaUrl || null,
         prerequisite_ids: prerequisites,
       };
 
@@ -289,6 +297,16 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
           selectedIds={prerequisites}
           onChange={setPrerequisites}
           currentHackId={hack?.id}
+        />
+      </div>
+
+      <div>
+        <MediaInput
+          mediaType={mediaType}
+          mediaUrl={mediaUrl}
+          onTypeChange={setMediaType}
+          onUrlChange={setMediaUrl}
+          label="Embedded Media (Optional)"
         />
       </div>
 

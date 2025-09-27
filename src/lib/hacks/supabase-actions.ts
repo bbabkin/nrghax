@@ -14,6 +14,8 @@ export type HackFormData = {
   contentType: 'content' | 'link';
   contentBody?: string | null;
   externalLink?: string | null;
+  mediaType?: string | null;
+  mediaUrl?: string | null;
   prerequisiteIds?: string[];
   difficulty?: string;
   timeMinutes?: number;
@@ -57,6 +59,8 @@ export async function createHack(formData: HackFormData) {
       content_type: formData.contentType,
       content_body: formData.contentBody,
       external_link: formData.externalLink,
+      media_type: formData.mediaType || null,
+      media_url: formData.mediaUrl || null,
       difficulty: formData.difficulty,
       time_minutes: formData.timeMinutes,
       created_by: user.id
@@ -112,6 +116,8 @@ export async function updateHack(id: string, formData: HackFormData) {
     content_type: formData.contentType,
     content_body: formData.contentType === 'content' ? formData.contentBody : null,
     external_link: formData.contentType === 'link' ? formData.externalLink : null,
+    media_type: formData.mediaType || null,
+    media_url: formData.mediaUrl || null,
     difficulty: formData.difficulty,
     time_minutes: formData.timeMinutes,
   };

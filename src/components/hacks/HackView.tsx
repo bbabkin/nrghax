@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Lock, CheckCircle, ExternalLink, ArrowLeft } from 'lucide-react';
 import { useLocalVisits } from '@/hooks/useLocalVisits';
+import { MediaEmbed } from '@/components/ui/media-embed';
 
 interface HackViewProps {
   hack: {
@@ -19,6 +20,8 @@ interface HackViewProps {
     contentType: 'content' | 'link';
     contentBody?: string | null;
     externalLink?: string | null;
+    mediaType?: string | null;
+    mediaUrl?: string | null;
     isViewed?: boolean;
     isLiked?: boolean;
     likeCount?: number;
@@ -186,6 +189,16 @@ export function HackView({ hack, canAccess: serverCanAccess, user, children }: H
                   </Badge>
                 ))}
               </div>
+            </div>
+          )}
+
+          {hack.mediaType && hack.mediaUrl && (
+            <div className="mb-8">
+              <MediaEmbed
+                type={hack.mediaType}
+                url={hack.mediaUrl}
+                title={hack.name}
+              />
             </div>
           )}
 

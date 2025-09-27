@@ -366,7 +366,7 @@ export default async function AdminRoutinesPage() {
             <CardHeader>
               <CardTitle>Private Routines</CardTitle>
               <CardDescription>
-                User's personal routines
+                User&apos;s personal routines
               </CardDescription>
             </CardHeader>
             <CardContent>

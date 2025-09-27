@@ -13,6 +13,8 @@ export interface HackFormClientData {
   content_type: 'content' | 'link';
   content_body?: string | null;
   external_link?: string | null;
+  media_type?: string | null;
+  media_url?: string | null;
   prerequisite_ids?: string[];
 }
 
@@ -58,6 +60,8 @@ export async function createHackWithImage(data: HackFormClientData, userId: stri
     contentType: data.content_type,
     contentBody: data.content_body,
     externalLink: data.external_link,
+    mediaType: data.media_type,
+    mediaUrl: data.media_url,
     prerequisiteIds: data.prerequisite_ids,
   };
 
@@ -89,6 +93,8 @@ export async function updateHackWithImage(hackId: string, data: HackFormClientDa
     contentType: data.content_type,
     contentBody: data.content_body,
     externalLink: data.external_link,
+    mediaType: data.media_type,
+    mediaUrl: data.media_url,
     prerequisiteIds: data.prerequisite_ids,
   };
 

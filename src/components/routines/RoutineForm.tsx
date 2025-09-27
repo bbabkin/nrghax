@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { X, Plus, GripVertical, Search } from 'lucide-react';
 import { createRoutine, updateRoutine } from '@/lib/routines/actions';
 import { useToast } from '@/components/ui/use-toast';
+import { ImageUpload } from '@/components/ui/image-upload';
 
 interface Hack {
   id: string;
@@ -200,13 +201,12 @@ export function RoutineForm({
           </div>
 
           <div>
-            <Label htmlFor="imageUrl">Cover Image URL (optional)</Label>
-            <Input
-              id="imageUrl"
-              type="url"
+            <ImageUpload
+              bucket="routine-images"
               value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://example.com/image.jpg"
+              onChange={setImageUrl}
+              label="Cover Image (optional)"
+              maxSizeMB={10}
             />
           </div>
 

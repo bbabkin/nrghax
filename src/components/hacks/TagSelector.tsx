@@ -29,6 +29,7 @@ export function TagSelector({ hackId, selectedTags, onTagsChange }: TagSelectorP
     if (hackId) {
       loadHackTags();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hackId]);
 
   const loadTags = async () => {

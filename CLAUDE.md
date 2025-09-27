@@ -281,3 +281,4 @@ npm test             # Run unit tests
 npm run db:types     # Update types if schema changed
 ```
 - ensure that there are no build errors before pushing to production or claiming that everything works
+- Before claiming that something works, you should Test it in browser and validate with screenshots.

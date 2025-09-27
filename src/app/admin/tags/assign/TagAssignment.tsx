@@ -34,6 +34,7 @@ export function TagAssignment({ initialTags, initialHacks }: TagAssignmentProps)
   // Load tags for all hacks on mount
   useEffect(() => {
     loadAllHackTags();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadAllHackTags = async () => {
