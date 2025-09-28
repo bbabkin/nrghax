@@ -187,7 +187,7 @@ export async function toggleHackLike(hackId: string) {
   const supabase = await createClient();
 
   if (!user) {
-    throw new Error('Authentication required');
+    redirect('/auth');
   }
 
   try {

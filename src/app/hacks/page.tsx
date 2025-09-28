@@ -1,17 +1,30 @@
 import { HacksPageContent } from '@/components/hacks/HacksPageContent';
 import { getHacks, getUserCompletedHackIds, getHackPrerequisites } from '@/lib/hacks/supabase-utils';
-import { getPublicRoutines } from '@/lib/routines/supabase-utils';
+import { getPublicRoutines, getUserRoutines } from '@/lib/routines/supabase-utils';
 import { getCurrentUser } from '@/lib/auth/user';
 import { cookies } from 'next/headers';
 
 export default async function HacksPage() {
   const user = await getCurrentUser();
 
+  // Debug logging
+  console.log('[HacksPage] Current user:', user ? {
+    email: user.email,
+    is_admin: user.is_admin,
+    id: user.id
+  } : 'null');
+
   // Fetch hacks
   const hacks = await getHacks();
 
   // Fetch public routines
   const routines = await getPublicRoutines();
+
+  // Fetch user's own routines if authenticated
+  let userRoutines: any[] = [];
+  if (user) {
+    userRoutines = await getUserRoutines(user.id);
+  }
 
   // Get user's completed hacks to check prerequisites
   let completedHackIds: string[] = [];
@@ -78,9 +91,12 @@ export default async function HacksPage() {
       <HacksPageContent
         hacks={hacksWithPrerequisiteStatus}
         routines={routines}
+        userRoutines={userRoutines}
         isAuthenticated={!!user}
         currentUserId={user?.id}
+        isAdmin={user?.is_admin || false}
       />
+
     </div>
   );
 }

@@ -26,7 +26,7 @@ export function MediaInput({
   const [showPreview, setShowPreview] = useState(false);
 
   const handleClear = () => {
-    onTypeChange('');
+    onTypeChange('none');
     onUrlChange('');
     setShowPreview(false);
   };
@@ -41,7 +41,7 @@ export function MediaInput({
               <SelectValue placeholder="Select media type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">None</SelectItem>
+              <SelectItem value="none">None</SelectItem>
               <SelectItem value="youtube">YouTube</SelectItem>
               <SelectItem value="tiktok">TikTok</SelectItem>
               <SelectItem value="mp3">MP3 Audio</SelectItem>
@@ -60,13 +60,13 @@ export function MediaInput({
             }
             value={mediaUrl}
             onChange={(e) => onUrlChange(e.target.value)}
-            disabled={!mediaType}
+            disabled={!mediaType || mediaType === 'none'}
             className="md:col-span-2"
           />
         </div>
       </div>
 
-      {mediaType && mediaUrl && (
+      {mediaType && mediaType !== 'none' && mediaUrl && (
         <div className="flex gap-2">
           <Button
             type="button"
@@ -89,7 +89,7 @@ export function MediaInput({
         </div>
       )}
 
-      {showPreview && mediaType && mediaUrl && (
+      {showPreview && mediaType && mediaType !== 'none' && mediaUrl && (
         <div className="p-4 border rounded-lg bg-gray-50">
           <p className="text-sm text-gray-600 mb-2">Preview:</p>
           <MediaEmbed
@@ -100,7 +100,7 @@ export function MediaInput({
         </div>
       )}
 
-      {mediaType && (
+      {mediaType && mediaType !== 'none' && (
         <div className="text-xs text-gray-500">
           {mediaType === 'youtube' && (
             <p>Enter a YouTube URL (e.g., https://youtube.com/watch?v=VIDEO_ID) or just the video ID</p>

@@ -24,6 +24,12 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '54321',
+        pathname: '/storage/v1/object/public/**',
+      },
     ],
   },
 }

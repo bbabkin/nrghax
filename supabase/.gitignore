@@ -1,0 +1,9 @@
+# Supabase
+.branches
+.temp
+.env
+.env.local
+
+# Linked project files
+linked-project-ref
+.supabase/

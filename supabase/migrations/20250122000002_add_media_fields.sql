@@ -11,24 +11,18 @@ ADD CONSTRAINT valid_media_type CHECK (
 );
 
 -- Create storage bucket for routine images if it doesn't exist
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+INSERT INTO storage.buckets (id, name)
 VALUES (
   'routine-images',
-  'routine-images',
-  true,
-  10485760, -- 10MB
-  ARRAY['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp']
+  'routine-images'
 )
 ON CONFLICT (id) DO NOTHING;
 
 -- Create storage bucket for hack media if it doesn't exist
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+INSERT INTO storage.buckets (id, name)
 VALUES (
   'hack-media',
-  'hack-media',
-  true,
-  52428800, -- 50MB
-  ARRAY['audio/mpeg', 'audio/mp3', 'video/mp4', 'video/quicktime', 'video/webm']
+  'hack-media'
 )
 ON CONFLICT (id) DO NOTHING;
 

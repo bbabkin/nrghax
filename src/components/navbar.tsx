@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Menu, X } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Menu, X, Shield } from 'lucide-react'
 
 interface NavbarProps {
   user?: {
@@ -35,14 +36,11 @@ export function Navbar({ user }: NavbarProps) {
     { href: '/', label: 'Home' },
     { href: '/hacks', label: 'Hacks' },
     ...(user ? [
-      { href: '/routines', label: 'My Routines' },
       { href: '/dashboard', label: 'Dashboard' },
       { href: '/profile/history', label: 'My History' },
       { href: '/account', label: 'Account' },
       ...(user?.is_admin ? [
         { href: '/admin/users', label: 'Users' },
-        { href: '/admin/hacks', label: 'Manage Hacks' },
-        { href: '/admin/routines', label: 'Manage Routines' },
         { href: '/admin/tags', label: 'Tags' },
         { href: '/admin/onboarding', label: 'Onboarding' },
       ] : []),
@@ -97,9 +95,17 @@ export function Navbar({ user }: NavbarProps) {
                       </span>
                     </div>
                   )}
-                  <span className="text-sm text-muted-foreground">
-                    {user.name || user.email}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      {user.name || user.email}
+                    </span>
+                    {user.is_admin && (
+                      <Badge variant="default" className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 px-2 py-0 text-xs flex items-center gap-1">
+                        <Shield className="h-3 w-3" />
+                        Admin
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 <Button
                   variant="outline"
@@ -168,8 +174,16 @@ export function Navbar({ user }: NavbarProps) {
                         </div>
                       )}
                       <div className="flex-1">
-                        <div className="text-sm font-medium">
-                          {user.name || 'User'}
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">
+                            {user.name || 'User'}
+                          </span>
+                          {user.is_admin && (
+                            <Badge variant="default" className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 px-2 py-0 text-xs flex items-center gap-1">
+                              <Shield className="h-3 w-3" />
+                              Admin
+                            </Badge>
+                          )}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {user.email}

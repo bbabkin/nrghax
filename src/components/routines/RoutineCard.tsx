@@ -65,11 +65,8 @@ export function RoutineCard({
     e.stopPropagation();
 
     if (!currentUserId) {
-      toast({
-        title: 'Authentication required',
-        description: 'Please sign in to like routines',
-        variant: 'destructive'
-      });
+      // Redirect to auth page instead of showing toast
+      router.push('/auth');
       return;
     }
 
@@ -121,11 +118,8 @@ export function RoutineCard({
     e.stopPropagation();
 
     if (!currentUserId) {
-      toast({
-        title: 'Authentication required',
-        description: 'Please sign in to start routines',
-        variant: 'destructive'
-      });
+      // Redirect to auth page instead of showing toast
+      router.push('/auth');
       return;
     }
 

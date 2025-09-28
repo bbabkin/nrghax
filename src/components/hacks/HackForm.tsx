@@ -19,6 +19,7 @@ interface HackFormProps {
   hack?: {
     id: string;
     name: string;
+    slug?: string;
     description: string;
     image_url: string;
     image_path?: string | null;
@@ -44,7 +45,7 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
     hack?.prerequisite_ids || []
   );
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [mediaType, setMediaType] = useState(hack?.media_type || '');
+  const [mediaType, setMediaType] = useState(hack?.media_type || 'none');
   const [mediaUrl, setMediaUrl] = useState(hack?.media_url || '');
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -133,8 +134,8 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
         content_type: contentType,
         content_body: contentType === 'content' ? contentBody : null,
         external_link: contentType === 'link' ? (formData.get('external_link') as string) : null,
-        media_type: mediaType || null,
-        media_url: mediaUrl || null,
+        media_type: mediaType === 'none' ? null : (mediaType || null),
+        media_url: mediaType === 'none' ? null : (mediaUrl || null),
         prerequisite_ids: prerequisites,
       };
 
@@ -197,6 +198,18 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
           defaultValue={hack?.description}
           placeholder="Enter hack description"
           rows={3}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="slug">Slug (URL-friendly name)</Label>
+        <Input
+          id="slug"
+          name="slug"
+          defaultValue={hack?.slug}
+          placeholder="e.g., morning-sunlight"
+          pattern="[a-z0-9-]+"
+          title="Only lowercase letters, numbers, and hyphens allowed"
         />
       </div>
 

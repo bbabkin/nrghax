@@ -57,3 +57,122 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom Animations */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes glitch-1 {
+  0%, 100% {
+    clip-path: inset(0 0 0 0);
+    transform: translate(0);
+  }
+  20% {
+    clip-path: inset(20% 0 30% 0);
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    clip-path: inset(50% 0 20% 0);
+    transform: translate(2px, -2px);
+  }
+  60% {
+    clip-path: inset(10% 0 60% 0);
+    transform: translate(-1px, 1px);
+  }
+  80% {
+    clip-path: inset(80% 0 5% 0);
+    transform: translate(1px, -1px);
+  }
+}
+
+@keyframes glitch-2 {
+  0%, 100% {
+    clip-path: inset(0 0 0 0);
+    transform: translate(0);
+  }
+  20% {
+    clip-path: inset(60% 0 20% 0);
+    transform: translate(2px, -1px);
+  }
+  40% {
+    clip-path: inset(20% 0 60% 0);
+    transform: translate(-2px, 1px);
+  }
+  60% {
+    clip-path: inset(40% 0 40% 0);
+    transform: translate(1px, 2px);
+  }
+  80% {
+    clip-path: inset(5% 0 80% 0);
+    transform: translate(-1px, -2px);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(236, 72, 153, 0.8);
+  }
+}
+
+/* Utility Classes */
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 10s ease infinite;
+}
+
+.animate-glitch-1 {
+  animation: glitch-1 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+}
+
+.animate-glitch-2 {
+  animation: glitch-2 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite reverse;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #ec4899, #a855f7);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #db2777, #9333ea);
+}

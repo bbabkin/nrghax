@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { cache } from 'react'
+import { redirect } from 'next/navigation'
 
 export type AuthUser = {
   id: string
@@ -68,13 +69,13 @@ export async function verifyUserSync(userId: string): Promise<{
 
 /**
  * Helper to require authentication
- * Throws an error if user is not authenticated
+ * Redirects to auth page if user is not authenticated
  */
 export async function requireAuth(): Promise<AuthUser> {
   const user = await getCurrentUser()
 
   if (!user) {
-    throw new Error('Authentication required')
+    redirect('/auth')
   }
 
   return user

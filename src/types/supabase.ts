@@ -34,6 +34,21 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_emails: {
+        Row: {
+          created_at: string | null
+          email: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+        }
+        Relationships: []
+      }
       hack_prerequisites: {
         Row: {
           created_at: string | null
@@ -660,7 +675,14 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      add_admin_email: {
+        Args: { email_address: string }
+        Returns: undefined
+      }
+      remove_admin_email: {
+        Args: { email_address: string }
+        Returns: undefined
+      }
     }
     Enums: {
       content_type: "content" | "link"
