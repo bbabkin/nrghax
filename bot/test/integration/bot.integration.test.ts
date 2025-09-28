@@ -34,6 +34,7 @@ vi.mock('discord.js', () => ({
   EmbedBuilder: vi.fn(() => ({
     setColor: vi.fn().mockReturnThis(),
     setTitle: vi.fn().mockReturnThis(),
+    setURL: vi.fn().mockReturnThis(),
     setDescription: vi.fn().mockReturnThis(),
     addFields: vi.fn().mockReturnThis(),
     setFooter: vi.fn().mockReturnThis(),
@@ -70,6 +71,13 @@ vi.mock('../../src/database/repositories/hackRepository', () => ({
     searchHacks: vi.fn().mockResolvedValue([]),
     getHacksByCategory: vi.fn().mockResolvedValue([]),
   },
+  HackRepository: vi.fn(() => ({
+    getAllHacks: vi.fn().mockResolvedValue([]),
+    getHackById: vi.fn().mockResolvedValue(null),
+    searchHacks: vi.fn().mockResolvedValue([]),
+    getHacksByCategory: vi.fn().mockResolvedValue([]),
+    clearCache: vi.fn(),
+  })),
 }));
 
 vi.mock('../../src/database/repositories/profileRepository', () => ({
@@ -80,6 +88,13 @@ vi.mock('../../src/database/repositories/profileRepository', () => ({
     updateDiscordRoles: vi.fn().mockResolvedValue(null),
     getProfilesForRoleSync: vi.fn().mockResolvedValue([]),
   },
+  ProfileRepository: vi.fn(() => ({
+    findByDiscordId: vi.fn().mockResolvedValue(null),
+    createProfile: vi.fn().mockResolvedValue(null),
+    updateProfile: vi.fn().mockResolvedValue(null),
+    updateDiscordRoles: vi.fn().mockResolvedValue(null),
+    getProfilesForRoleSync: vi.fn().mockResolvedValue([]),
+  })),
 }));
 
 // Mock cron
@@ -89,6 +104,19 @@ vi.mock('node-cron', () => ({
       stop: vi.fn(),
     }),
   },
+}));
+
+// Mock command handler
+vi.mock('../../src/handlers/commandHandler', () => ({
+  setupCommandHandler: vi.fn((client) => {
+    client.on('interactionCreate', vi.fn());
+  }),
+  CommandHandler: vi.fn(() => ({
+    commands: new Map(),
+    handleCommand: vi.fn(),
+    handleAutocomplete: vi.fn(),
+    deployCommands: vi.fn(),
+  })),
 }));
 
 describe('Bot Integration Tests', () => {
@@ -171,11 +199,18 @@ describe('Bot Integration Tests', () => {
   describe('Command Execution', () => {
     it('should execute ping command', async () => {
       const { pingCommand } = await import('../../src/commands/ping');
-      
+
       const interaction = {
         ...mockInteraction,
         commandName: 'ping',
         isCommand: () => true,
+        createdTimestamp: Date.now() - 100,
+        deferReply: vi.fn().mockResolvedValue({
+          createdTimestamp: Date.now(),
+        }),
+        client: {
+          ws: { ping: 50 }
+        }
       };
 
       await pingCommand.execute(interaction);

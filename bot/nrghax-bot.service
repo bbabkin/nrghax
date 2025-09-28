@@ -1,0 +1,31 @@
+[Unit]
+Description=NRGhax Discord Bot
+After=network.target
+
+[Service]
+Type=simple
+User=coder
+WorkingDirectory=/home/coder/.ssh/code/mine/nrghax/bot
+Environment="NODE_ENV=production"
+Environment="PATH=/usr/bin:/usr/local/bin"
+
+# Pre-start: ensure dependencies are installed
+ExecStartPre=/usr/bin/npm install
+
+# Start the bot
+ExecStart=/usr/bin/node /home/coder/.ssh/code/mine/nrghax/bot/dist/index.js
+
+# Restart policy
+Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=append:/home/coder/.ssh/code/mine/nrghax/bot/logs/systemd.log
+StandardError=append:/home/coder/.ssh/code/mine/nrghax/bot/logs/systemd-error.log
+
+# Resource limits
+MemoryMax=512M
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target

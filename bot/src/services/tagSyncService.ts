@@ -2,7 +2,7 @@ import { Client, Guild, GuildMember, PartialGuildMember, Role } from 'discord.js
 import { profileRepository } from '../database/repositories/profileRepository';
 import { logger } from '../utils/logger';
 import cron from 'node-cron';
-import { supabase } from '../database/supabase';
+// import { supabase } from '../database/supabase'; // Commented until RPC functions are available
 
 export class TagSyncService {
   private client: Client;
@@ -78,35 +78,33 @@ export class TagSyncService {
   ): Promise<void> {
     // Get the profile for this Discord user
     const profile = await profileRepository.findByDiscordId(newMember.id);
-    
+
     if (!profile) {
-      logger.debug(`No profile found for Discord user ${newMember.id}`);
+      // User doesn't have a profile yet, skip
       return;
     }
 
-    // Get role names (excluding @everyone)
+    // Get all role names (excluding @everyone)
     const roleNames = newMember.roles.cache
       .filter(role => role.name !== '@everyone')
       .map(role => role.name);
 
-    logger.info(`Syncing ${roleNames.length} roles for user ${newMember.user.tag}`);
-
-    // Update profile with new roles
+    // Update the profile with new roles
     await profileRepository.updateDiscordRoles(newMember.id, roleNames);
 
-    // Sync roles as tags in the main app
+    // Sync roles as tags
     await this.syncRolesToTags(profile.id, roleNames);
+
+    logger.info(`Updated roles for user ${newMember.user?.tag}: ${roleNames.join(', ')}`);
   }
 
   /**
    * Handle role creation
    */
   private async handleRoleCreate(role: Role): Promise<void> {
-    if (role.name === '@everyone') return;
+    logger.info(`New role created: ${role.name} in ${role.guild.name}`);
 
-    logger.info(`New role created: ${role.name}`);
-    
-    // Sync the new role as a tag
+    // Sync this role as a tag
     await this.syncRoleAsTag(role.name, role.id);
   }
 
@@ -114,39 +112,24 @@ export class TagSyncService {
    * Handle role deletion
    */
   private async handleRoleDelete(role: Role): Promise<void> {
-    if (role.name === '@everyone') return;
+    logger.info(`Role deleted: ${role.name} from ${role.guild.name}`);
 
-    logger.info(`Role deleted: ${role.name}`);
-    
-    // Call the main app to handle role deletion
-    try {
-      const { error } = await supabase.rpc('sync_discord_role_as_tag', {
-        role_name: role.name,
-        role_id: role.id
-      });
-
-      if (error) {
-        logger.error('Error syncing deleted role:', error);
-      }
-
-      // Remove this role from all users in the database
-      // Note: This functionality would need to be implemented if needed
-      // await profileRepository.removeRoleFromAllUsers(role.name);
-    } catch (error) {
-      logger.error('Failed to handle role deletion:', error);
-    }
+    // TODO: Handle role deletion in tags
+    // This would require an RPC function to delete tags by Discord role ID
   }
 
   /**
-   * Handle role updates (e.g., name changes)
+   * Handle role updates
    */
   private async handleRoleUpdate(oldRole: Role, newRole: Role): Promise<void> {
-    if (oldRole.name === newRole.name) return;
-    if (newRole.name === '@everyone') return;
+    if (oldRole.name !== newRole.name) {
+      logger.info(`Role renamed: ${oldRole.name} -> ${newRole.name} in ${newRole.guild.name}`);
 
-    logger.info(`Role renamed from "${oldRole.name}" to "${newRole.name}"`);
-    
-    // Update the tag name in the main app
+      // TODO: Handle role renaming in tags
+      // This would require an RPC function to update tag names by Discord role ID
+    }
+
+    // Sync the updated role
     await this.syncRoleAsTag(newRole.name, newRole.id);
 
     // Update all users who have this role
@@ -157,7 +140,7 @@ export class TagSyncService {
         const roleNames = member.roles.cache
           .filter(r => r.name !== '@everyone')
           .map(r => r.name);
-        
+
         await profileRepository.updateDiscordRoles(member.id, roleNames);
         await this.syncRolesToTags(profile.id, roleNames);
       }
@@ -169,16 +152,21 @@ export class TagSyncService {
    */
   private async syncRoleAsTag(roleName: string, roleId: string): Promise<void> {
     try {
-      const { error } = await supabase.rpc('sync_discord_role_as_tag', {
-        role_name: roleName,
-        role_id: roleId
-      });
+      // TODO: Implement tag syncing when RPC function is available
+      // For now, just log the role sync attempt
+      logger.debug(`Would sync role "${roleName}" (${roleId}) as tag - function not yet implemented`);
 
-      if (error) {
-        logger.error(`Failed to sync role "${roleName}" as tag:`, error);
-      } else {
-        logger.info(`Successfully synced role "${roleName}" as tag`);
-      }
+      // Commented out until RPC function is created in database
+      // const { error } = await supabase.rpc('sync_discord_role_as_tag', {
+      //   role_name: roleName,
+      //   role_id: roleId
+      // });
+      //
+      // if (error) {
+      //   logger.error(`Failed to sync role "${roleName}" as tag:`, error);
+      // } else {
+      //   logger.info(`Successfully synced role "${roleName}" as tag`);
+      // }
     } catch (error) {
       logger.error(`Error syncing role as tag:`, error);
     }
@@ -189,14 +177,19 @@ export class TagSyncService {
    */
   private async syncRolesToTags(userId: string, roleNames: string[]): Promise<void> {
     try {
+      // TODO: Implement user tag syncing when RPC functions are available
+      logger.debug(`Would sync tags for user ${userId} with roles: ${roleNames.join(', ')} - function not yet implemented`);
+      return;
+
+      /* Commented out until RPC functions are created in database
       // First sync all roles as tags
       const tagIds: string[] = [];
-      
+
       for (const roleName of roleNames) {
         const { data: tagId } = await supabase.rpc('sync_discord_role_as_tag', {
           role_name: roleName
         });
-        
+
         if (tagId) {
           tagIds.push(tagId);
         }
@@ -209,22 +202,23 @@ export class TagSyncService {
         .eq('user_id', userId)
         .eq('source', 'discord');
 
-      // Add new tags
+      // Add the new tags
       if (tagIds.length > 0) {
-        const inserts = tagIds.map(tag_id => ({
+        const userTags = tagIds.map(tagId => ({
           user_id: userId,
-          tag_id,
+          tag_id: tagId,
           source: 'discord'
         }));
 
         await supabase
           .from('user_tags')
-          .insert(inserts);
+          .insert(userTags);
       }
 
-      logger.info(`Synced ${tagIds.length} tags for user ${userId}`);
+      logger.info(`Updated tags for user ${userId}: ${roleNames.join(', ')}`);
+      */
     } catch (error) {
-      logger.error(`Failed to sync roles as tags for user ${userId}:`, error);
+      logger.error(`Error syncing roles to tags for user ${userId}:`, error);
     }
   }
 
@@ -271,7 +265,7 @@ export class TagSyncService {
     try {
       // First sync all roles as tags
       const roles = guild.roles.cache.filter(role => role.name !== '@everyone');
-      
+
       for (const [, role] of roles) {
         await this.syncRoleAsTag(role.name, role.id);
       }
@@ -280,11 +274,10 @@ export class TagSyncService {
 
       // Then sync all members' roles
       const members = await guild.members.fetch();
-      let syncedCount = 0;
 
       for (const [, member] of members) {
         const profile = await profileRepository.findByDiscordId(member.id);
-        
+
         if (profile) {
           const roleNames = member.roles.cache
             .filter(role => role.name !== '@everyone')
@@ -292,46 +285,45 @@ export class TagSyncService {
 
           await profileRepository.updateDiscordRoles(member.id, roleNames);
           await this.syncRolesToTags(profile.id, roleNames);
-          syncedCount++;
         }
       }
 
-      logger.info(`Synced roles for ${syncedCount} members in guild ${guild.name}`);
+      logger.info(`Synced roles for ${members.size} members in guild ${guild.name}`);
     } catch (error) {
       logger.error(`Error syncing guild ${guild.name}:`, error);
     }
   }
 
   /**
-   * Sync all members across all guilds
+   * Sync all guild members periodically
    */
   private async syncAllGuildMembers(): Promise<void> {
     for (const [, guild] of this.client.guilds.cache) {
-      await this.syncGuildRolesAndMembers(guild);
+      try {
+        await this.syncGuildRolesAndMembers(guild);
+      } catch (error) {
+        logger.error(`Failed to sync guild ${guild.name}:`, error);
+      }
     }
   }
 
   /**
-   * Get sync statistics
+   * Health check for the service
    */
-  async getSyncStats(): Promise<{
-    guilds: number;
-    roles: number;
-    members: number;
-    lastSync: Date;
-  }> {
-    const stats = {
-      guilds: this.client.guilds.cache.size,
-      roles: 0,
-      members: 0,
-      lastSync: new Date()
+  async healthCheck(): Promise<{
+    status: 'healthy' | 'degraded' | 'unhealthy';
+    details: {
+      syncTaskRunning: boolean;
+      lastSyncTime?: Date;
+      guildsMonitored: number;
     };
-
-    for (const [, guild] of this.client.guilds.cache) {
-      stats.roles += guild.roles.cache.size - 1; // Exclude @everyone
-      stats.members += guild.memberCount;
-    }
-
-    return stats;
+  }> {
+    return {
+      status: this.syncTask ? 'healthy' : 'degraded',
+      details: {
+        syncTaskRunning: !!this.syncTask,
+        guildsMonitored: this.client.guilds.cache.size,
+      },
+    };
   }
 }

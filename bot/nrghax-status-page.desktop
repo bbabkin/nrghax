@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=NRGHax Bot Status Page
+Comment=Open NRGHax Bot monitoring page
+Exec=/home/coder/.ssh/code/mine/nrghax/bot/open-status-page.sh
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true

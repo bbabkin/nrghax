@@ -101,6 +101,7 @@ export const mockActionRowBuilder = () => ({
 export const mockEmbedBuilder = () => ({
   setColor: vi.fn().mockReturnThis(),
   setTitle: vi.fn().mockReturnThis(),
+  setURL: vi.fn().mockReturnThis(),
   setDescription: vi.fn().mockReturnThis(),
   addFields: vi.fn().mockReturnThis(),
   setFooter: vi.fn().mockReturnThis(),

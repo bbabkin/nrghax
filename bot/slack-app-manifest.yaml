@@ -1,0 +1,55 @@
+_metadata:
+  major_version: 1
+  minor_version: 1
+
+display_information:
+  name: "NRGHax Bot"
+  description: "Your personal energy optimization hub! Browse and discover energy hacks to boost your productivity and well-being."
+  background_color: "#10B981"
+  long_description: "NRGHax Bot helps you optimize your energy levels through curated energy hacks. Browse by category, search for specific topics, or discover random tips to transform your daily routines. Categories include Morning Routine, Exercise, Nutrition, Sleep, Productivity, Mindfulness, Energy Management, and Wellness."
+
+features:
+  bot_user:
+    display_name: "NRGHax"
+    always_online: true
+
+  app_home:
+    home_tab_enabled: true
+    messages_tab_enabled: true
+    messages_tab_read_only_enabled: false
+
+  slash_commands:
+    - command: "/ping"
+      description: "Test bot connectivity and response time"
+      usage_hint: "/ping"
+
+    - command: "/hack"
+      description: "Browse and discover energy hacks"
+      usage_hint: "/hack [list|search|category] [query]"
+
+oauth_config:
+  scopes:
+    bot:
+      - commands
+      - chat:write
+      - chat:write.public
+      - users:read
+      - channels:read
+      - reactions:read
+      - reactions:write
+      - app_mentions:read
+
+settings:
+  socket_mode_enabled: true
+
+  event_subscriptions:
+    bot_events:
+      - app_home_opened
+      - app_mention
+      - message.channels
+
+  interactivity:
+    is_enabled: true
+
+  org_deploy_enabled: false
+  token_rotation_enabled: false
