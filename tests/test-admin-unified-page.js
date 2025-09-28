@@ -192,10 +192,10 @@ async function testAdminUnifiedPage() {
       await page.evaluate(() => {
         const container = document.querySelector('.fixed.bottom-6.right-6');
         if (container) {
-          container.style.border = '4px solid #10b981';
+          container.style.border = '4px solid #fb0';
           container.style.borderRadius = '8px';
           container.style.padding = '8px';
-          container.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+          container.style.backgroundColor = 'rgba(255, 187, 0, 0.1)';
         }
       });
 

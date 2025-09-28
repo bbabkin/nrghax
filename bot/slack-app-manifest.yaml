@@ -5,7 +5,7 @@ _metadata:
 display_information:
   name: "NRGHax Bot"
   description: "Energy optimization hub - Browse and discover hacks to boost productivity"
-  background_color: "#10B981"
+  background_color: "#fb0"
   long_description: "NRGHax Bot helps you optimize your energy levels through curated energy hacks. Browse by category, search for specific topics, or discover random tips to transform your daily routines. Categories include Morning Routine, Exercise, Nutrition, Sleep, Productivity, Mindfulness, Energy Management, and Wellness."
 
 features:

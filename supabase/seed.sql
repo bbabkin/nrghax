@@ -3,7 +3,7 @@
 
 -- Insert sample tags
 INSERT INTO public.tags (name, slug, tag_type, description, category, color) VALUES
-  ('Productivity', 'productivity', 'content', 'Hacks to boost your productivity', 'Lifestyle', '#10B981'),
+  ('Productivity', 'productivity', 'content', 'Hacks to boost your productivity', 'Lifestyle', '#fb0'),
   ('Sleep', 'sleep', 'content', 'Improve your sleep quality', 'Health', '#6366F1'),
   ('Exercise', 'exercise', 'content', 'Physical fitness and movement', 'Health', '#F59E0B'),
   ('Nutrition', 'nutrition', 'content', 'Dietary and nutrition hacks', 'Health', '#EF4444'),

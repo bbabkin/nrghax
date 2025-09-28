@@ -281,7 +281,7 @@ app.get('/', async (req, res) => {
       color: #333;
     }
     .status-online {
-      color: #10b981;
+      color: #fb0;
     }
     .status-offline {
       color: #ef4444;
@@ -386,7 +386,7 @@ app.get('/', async (req, res) => {
       display: block;
     }
     .result-success {
-      color: #10b981;
+      color: #fb0;
     }
     .result-error {
       color: #ef4444;

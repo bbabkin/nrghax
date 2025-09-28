@@ -173,7 +173,7 @@ app.get('/', async (req, res) => {
       color: #333;
     }
     .status-online {
-      color: #10b981;
+      color: #fb0;
     }
     .status-offline {
       color: #ef4444;
