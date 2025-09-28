@@ -1,0 +1,17 @@
+[Unit]
+Description=NRGHax Bot Status Page Server
+After=network.target nrghax-bot.service
+
+[Service]
+Type=simple
+User=coder
+WorkingDirectory=/home/coder/.ssh/code/mine/nrghax/bot
+ExecStart=/usr/bin/node /home/coder/.ssh/code/mine/nrghax/bot/status-server.js
+Restart=always
+RestartSec=10
+StandardOutput=append:/home/coder/.ssh/code/mine/nrghax/bot/logs/status-server.log
+StandardError=append:/home/coder/.ssh/code/mine/nrghax/bot/logs/status-server-error.log
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
