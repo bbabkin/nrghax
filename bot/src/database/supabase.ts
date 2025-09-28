@@ -5,8 +5,8 @@ let supabaseInstance: SupabaseClient | null = null;
 
 export function getSupabase(): SupabaseClient {
   if (!supabaseInstance) {
-    // Support both new secret key format and legacy service role key
-    const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+    // Support multiple key formats with fallback
+    const supabaseSecretKey = process.env.CUSTOM_SUPABASE_SERVICE_KEY || process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!process.env.SUPABASE_URL || !supabaseSecretKey) {
       logger.error('Missing Supabase environment variables');

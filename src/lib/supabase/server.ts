@@ -7,15 +7,17 @@ export async function createClient() {
 
   // Ensure environment variables are defined
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  // Support new publishable key format with fallback to legacy anon key
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ||
+                      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseUrl || !supabaseKey) {
     throw new Error('Missing Supabase environment variables')
   }
 
   return createServerClient<Database>(
     supabaseUrl,
-    supabaseAnonKey,
+    supabaseKey,
     {
       cookies: {
         getAll() {
@@ -40,9 +42,11 @@ export async function createClient() {
 // Admin client with service role key for server-side operations
 export async function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  // Support both new secret key format and legacy service role key
-  // Prefer new SUPABASE_SECRET_KEY if available
-  const secretKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+  // Support multiple key formats with fallback
+  // 1. Custom key (for Vercel integration override)
+  // 2. New secret key format (sb_secret_)
+  // 3. Legacy service role key (from Vercel integration)
+  const secretKey = process.env.CUSTOM_SUPABASE_SERVICE_KEY || process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!supabaseUrl || !secretKey) {
     throw new Error('Missing Supabase admin environment variables. Please set SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY')
@@ -50,7 +54,7 @@ export async function createAdminClient() {
 
   // Log which key type is being used (without exposing the actual key)
   if (process.env.NODE_ENV === 'development') {
-    const keyType = process.env.SUPABASE_SECRET_KEY ? 'sb_secret_' : 'legacy service_role'
+    const keyType = process.env.CUSTOM_SUPABASE_SERVICE_KEY ? 'custom service' : process.env.SUPABASE_SECRET_KEY ? 'sb_secret_' : 'legacy service_role'
     console.log(`[Supabase] Using ${keyType} key for admin client`)
   }
 
