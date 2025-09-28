@@ -11,6 +11,9 @@ export type Hack = {
   contentType: 'content' | 'link';
   contentBody: string | null;
   externalLink: string | null;
+  mediaType?: string | null;
+  mediaUrl?: string | null;
+  mediaThumbnailUrl?: string | null;
   createdAt: string;
   updatedAt: string;
   likeCount?: number;
@@ -85,6 +88,9 @@ export async function getHacks() {
         contentType: hack.content_type as 'content' | 'link',
         contentBody: hack.content_body,
         externalLink: hack.external_link,
+        mediaType: hack.media_type,
+        mediaUrl: hack.media_url,
+        mediaThumbnailUrl: hack.media_thumbnail_url,
         createdAt: hack.created_at,
         updatedAt: hack.updated_at,
         difficulty: hack.difficulty,
@@ -173,6 +179,9 @@ export async function getHackById(id: string) {
       contentType: hack.content_type as 'content' | 'link',
       contentBody: hack.content_body,
       externalLink: hack.external_link,
+      mediaType: hack.media_type,
+      mediaUrl: hack.media_url,
+      mediaThumbnailUrl: hack.media_thumbnail_url,
       createdAt: hack.created_at,
       updatedAt: hack.updated_at,
       difficulty: hack.difficulty,
