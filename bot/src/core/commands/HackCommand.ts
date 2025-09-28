@@ -1,7 +1,8 @@
 import { BaseCommand, CommandDefinition } from './BaseCommand';
-import { IPlatformInteraction, IPlatformMessage } from '../interfaces/IPlatform';
+import { IPlatformInteraction, IPlatformMessage, IPlatformEmbed } from '../interfaces/IPlatform';
 import { hackRepository } from '../../database/repositories/hackRepository';
 import { logger } from '../../utils/logger';
+import { fixTextUrls, getHackUrl, getCategoryUrl } from '../../utils/urlUtils';
 
 export class HackCommand extends BaseCommand {
   definition: CommandDefinition = {
@@ -86,26 +87,44 @@ export class HackCommand extends BaseCommand {
       return;
     }
 
-    const message: IPlatformMessage = {
-      content: '',
-      embeds: [
+    // Create an embed for each hack to show images properly
+    const embeds: IPlatformEmbed[] = hacks.slice(0, 5).map((hack: any) => ({
+      title: `🔋 ${hack.name}`,
+      description: `${fixTextUrls(hack.description)?.substring(0, 200)}${
+        hack.description && hack.description.length > 200 ? '...' : ''
+      }`,
+      color: 0x10b981,
+      image: hack.image_url ? fixTextUrls(hack.image_url) : undefined,
+      fields: [
         {
-          title: '⚡ Energy Hacks Collection',
-          description: `Found ${hacks.length} amazing energy hacks to boost your life!`,
-          color: 0x10b981,
-          fields: hacks.slice(0, 5).map((hack: any) => ({
-            name: `🔋 ${hack.name}`,
-            value: `${hack.description?.substring(0, 100)}${
-              hack.description && hack.description.length > 100 ? '...' : ''
-            }\n\`Category: ${hack.category || 'General'}\``,
-            inline: false,
-          })),
-          footer: {
-            text: `Showing first 5 hacks • Use /hack search to find specific topics`,
-          },
-          timestamp: new Date(),
+          name: 'Category',
+          value: hack.category || 'General',
+          inline: true,
+        },
+        {
+          name: 'Difficulty',
+          value: hack.difficulty ? hack.difficulty.charAt(0).toUpperCase() + hack.difficulty.slice(1) : 'All Levels',
+          inline: true,
+        },
+        {
+          name: 'View More',
+          value: `[📖 Full Details](${getHackUrl(hack.id)})`,
+          inline: true,
         },
       ],
+    }));
+
+    // Add a header embed
+    embeds.unshift({
+      title: '⚡ Energy Hacks Collection',
+      description: `Found ${hacks.length} amazing energy hacks to boost your life!\n\nShowing the first 5 hacks:`,
+      color: 0x10b981,
+      thumbnail: 'https://nrghax.com/images/nrg-logo.png',
+    });
+
+    const message: IPlatformMessage = {
+      content: '',
+      embeds: embeds,
       buttons: [
         {
           id: 'hack_more',
@@ -144,26 +163,46 @@ export class HackCommand extends BaseCommand {
       return;
     }
 
-    const message: IPlatformMessage = {
-      content: '',
-      embeds: [
+    // Create embeds for search results
+    const embeds: IPlatformEmbed[] = hacks.slice(0, 5).map((hack: any) => ({
+      title: `⚡ ${hack.name}`,
+      description: `${fixTextUrls(hack.description)?.substring(0, 200)}${
+        hack.description && hack.description.length > 200 ? '...' : ''
+      }`,
+      color: 0x3b82f6,
+      image: hack.image_url ? fixTextUrls(hack.image_url) : undefined,
+      fields: [
         {
-          title: `🔍 Search Results for "${query}"`,
-          description: `Found ${hacks.length} matching hack${hacks.length === 1 ? '' : 's'}`,
-          color: 0x3b82f6,
-          fields: hacks.slice(0, 5).map((hack: any) => ({
-            name: `⚡ ${hack.name}`,
-            value: `${hack.description?.substring(0, 150)}${
-              hack.description && hack.description.length > 150 ? '...' : ''
-            }\n\`Category: ${hack.category || 'General'}\``,
-            inline: false,
-          })),
-          footer: {
-            text: 'Try /hack category to browse by specific topics',
-          },
-          timestamp: new Date(),
+          name: 'Category',
+          value: hack.category || 'General',
+          inline: true,
+        },
+        {
+          name: 'Difficulty',
+          value: hack.difficulty ? hack.difficulty.charAt(0).toUpperCase() + hack.difficulty.slice(1) : 'All Levels',
+          inline: true,
+        },
+        {
+          name: 'View More',
+          value: `[📖 Full Details](${getHackUrl(hack.id)})`,
+          inline: true,
         },
       ],
+    }));
+
+    // Add header embed
+    embeds.unshift({
+      title: `🔍 Search Results for "${query}"`,
+      description: `Found ${hacks.length} matching hack${hacks.length === 1 ? '' : 's'}`,
+      color: 0x3b82f6,
+      footer: {
+        text: 'Try /hack category to browse by specific topics',
+      },
+    });
+
+    const message: IPlatformMessage = {
+      content: '',
+      embeds: embeds,
     };
 
     await interaction.reply(message);
@@ -215,33 +254,55 @@ export class HackCommand extends BaseCommand {
 
     const emoji = categoryEmojis[category] || '📁';
 
-    const message: IPlatformMessage = {
-      content: '',
-      embeds: [
+    // Create embeds for category results
+    const embeds: IPlatformEmbed[] = hacks.slice(0, 5).map((hack: any) => ({
+      title: `${emoji} ${hack.name}`,
+      description: `${fixTextUrls(hack.description)?.substring(0, 200)}${
+        hack.description && hack.description.length > 200 ? '...' : ''
+      }`,
+      color: 0xf59e0b,
+      image: hack.image_url ? fixTextUrls(hack.image_url) : undefined,
+      fields: [
         {
-          title: `${emoji} ${categoryName} Hacks`,
-          description: `Discover ${hacks.length} powerful ${categoryName.toLowerCase()} hack${
-            hacks.length === 1 ? '' : 's'
-          } to transform your energy!`,
-          color: 0xf59e0b,
-          fields: hacks.slice(0, 8).map((hack: any) => ({
-            name: `${emoji} ${hack.name}`,
-            value: `${hack.description?.substring(0, 120)}${
-              hack.description && hack.description.length > 120 ? '...' : ''
-            }`,
-            inline: hacks.length > 4,
-          })),
-          footer: {
-            text: `${categoryName} • Use /hack search to find specific techniques`,
-          },
-          timestamp: new Date(),
+          name: 'Difficulty',
+          value: hack.difficulty ? hack.difficulty.charAt(0).toUpperCase() + hack.difficulty.slice(1) : 'All Levels',
+          inline: true,
+        },
+        {
+          name: 'Time Investment',
+          value: hack.time_investment || 'Varies',
+          inline: true,
+        },
+        {
+          name: 'View More',
+          value: `[📖 Full Details](${getHackUrl(hack.id)})`,
+          inline: true,
         },
       ],
+    }));
+
+    // Add header embed
+    embeds.unshift({
+      title: `${emoji} ${categoryName} Hacks`,
+      description: `Discover ${hacks.length} powerful ${categoryName.toLowerCase()} hack${
+        hacks.length === 1 ? '' : 's'
+      } to transform your energy!\n\nShowing the first 5:`,
+      color: 0xf59e0b,
+      thumbnail: 'https://nrghax.com/images/nrg-logo.png',
+      footer: {
+        text: `${categoryName} • Use /hack search to find specific techniques`,
+      },
+    });
+
+    const message: IPlatformMessage = {
+      content: '',
+      embeds: embeds,
       buttons: [
         {
           id: `category_${category}_more`,
-          label: '📚 View All',
+          label: '📚 View All on Website',
           style: 'primary',
+          url: getCategoryUrl(category),
         },
       ],
     };
@@ -274,9 +335,9 @@ export class HackCommand extends BaseCommand {
               inline: true,
             },
           ],
-          thumbnail: 'https://via.placeholder.com/150x150/10b981/ffffff?text=NRG',
+          thumbnail: 'https://nrghax.com/images/nrg-logo.png',
           footer: {
-            text: 'Start your energy optimization journey today!',
+            text: 'Start your energy optimization journey today! • Visit nrghax.com',
           },
           timestamp: new Date(),
         },

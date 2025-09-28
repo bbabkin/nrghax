@@ -228,3 +228,19 @@ For production, consider:
 5. **Secrets**: Use proper secret management
 
 The bot is ready for production deployment without requiring any public endpoints or complex networking setup!
+
+## 🔗 URL Configuration
+
+The bot automatically fixes localhost URLs and generates proper links to nrghax.com:
+
+- **Hack Details**: Each hack includes a "📖 View Details" link to the full hack page
+- **Category Links**: "📚 View All" buttons link to category pages on the web app
+- **URL Fixing**: Any localhost URLs in hack descriptions are automatically replaced with nrghax.com
+- **Thumbnail**: Uses proper NRGHax logo from nrghax.com
+
+**Environment Variable:**
+```bash
+WEB_APP_URL=https://nrghax.com
+```
+
+Set `WEB_APP_URL` in your environment to customize the base URL for all generated links.
