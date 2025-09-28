@@ -6,15 +6,17 @@ import { resolve } from 'path';
 dotenv.config({ path: resolve(__dirname, '../.env.local') });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+// Support both new secret key format and legacy service role key
+const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseServiceKey) {
+if (!supabaseUrl || !supabaseSecretKey) {
   console.error('Missing Supabase environment variables');
+  console.error('Please set SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY');
   process.exit(1);
 }
 
 // Create Supabase admin client
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+const supabase = createClient(supabaseUrl, supabaseSecretKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false

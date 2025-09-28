@@ -122,17 +122,6 @@ export function HacksPageContent({
 
   return (
     <div className="space-y-6">
-      {/* Admin Status Banner - Temporary for debugging */}
-      {isAdmin && (
-        <div className="bg-purple-100 dark:bg-purple-900 border-2 border-purple-500 rounded-lg p-4">
-          <p className="text-purple-900 dark:text-purple-100 font-semibold">
-            🛡️ Admin Mode Active - You should see admin controls below
-          </p>
-          <p className="text-sm text-purple-700 dark:text-purple-300 mt-1">
-            Look for: Edit/Delete buttons on cards, floating &ldquo;New Hack&rdquo; button at bottom-right
-          </p>
-        </div>
-      )}
 
       {/* Search Bar */}
       <div className="relative max-w-2xl mx-auto">

@@ -170,6 +170,9 @@ npm run test:e2e          # Run E2E tests
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+# New secret key format (recommended - use sb_secret_ keys)
+SUPABASE_SECRET_KEY=sb_secret_your-secret-key
+# Legacy service role key (deprecated - will be removed Nov 2025)
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # OAuth (optional)
@@ -189,8 +192,19 @@ POSTGRES_URL_NON_POOLING=postgresql://postgres:postgres@localhost:54322/postgres
 # Set in Vercel dashboard
 NEXT_PUBLIC_SUPABASE_URL=https://[project].supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=[anon-key]
+# New secret key format (recommended - use sb_secret_ keys)
+SUPABASE_SECRET_KEY=[sb_secret_key]
+# Legacy service role key (keep for backward compatibility during migration)
 SUPABASE_SERVICE_ROLE_KEY=[service-role-key]
 ```
+
+### Supabase Key Migration (2025)
+
+**Important:** Supabase is transitioning to new key formats:
+- **New Format**: `sb_secret_...` (recommended)
+- **Legacy Format**: JWT-based service_role keys (will be deprecated Nov 2025)
+- **Migration**: The codebase supports both formats with automatic fallback
+- **Zero Downtime**: Keep both keys during migration, remove legacy after verification
 
 ## 🚀 Key Commands
 
@@ -268,8 +282,18 @@ supabase db reset  # Reset to clean state
 - .env files (except .env.example)
 - Database URLs with passwords
 - Service account credentials
+- Any `sb_secret_` or service role keys
 
-Always use environment variables for secrets.
+**NEVER read or display:**
+- `.env.production` files (contain secret keys)
+- Any file containing `SUPABASE_SECRET_KEY` or `SUPABASE_SERVICE_ROLE_KEY`
+- Production environment variables
+
+**Best Practices:**
+- Always use environment variables for secrets
+- Use `SUPABASE_SECRET_KEY` (new format) over `SUPABASE_SERVICE_ROLE_KEY` (legacy)
+- Rotate keys immediately if exposed
+- Check for exposed keys before any deployment
 
 ## Pre-Commit Checklist
 

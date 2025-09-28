@@ -40,15 +40,23 @@ export async function createClient() {
 // Admin client with service role key for server-side operations
 export async function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  // Support both new secret key format and legacy service role key
+  // Prefer new SUPABASE_SECRET_KEY if available
+  const secretKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
 
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('Missing Supabase admin environment variables')
+  if (!supabaseUrl || !secretKey) {
+    throw new Error('Missing Supabase admin environment variables. Please set SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY')
+  }
+
+  // Log which key type is being used (without exposing the actual key)
+  if (process.env.NODE_ENV === 'development') {
+    const keyType = process.env.SUPABASE_SECRET_KEY ? 'sb_secret_' : 'legacy service_role'
+    console.log(`[Supabase] Using ${keyType} key for admin client`)
   }
 
   return createServerClient<Database>(
     supabaseUrl,
-    serviceRoleKey,
+    secretKey,
     {
       cookies: {
         getAll() {

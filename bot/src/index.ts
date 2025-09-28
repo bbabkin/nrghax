@@ -14,8 +14,13 @@ const requiredEnvVars = [
   'DISCORD_TOKEN',
   'DISCORD_CLIENT_ID',
   'SUPABASE_URL',
-  'SUPABASE_SERVICE_ROLE_KEY',
 ];
+
+// Check for either new secret key or legacy service role key
+if (!process.env.SUPABASE_SECRET_KEY && !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  logger.error('Missing required Supabase admin key (SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY)');
+  process.exit(1);
+}
 
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {

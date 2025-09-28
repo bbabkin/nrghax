@@ -5,14 +5,24 @@ let supabaseInstance: SupabaseClient | null = null;
 
 export function getSupabase(): SupabaseClient {
   if (!supabaseInstance) {
-    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    // Support both new secret key format and legacy service role key
+    const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!process.env.SUPABASE_URL || !supabaseSecretKey) {
       logger.error('Missing Supabase environment variables');
       throw new Error('Supabase configuration missing');
     }
-    
+
+    // Log which key type we're using (for debugging)
+    if (process.env.SUPABASE_SECRET_KEY) {
+      logger.info('Using new SUPABASE_SECRET_KEY format');
+    } else {
+      logger.info('Using legacy SUPABASE_SERVICE_ROLE_KEY format');
+    }
+
     supabaseInstance = createClient(
       process.env.SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      supabaseSecretKey,
       {
         auth: {
           autoRefreshToken: false,
@@ -21,7 +31,7 @@ export function getSupabase(): SupabaseClient {
       }
     );
   }
-  
+
   return supabaseInstance;
 }
 
