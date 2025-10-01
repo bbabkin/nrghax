@@ -235,11 +235,112 @@ export function HackCard({
     );
   }
 
-  // Don't wrap in Link if we're showing admin actions (to avoid nested links)
+  // For admin cards, make the card clickable by wrapping the title in a Link
   if (isAdmin && showActions) {
     return (
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-        {cardContent}
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+        <Link href={`/hacks/${hack.slug || hack.id}`}>
+          <div className="relative aspect-video w-full overflow-hidden rounded-t-lg">
+            <Image
+              src={getImageSrc()}
+              alt={hack.name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+            {isLocked && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <Lock className="h-12 w-12 text-white" />
+              </div>
+            )}
+            {isHackVisited && (
+              <Badge className="absolute top-2 right-2 bg-blue-500">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Visited
+              </Badge>
+            )}
+          </div>
+        </Link>
+        <CardContent className="p-4">
+          <div className="flex items-start justify-between mb-2">
+            <Link href={`/hacks/${hack.slug || hack.id}`} className="flex-1">
+              <div>
+                <h3 className="font-semibold text-lg line-clamp-1 hover:text-blue-600">{hack.name}</h3>
+                {hack.content_type === 'link' && (
+                  <p className="text-xs text-gray-500 mt-0.5">External Link</p>
+                )}
+              </div>
+            </Link>
+            {hack.content_type === 'link' ? (
+              <ExternalLink className="h-4 w-4 text-gray-500 flex-shrink-0 ml-2" />
+            ) : (
+              <BookOpen className="h-4 w-4 text-gray-500 flex-shrink-0 ml-2" />
+            )}
+          </div>
+          <p className="text-sm text-gray-600 line-clamp-2">{hack.description}</p>
+
+          {/* Display tags as pills below description */}
+          {hack.tags && hack.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-3">
+              {hack.tags.map(tag => (
+                <span
+                  key={tag.id}
+                  className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full"
+                >
+                  {tag.name}
+                </span>
+              ))}
+            </div>
+          )}
+        </CardContent>
+
+        {showActions && (
+          <CardFooter className="p-4 pt-0 flex items-center justify-between">
+            <button
+              onClick={handleLike}
+              className={cn(
+                "flex items-center gap-1 text-sm",
+                !isAuthenticated && "hover:opacity-70"
+              )}
+              disabled={isLiking}
+              title={!isAuthenticated ? "Sign in to like" : undefined}
+            >
+              <Heart
+                className={cn(
+                  "h-4 w-4 transition-colors",
+                  isLiked && isAuthenticated ? "fill-red-500 text-red-500" : "text-gray-500"
+                )}
+              />
+              <span>{likeCount}</span>
+            </button>
+
+            {isAdmin && (
+              <div className="flex gap-2">
+                <Link href={`/admin/hacks/${hack.id}/edit`}>
+                  <Button size="sm" variant="outline">
+                    Edit
+                  </Button>
+                </Link>
+                <ConfirmDialog
+                  title="Delete Hack"
+                  description="Are you sure you want to delete this hack? This action cannot be undone."
+                  onConfirm={handleDelete}
+                >
+                  {({ onClick }) => (
+                    <Button
+                      onClick={onClick}
+                      size="sm"
+                      variant="destructive"
+                      disabled={isDeleting}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </ConfirmDialog>
+              </div>
+            )}
+          </CardFooter>
+        )}
       </Card>
     );
   }

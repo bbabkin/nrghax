@@ -176,3 +176,32 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(to bottom, #db2777, #9333ea);
 }
+
+/* TipTap Editor Styles */
+.ProseMirror {
+  min-height: 200px;
+  height: 100%;
+  outline: none;
+}
+
+.ProseMirror:focus {
+  outline: none;
+}
+
+/* TipTap placeholder styles */
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: #adb5bd;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.dark .ProseMirror p.is-editor-empty:first-child::before {
+  color: #6b7280;
+}
+
+/* Fix link colors in dark mode */
+.dark .ProseMirror a {
+  color: #60a5fa;
+}

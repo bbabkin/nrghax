@@ -11,14 +11,13 @@ export default async function OnboardingPage() {
   }
 
   // Check if user has already completed onboarding
-  const { data: existingTags } = await supabase
-    .from('user_tags')
-    .select('tag_id')
-    .eq('user_id', user.id)
-    .eq('source', 'onboarding')
-    .limit(1)
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('onboarded')
+    .eq('id', user.id)
+    .single()
 
-  if (existingTags && existingTags.length > 0) {
+  if (profile?.onboarded) {
     // User has already completed onboarding
     redirect('/dashboard')
   }

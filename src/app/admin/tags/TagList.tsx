@@ -105,7 +105,7 @@ export function TagList({ initialTags }: TagListProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow">
+    <div className="bg-card rounded-lg shadow">
       <div className="p-6 border-b">
         <h2 className="text-xl font-semibold mb-4">All Tags</h2>
         <input
@@ -113,38 +113,38 @@ export function TagList({ initialTags }: TagListProps) {
           placeholder="Search tags..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
       
       <div className="divide-y">
         {filteredTags.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
+          <div className="p-6 text-center text-muted-foreground">
             {searchQuery ? 'No tags found matching your search.' : 'No tags created yet.'}
           </div>
         ) : (
           filteredTags.map(tag => (
-            <div key={tag.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
+            <div key={tag.id} className="p-4 flex items-center justify-between hover:bg-muted/50">
               {editingId === tag.id ? (
                 <div className="flex items-center gap-2 flex-1">
                   <input
                     type="text"
                     value={editingName}
                     onChange={(e) => setEditingName(e.target.value)}
-                    className="flex-1 px-3 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
                     disabled={loading}
                   />
                   <button
                     onClick={() => handleSave(tag.id)}
                     disabled={loading}
-                    className="p-1 text-green-600 hover:bg-green-50 rounded"
+                    className="p-1 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/20 rounded"
                   >
                     <Save className="w-4 h-4" />
                   </button>
                   <button
                     onClick={handleCancel}
                     disabled={loading}
-                    className="p-1 text-gray-600 hover:bg-gray-100 rounded"
+                    className="p-1 text-muted-foreground hover:bg-muted rounded"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -153,12 +153,12 @@ export function TagList({ initialTags }: TagListProps) {
                 <>
                   <div>
                     <div className="font-medium">{tag.name}</div>
-                    <div className="text-sm text-gray-500">{tag.slug}</div>
+                    <div className="text-sm text-muted-foreground">{tag.slug}</div>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleEdit(tag)}
-                      className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                      className="p-1 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
@@ -173,7 +173,7 @@ export function TagList({ initialTags }: TagListProps) {
                       {({ onClick }) => (
                         <button
                           onClick={onClick}
-                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                          className="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 rounded"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -188,7 +188,7 @@ export function TagList({ initialTags }: TagListProps) {
       </div>
       
       {filteredTags.length > 0 && (
-        <div className="p-4 border-t text-sm text-gray-500">
+        <div className="p-4 border-t text-sm text-muted-foreground">
           Showing {filteredTags.length} of {tags.length} tags
         </div>
       )}

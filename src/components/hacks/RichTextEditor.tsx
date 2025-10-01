@@ -48,6 +48,7 @@ export function RichTextEditor({
       }),
       Placeholder.configure({
         placeholder,
+        emptyEditorClass: 'is-editor-empty',
       }),
     ],
     content,
@@ -89,13 +90,13 @@ export function RichTextEditor({
   return (
     <div className="border rounded-lg overflow-hidden">
       {!disabled && (
-        <div className="border-b bg-gray-50 p-2 flex flex-wrap gap-1">
+        <div className="border-b bg-muted/50 dark:bg-muted/20 p-2 flex flex-wrap gap-1">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={() => editor.chain().focus().toggleBold().run()}
-            className={editor.isActive('bold') ? 'bg-gray-200' : ''}
+            className={editor.isActive('bold') ? 'bg-muted dark:bg-muted' : ''}
           >
             <Bold className="h-4 w-4" />
           </Button>
@@ -104,7 +105,7 @@ export function RichTextEditor({
             variant="ghost"
             size="sm"
             onClick={() => editor.chain().focus().toggleItalic().run()}
-            className={editor.isActive('italic') ? 'bg-gray-200' : ''}
+            className={editor.isActive('italic') ? 'bg-muted dark:bg-muted' : ''}
           >
             <Italic className="h-4 w-4" />
           </Button>
@@ -113,7 +114,7 @@ export function RichTextEditor({
             variant="ghost"
             size="sm"
             onClick={() => editor.chain().focus().toggleCode().run()}
-            className={editor.isActive('code') ? 'bg-gray-200' : ''}
+            className={editor.isActive('code') ? 'bg-muted dark:bg-muted' : ''}
           >
             <Code className="h-4 w-4" />
           </Button>
@@ -122,7 +123,7 @@ export function RichTextEditor({
             variant="ghost"
             size="sm"
             onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-            className={editor.isActive('heading', { level: 2 }) ? 'bg-gray-200' : ''}
+            className={editor.isActive('heading', { level: 2 }) ? 'bg-muted dark:bg-muted' : ''}
           >
             <Heading2 className="h-4 w-4" />
           </Button>
@@ -131,7 +132,7 @@ export function RichTextEditor({
             variant="ghost"
             size="sm"
             onClick={() => editor.chain().focus().toggleBulletList().run()}
-            className={editor.isActive('bulletList') ? 'bg-gray-200' : ''}
+            className={editor.isActive('bulletList') ? 'bg-muted dark:bg-muted' : ''}
           >
             <List className="h-4 w-4" />
           </Button>
@@ -140,7 +141,7 @@ export function RichTextEditor({
             variant="ghost"
             size="sm"
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
-            className={editor.isActive('orderedList') ? 'bg-gray-200' : ''}
+            className={editor.isActive('orderedList') ? 'bg-muted dark:bg-muted' : ''}
           >
             <ListOrdered className="h-4 w-4" />
           </Button>
@@ -149,7 +150,7 @@ export function RichTextEditor({
             variant="ghost"
             size="sm"
             onClick={addLink}
-            className={editor.isActive('link') ? 'bg-gray-200' : ''}
+            className={editor.isActive('link') ? 'bg-muted dark:bg-muted' : ''}
           >
             <Link2 className="h-4 w-4" />
           </Button>
@@ -184,7 +185,7 @@ export function RichTextEditor({
       )}
       <EditorContent
         editor={editor}
-        className="prose prose-sm max-w-none p-4 min-h-[200px] focus:outline-none"
+        className="prose prose-sm dark:prose-invert max-w-none p-4 min-h-[200px] focus:outline-none [&_.ProseMirror]:min-h-[200px] [&_.ProseMirror]:outline-none [&_.ProseMirror]:h-full"
       />
     </div>
   );

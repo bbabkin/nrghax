@@ -30,18 +30,18 @@ export default async function AdminTagsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Tag Management</h1>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           Manage tags that sync with Discord roles and organize hacks.
         </p>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <TagList initialTags={tags} />
         </div>
-        
+
         <div>
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-card rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold mb-4">Create New Tag</h2>
             <CreateTagForm />
           </div>

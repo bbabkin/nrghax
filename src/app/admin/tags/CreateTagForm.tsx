@@ -66,7 +66,7 @@ export function CreateTagForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="tagName" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="tagName" className="block text-sm font-medium mb-1">
           Tag Name
         </label>
         <input
@@ -75,10 +75,10 @@ export function CreateTagForm() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g., Beginner, Energy Worker"
-          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           disabled={loading}
         />
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-xs text-muted-foreground">
           This will be synced with Discord roles
         </p>
       </div>
@@ -86,7 +86,7 @@ export function CreateTagForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? 'Creating...' : 'Create Tag'}
       </button>

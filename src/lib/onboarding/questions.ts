@@ -15,159 +15,159 @@ export type Question = {
 export const questions: Question[] = [
   {
     id: 'experience_level',
-    title: "What's your experience level with cybersecurity?",
-    description: 'This helps us recommend challenges that match your current skills.',
+    title: "What's your experience with biohacking and optimization?",
+    description: 'This helps us recommend hacks that match your current level.',
     type: 'single',
     category: 'experience',
     options: [
       {
         value: 'beginner',
         label: 'Beginner',
-        description: 'New to cybersecurity, learning the basics',
+        description: 'New to biohacking, interested in getting started',
         icon: '🌱'
       },
       {
         value: 'intermediate',
         label: 'Intermediate',
-        description: 'Some experience with security concepts and tools',
+        description: 'Some experience with basic hacks and routines',
         icon: '🚀'
       },
       {
-        value: 'expert',
-        label: 'Expert',
-        description: 'Advanced knowledge and practical experience',
+        value: 'advanced',
+        label: 'Advanced',
+        description: 'Experienced biohacker with established routines',
         icon: '⭐'
       }
     ]
   },
   {
     id: 'interest_areas',
-    title: 'Which areas interest you the most?',
-    description: "Select all that apply. We'll recommend relevant challenges.",
+    title: 'Which areas do you want to optimize?',
+    description: "Select all that apply. We'll recommend relevant hacks.",
     type: 'multiple',
     category: 'interests',
     options: [
       {
-        value: 'web-security',
-        label: 'Web Security',
-        description: 'XSS, SQL injection, CSRF, etc.',
-        icon: '🌐'
+        value: 'energy',
+        label: 'Energy & Vitality',
+        description: 'Boost your daily energy levels',
+        icon: '⚡'
       },
       {
-        value: 'binary-exploitation',
-        label: 'Binary Exploitation',
-        description: 'Buffer overflows, ROP chains, reverse engineering',
-        icon: '💾'
+        value: 'sleep',
+        label: 'Sleep Quality',
+        description: 'Improve sleep and recovery',
+        icon: '😴'
       },
       {
-        value: 'cryptography',
-        label: 'Cryptography',
-        description: 'Encryption, hashing, cryptanalysis',
-        icon: '🔐'
+        value: 'focus',
+        label: 'Focus & Productivity',
+        description: 'Enhance mental clarity and output',
+        icon: '🎯'
       },
       {
-        value: 'network-security',
-        label: 'Network Security',
-        description: 'Protocols, packet analysis, pentesting',
-        icon: '🔌'
+        value: 'stress',
+        label: 'Stress Management',
+        description: 'Build resilience and calm',
+        icon: '🧘'
       },
       {
-        value: 'cloud-security',
-        label: 'Cloud Security',
-        description: 'Cloud infrastructure, containers, Kubernetes',
-        icon: '☁️'
+        value: 'exercise',
+        label: 'Fitness & Movement',
+        description: 'Optimize physical performance',
+        icon: '💪'
       },
       {
-        value: 'mobile-security',
-        label: 'Mobile Security',
-        description: 'Android/iOS security, mobile app pentesting',
-        icon: '📱'
+        value: 'nutrition',
+        label: 'Nutrition',
+        description: 'Optimize your diet and supplements',
+        icon: '🥗'
       }
     ]
   },
   {
     id: 'learning_goals',
-    title: 'What are your main learning goals?',
+    title: 'What are your main goals?',
     description: 'This helps us understand what you want to achieve.',
     type: 'multiple',
     category: 'goals',
     options: [
       {
-        value: 'ctf-prep',
-        label: 'CTF Preparation',
-        description: 'Prepare for Capture The Flag competitions',
-        icon: '🏁'
+        value: 'productivity',
+        label: 'Peak Performance',
+        description: 'Maximize productivity and output',
+        icon: '📈'
       },
       {
-        value: 'bug-bounty',
-        label: 'Bug Bounty',
-        description: 'Learn skills for bug bounty hunting',
-        icon: '🐛'
+        value: 'health',
+        label: 'Better Health',
+        description: 'Improve overall health and wellbeing',
+        icon: '❤️'
       },
       {
-        value: 'professional',
-        label: 'Professional Development',
-        description: 'Advance my cybersecurity career',
-        icon: '💼'
+        value: 'confidence',
+        label: 'Confidence & Social',
+        description: 'Build confidence and social skills',
+        icon: '💫'
       },
       {
-        value: 'hobby',
-        label: 'Personal Interest',
-        description: 'Learning for fun and curiosity',
-        icon: '🎯'
+        value: 'mindfulness',
+        label: 'Mental Wellbeing',
+        description: 'Develop mindfulness and awareness',
+        icon: '🧠'
       }
     ]
   },
   {
     id: 'time_commitment',
-    title: 'How much time can you dedicate to learning?',
-    description: "We'll recommend challenges that fit your schedule.",
+    title: 'How much time can you dedicate to hacks?',
+    description: "We'll recommend hacks that fit your schedule.",
     type: 'single',
     category: 'time',
     options: [
       {
-        value: 'casual',
-        label: 'Casual',
-        description: 'A few hours per week',
-        icon: '🐢'
+        value: 'quick',
+        label: 'Quick Wins',
+        description: '5-10 minutes per day',
+        icon: '⚡'
       },
       {
-        value: 'regular',
-        label: 'Regular',
-        description: '1-2 hours daily',
+        value: 'moderate',
+        label: 'Moderate',
+        description: '15-30 minutes per day',
         icon: '🏃'
       },
       {
-        value: 'intensive',
-        label: 'Intensive',
-        description: 'Several hours daily',
+        value: 'dedicated',
+        label: 'Dedicated',
+        description: '30+ minutes per day',
         icon: '🔥'
       }
     ]
   },
   {
     id: 'preferred_difficulty',
-    title: 'How do you prefer to learn?',
-    description: 'Choose your preferred difficulty progression.',
+    title: 'How do you prefer to start?',
+    description: 'Choose your preferred approach.',
     type: 'single',
     category: 'difficulty',
     options: [
       {
         value: 'easy_start',
-        label: 'Start Easy',
-        description: 'Begin with simple challenges and gradually increase difficulty',
+        label: 'Start Simple',
+        description: 'Begin with easy hacks and build up',
         icon: '📈'
       },
       {
         value: 'challenging',
-        label: 'Jump into Challenges',
-        description: 'Prefer challenging problems from the start',
-        icon: '⚡'
+        label: 'Challenge Me',
+        description: 'Jump into more advanced hacks',
+        icon: '🎯'
       },
       {
         value: 'mixed',
         label: 'Mixed Approach',
-        description: 'A balance of easy and difficult challenges',
+        description: 'A balance of simple and advanced',
         icon: '⚖️'
       }
     ]
@@ -188,4 +188,18 @@ export function getOnboardingQuestions(): Question[] {
     }
   }
   return questions
+}
+
+// Function to save custom questions (admin only)
+export function saveCustomQuestions(customQuestions: Question[]) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('onboarding_questions', JSON.stringify(customQuestions))
+  }
+}
+
+// Function to reset to default questions
+export function resetToDefaultQuestions() {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('onboarding_questions')
+  }
 }
