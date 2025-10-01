@@ -1,0 +1,28 @@
+🚀 Starting comprehensive test flow...
+
+1️⃣ Testing home page...
+📸 Screenshot: 01_01_homepage.png
+2️⃣ Testing user signup...
+📸 Screenshot: 02_02_signup_page.png
+📸 Screenshot: 03_03_signup_filled.png
+❌ Test failed: page.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"]:has-text("Sign Up"), button:has-text("Create Account")')[22m
+
+    at /home/coder/code/mine/nrghax/scripts/test-all-flows.mjs:53:14 {
+  name: 'TimeoutError'
+}
+📸 Screenshot: 04_error_state.png
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+page.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('button[type="submit"]:has-text("Sign Up"), button:has-text("Create Account")')[22m
+
+    at /home/coder/code/mine/nrghax/scripts/test-all-flows.mjs:53:14 {
+  name: 'TimeoutError'
+}
+
+Node.js v22.19.0

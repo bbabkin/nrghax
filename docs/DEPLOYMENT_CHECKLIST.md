@@ -1,147 +1,82 @@
-# NRGHax Deployment Checklist
+# Production Deployment Checklist
 
-## Current Version Summary
-- **Date**: January 14, 2025
-- **Version**: 2.0.0
-- **Status**: Ready for deployment
+## Pre-Deployment
+- [ ] All tests passing locally
+- [ ] Environment variables documented
+- [ ] Database migrations tested locally
+- [ ] No sensitive data in code
 
-## ✅ Completed Tasks
+## Supabase Setup
+- [ ] Production project created on Supabase
+- [ ] Project credentials saved securely
+- [ ] Authentication providers configured
+- [ ] Database password is strong
 
-### 1. Project Organization
-- [x] Cleaned up root folder structure
-- [x] Organized files into logical directories (docs/, scripts/, screenshots/, test-data/)
-- [x] Removed backup and temporary files
+## Vercel Configuration
+- [ ] Project connected to GitHub repository
+- [ ] Environment variables added:
+  - [ ] NEXT_PUBLIC_SUPABASE_URL
+  - [ ] NEXT_PUBLIC_SUPABASE_ANON_KEY
+  - [ ] SUPABASE_SERVICE_ROLE_KEY
+  - [ ] POSTGRES_URL
+  - [ ] POSTGRES_URL_NON_POOLING
+  - [ ] NEXT_PUBLIC_SITE_URL
 
-### 2. Services Running
-- [x] Supabase local instance running (PostgreSQL + Auth)
-- [x] Next.js development server running on port 3000
-- [x] Discord bot running and connected
+## Database Migration
+- [ ] Link Supabase CLI to production project
+- [ ] Run migrations on production database
+- [ ] Verify tables created correctly
+- [ ] Apply seed data if needed
+- [ ] Test database connectivity
 
-### 3. Discord Bot Updates
-- [x] Fixed database query issues (removed non-existent `is_published` filter)
-- [x] Implemented rich card displays for hacks
-- [x] Added interactive buttons and carousel views
-- [x] Deployed commands to Discord
-- [x] Verified bot connection with correct credentials
+## Authentication Setup
+- [ ] Site URL configured in Supabase
+- [ ] Redirect URLs added
+- [ ] OAuth providers configured (if using)
+- [ ] Email templates customized (optional)
 
-### 4. Build Status
-- [x] Next.js production build successful
-- [x] Discord bot TypeScript compilation successful
-- [x] All static pages generated
+## Deployment
+- [ ] Code committed to repository
+- [ ] Deploy triggered (manual or auto)
+- [ ] Build successful on Vercel
+- [ ] No deployment errors
 
-### 5. Testing
-- [x] Unit tests run (28 passed, 10 failed due to mocking issues)
-- [x] Application accessible at http://localhost:3000
-- [x] Discord bot commands functional
+## Post-Deployment Verification
+- [ ] Site loads correctly
+- [ ] Authentication flow works:
+  - [ ] Sign up
+  - [ ] Email confirmation
+  - [ ] Sign in
+  - [ ] Password reset
+- [ ] Data displays correctly:
+  - [ ] Hacks visible
+  - [ ] User progress tracking
+  - [ ] Prerequisites working
+- [ ] Admin functionality (if applicable)
+- [ ] No console errors
+- [ ] No 404 errors
 
-## 📋 Pre-Deployment Checklist
+## Production Configuration
+- [ ] Create at least one admin user
+- [ ] Add initial content (hacks/tags)
+- [ ] Test user journey completely
+- [ ] Set up monitoring/alerts
+- [ ] Document admin procedures
 
-### Environment Variables
-Ensure these are set in production:
+## Security
+- [ ] RLS policies active and tested
+- [ ] API keys not exposed in client
+- [ ] HTTPS enforced
+- [ ] CORS configured properly
 
-#### Next.js App (.env.production)
-```
-NEXT_PUBLIC_SUPABASE_URL=<production-supabase-url>
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<production-anon-key>
-SUPABASE_SERVICE_ROLE_KEY=<production-service-role-key>
-APP_URL=<production-app-url>
-```
+## Performance
+- [ ] Images optimized
+- [ ] Database queries efficient
+- [ ] No N+1 query problems
+- [ ] Caching configured
 
-#### Discord Bot (.env)
-```
-DISCORD_TOKEN=<bot-token>
-DISCORD_CLIENT_ID=<client-id>
-DISCORD_GUILD_ID=<guild-id>
-SUPABASE_URL=<production-supabase-url>
-SUPABASE_SERVICE_ROLE_KEY=<production-service-role-key>
-APP_URL=<production-app-url>
-```
-
-### Database Migration
-```bash
-# Run migrations on production Supabase
-npx supabase db push --db-url <production-database-url>
-```
-
-### Deployment Steps
-
-#### 1. Deploy Next.js App (Vercel/Netlify)
-```bash
-# If using Vercel
-vercel --prod
-
-# If using Netlify
-netlify deploy --prod
-```
-
-#### 2. Deploy Discord Bot (VPS/Cloud)
-```bash
-# On production server
-git clone <repository>
-cd nrghax/bot
-npm install --production
-npm run build
-pm2 start dist/index.js --name "nrghax-bot"
-```
-
-#### 3. Update OAuth Callbacks
-- Update Discord OAuth redirect URL to production domain
-- Update Google OAuth redirect URL to production domain
-
-## 🚀 Features Ready for Deployment
-
-### Web Application
-- User authentication (Email/Password, OAuth)
-- Admin panel for hack management
-- User dashboard
-- Hack browsing and filtering
-- Tag system
-- Profile management
-
-### Discord Bot
-- `/ping` - Health check command
-- `/hack list` - Browse all hacks as cards
-- `/hack search <query>` - Search for specific hacks
-- `/hack category <type>` - Browse by category
-- `/hack view <id>` - View detailed hack information
-- Rich embed cards with clickable links
-- Interactive buttons for website navigation
-
-### Database
-- 6 energy hacks seeded
-- User profiles with Discord integration
-- Tag system for categorization
-- RLS policies for security
-
-## ⚠️ Known Issues
-- Some unit tests failing due to mock configuration (not affecting functionality)
-- E2E tests require browser dependencies installation
-
-## 📊 Build Output Summary
-
-### Next.js Routes
-- 21 static pages generated
-- All routes server-rendered on demand
-- Middleware: 62.7 kB
-
-### Bundle Sizes
-- First Load JS shared: 87.2 kB
-- Largest route: /auth (149 kB)
-- Smallest route: / (96.1 kB)
-
-## 🔄 Post-Deployment Tasks
-1. Monitor error logs for first 24 hours
-2. Verify Discord bot stays online
-3. Test OAuth flows in production
-4. Check database connection stability
-5. Monitor performance metrics
-
-## 📝 Notes
-- Bot uses card-based display system for better UX
-- All hacks link back to web application
-- Tag sync runs every 30 minutes
-- Role sync configured for Discord integration
-
----
-
-**Ready for deployment!** All systems tested and builds successful.
+## Final Steps
+- [ ] Update README with production URL
+- [ ] Document deployment process
+- [ ] Set up backup strategy
+- [ ] Plan for monitoring and maintenance

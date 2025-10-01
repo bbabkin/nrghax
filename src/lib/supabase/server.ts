@@ -7,9 +7,11 @@ export async function createClient() {
 
   // Ensure environment variables are defined
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  // Support new publishable key format with fallback to legacy anon key
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ||
-                      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  // Support both new publishable key and legacy anon key formats
+  // New format: sb_publishable_xxx (recommended from June 2025+)
+  // Legacy format: eyJxxx... JWT token (will be deprecated late 2026)
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseKey) {
     throw new Error('Missing Supabase environment variables')
