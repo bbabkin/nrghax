@@ -254,12 +254,17 @@ export function RoutineCard({
           </div>
 
           {canEdit && (
-            <div className="flex gap-2">
-              <Link href={`/routines/${routine.id}/edit`}>
-                <Button size="sm" variant="outline">
-                  <Edit className="h-4 w-4" />
-                </Button>
-              </Link>
+            <div className="flex gap-2" onClick={(e) => e.preventDefault()}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = `/routines/${routine.id}/edit`;
+                }}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
               <ConfirmDialog
                 title="Delete Routine"
                 description={`Are you sure you want to delete "${routine.name}"? This action cannot be undone.`}
@@ -270,7 +275,10 @@ export function RoutineCard({
               >
                 {({ onClick }) => (
                   <Button
-                    onClick={onClick}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onClick(e);
+                    }}
                     size="sm"
                     variant="destructive"
                     disabled={isDeleting}
@@ -288,7 +296,7 @@ export function RoutineCard({
 
   return (
     <Link href={`/routines/${routine.slug}`}>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+      <Card className="overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 dark:hover:shadow-[0_0_20px_rgba(255,255,255,0.25)] transition-all duration-500">
         {cardContent}
       </Card>
     </Link>

@@ -13,15 +13,16 @@ import { Plus, Save, Trash2, Edit2, ChevronUp, ChevronDown } from 'lucide-react'
 import { toast } from '@/components/ui/use-toast'
 
 // Import the questions from the wizard (we'll make this configurable)
-import { questions as defaultQuestions } from '@/lib/onboarding/questions'
+import { questions as defaultQuestions, type Question } from '@/lib/onboarding/questions'
 
 interface OnboardingEditorProps {
   experienceTags: any[]
   interestTags: any[]
+  initialQuestions?: Question[]
 }
 
-export default function OnboardingEditor({ experienceTags, interestTags }: OnboardingEditorProps) {
-  const [questions, setQuestions] = useState(defaultQuestions)
+export default function OnboardingEditor({ experienceTags, interestTags, initialQuestions }: OnboardingEditorProps) {
+  const [questions, setQuestions] = useState(initialQuestions || defaultQuestions)
   const [editingQuestion, setEditingQuestion] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -83,26 +84,31 @@ export default function OnboardingEditor({ experienceTags, interestTags }: Onboa
   const handleSave = async () => {
     setIsSaving(true)
     try {
-      // Save to localStorage for now (in production, save to database)
-      localStorage.setItem('onboarding_questions', JSON.stringify(questions))
-
-      // Update the questions file (in production, this would be an API call)
+      // Save to database via API
       const response = await fetch('/api/admin/onboarding', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ questions })
       })
 
+      const data = await response.json()
+
       if (response.ok) {
+        // Also save to localStorage as fallback
+        localStorage.setItem('onboarding_questions', JSON.stringify(questions))
+
         toast({
-          title: 'Saved',
-          description: 'Onboarding questions have been updated'
+          title: 'Success!',
+          description: 'Onboarding questions have been saved to the database'
         })
+      } else {
+        throw new Error(data.error || 'Failed to save questions')
       }
     } catch (error) {
+      console.error('Save error:', error)
       toast({
         title: 'Error',
-        description: 'Failed to save questions',
+        description: error instanceof Error ? error.message : 'Failed to save questions. Please try again.',
         variant: 'destructive'
       })
     } finally {
@@ -137,12 +143,13 @@ export default function OnboardingEditor({ experienceTags, interestTags }: Onboa
                             <Input
                               value={question.title}
                               onChange={(e) => handleQuestionEdit(question.id, 'title', e.target.value)}
-                              className="text-lg font-semibold"
+                              className="text-lg font-semibold bg-background text-foreground"
                             />
                             <Textarea
                               value={question.description}
                               onChange={(e) => handleQuestionEdit(question.id, 'description', e.target.value)}
                               rows={2}
+                              className="bg-background text-foreground"
                             />
                             <div className="flex gap-2">
                               <Select
@@ -226,25 +233,25 @@ export default function OnboardingEditor({ experienceTags, interestTags }: Onboa
                               <Input
                                 value={option.icon || ''}
                                 onChange={(e) => handleOptionEdit(question.id, optionIndex, 'icon', e.target.value)}
-                                className="w-16"
+                                className="w-16 bg-background text-foreground"
                                 placeholder="Icon"
                               />
                               <Input
                                 value={option.value}
                                 onChange={(e) => handleOptionEdit(question.id, optionIndex, 'value', e.target.value)}
-                                className="w-32"
+                                className="w-32 bg-background text-foreground"
                                 placeholder="Value"
                               />
                               <Input
                                 value={option.label}
                                 onChange={(e) => handleOptionEdit(question.id, optionIndex, 'label', e.target.value)}
-                                className="flex-1"
+                                className="flex-1 bg-background text-foreground"
                                 placeholder="Label"
                               />
                               <Input
                                 value={option.description || ''}
                                 onChange={(e) => handleOptionEdit(question.id, optionIndex, 'description', e.target.value)}
-                                className="flex-1"
+                                className="flex-1 bg-background text-foreground"
                                 placeholder="Description"
                               />
                               <Button

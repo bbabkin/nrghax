@@ -113,7 +113,7 @@ export function TagList({ initialTags }: TagListProps) {
           placeholder="Search tags..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
         />
       </div>
       
@@ -131,7 +131,7 @@ export function TagList({ initialTags }: TagListProps) {
                     type="text"
                     value={editingName}
                     onChange={(e) => setEditingName(e.target.value)}
-                    className="flex-1 px-3 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="flex-1 px-3 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                     disabled={loading}
                   />
                   <button

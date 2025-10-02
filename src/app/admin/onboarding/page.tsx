@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import OnboardingEditor from '@/components/admin/OnboardingEditor'
+import { questions as defaultQuestions } from '@/lib/onboarding/questions'
 
 export default async function AdminOnboardingPage() {
   const supabase = await createClient()
@@ -38,6 +39,17 @@ export default async function AdminOnboardingPage() {
     return acc
   }, {} as Record<string, typeof tags>) || {}
 
+  // Get custom onboarding questions from database
+  const { data: customQuestionsData } = await supabase
+    .from('onboarding_questions')
+    .select('questions')
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  // Use custom questions if available, otherwise use defaults
+  const initialQuestions = customQuestionsData?.questions || defaultQuestions
+
   return (
     <div className="container mx-auto py-10">
       <div className="mb-8">
@@ -50,6 +62,7 @@ export default async function AdminOnboardingPage() {
       <OnboardingEditor
         experienceTags={tagsByType.user_experience || []}
         interestTags={tagsByType.user_interest || []}
+        initialQuestions={initialQuestions}
       />
     </div>
   )

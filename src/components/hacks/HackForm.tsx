@@ -157,7 +157,7 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
         });
       }
       
-      router.push('/admin/hacks');
+      router.push('/hacks');
       router.refresh();
     } catch (err) {
       console.error('[HackForm] Submit error:', err);

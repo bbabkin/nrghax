@@ -75,7 +75,7 @@ export function CreateTagForm() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g., Beginner, Energy Worker"
-          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
           disabled={loading}
         />
         <p className="mt-1 text-xs text-muted-foreground">

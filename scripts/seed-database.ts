@@ -32,8 +32,8 @@ async function seedDatabase() {
 
     // Create admin user
     const { data: adminAuth, error: adminError } = await supabase.auth.admin.createUser({
-      email: 'admin@nrghax.com',
-      password: 'Admin123!@#',
+      email: 'admin@test.com',
+      password: 'admin123',
       email_confirm: true,
       user_metadata: {
         name: 'Admin User'
@@ -49,8 +49,8 @@ async function seedDatabase() {
 
     // Create regular user
     const { data: userAuth, error: userError } = await supabase.auth.admin.createUser({
-      email: 'user@nrghax.com',
-      password: 'User123!@#',
+      email: 'user@test.com',
+      password: 'user123',
       email_confirm: true,
       user_metadata: {
         name: 'Test User'
@@ -382,8 +382,8 @@ Time-restricted eating can significantly boost energy and mental performance.
 
     console.log('\n🎉 Database seeding complete!');
     console.log('\n📧 Login credentials:');
-    console.log('Admin: admin@nrghax.com / Admin123!@#');
-    console.log('User: user@nrghax.com / User123!@#');
+    console.log('Admin: admin@test.com / admin123');
+    console.log('User: user@test.com / user123');
 
   } catch (error) {
     console.error('❌ Seeding failed:', error);

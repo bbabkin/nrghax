@@ -174,9 +174,31 @@ export const questions: Question[] = [
   }
 ]
 
+// Function to get questions from database (server-side)
+export async function getOnboardingQuestionsFromDB(): Promise<Question[]> {
+  try {
+    const response = await fetch('/api/admin/onboarding', {
+      method: 'GET',
+      cache: 'no-store'
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      if (data.questions && Array.isArray(data.questions)) {
+        return data.questions
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch custom questions from DB:', error)
+  }
+
+  return questions
+}
+
 // Function to get questions (can be overridden by admin settings)
+// This is for client-side usage
 export function getOnboardingQuestions(): Question[] {
-  // Check if admin has customized questions
+  // Check if admin has customized questions in localStorage (fallback)
   if (typeof window !== 'undefined') {
     const customQuestions = localStorage.getItem('onboarding_questions')
     if (customQuestions) {
