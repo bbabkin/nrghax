@@ -48,7 +48,8 @@ export default async function AdminOnboardingPage() {
     .maybeSingle()
 
   // Use custom questions if available, otherwise use defaults
-  const initialQuestions = customQuestionsData?.questions || defaultQuestions
+  // Type assertion needed because JSONB type is not automatically inferred
+  const initialQuestions = (customQuestionsData?.questions as typeof defaultQuestions) || defaultQuestions
 
   return (
     <div className="container mx-auto py-10">

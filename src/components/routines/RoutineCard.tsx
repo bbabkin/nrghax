@@ -277,7 +277,7 @@ export function RoutineCard({
                   <Button
                     onClick={(e) => {
                       e.preventDefault();
-                      onClick(e);
+                      onClick();
                     }}
                     size="sm"
                     variant="destructive"
