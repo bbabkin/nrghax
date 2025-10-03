@@ -17,9 +17,10 @@ interface TagSelectorProps {
   hackId?: string;
   selectedTags: string[];
   onTagsChange: (tags: string[]) => void;
+  onTagsLoaded?: () => void;
 }
 
-export function TagSelector({ hackId, selectedTags, onTagsChange }: TagSelectorProps) {
+export function TagSelector({ hackId, selectedTags, onTagsChange, onTagsLoaded }: TagSelectorProps) {
   const [tags, setTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,8 +48,11 @@ export function TagSelector({ hackId, selectedTags, onTagsChange }: TagSelectorP
   };
 
   const loadHackTags = async () => {
-    if (!hackId) return;
-    
+    if (!hackId) {
+      onTagsLoaded?.();
+      return;
+    }
+
     try {
       const response = await fetch(`/api/admin/tags/hack/${hackId}`);
       if (response.ok) {
@@ -58,6 +62,8 @@ export function TagSelector({ hackId, selectedTags, onTagsChange }: TagSelectorP
       }
     } catch (err) {
       console.error('Failed to load hack tags:', err);
+    } finally {
+      onTagsLoaded?.();
     }
   };
 

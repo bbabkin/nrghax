@@ -45,6 +45,7 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
     hack?.prerequisite_ids || []
   );
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [tagsLoaded, setTagsLoaded] = useState(false);
   const [mediaType, setMediaType] = useState(hack?.media_type || 'none');
   const [mediaUrl, setMediaUrl] = useState(hack?.media_url || '');
   const [error, setError] = useState<string | null>(null);
@@ -148,13 +149,19 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
         hackId = result.id;
       }
       
-      // Save tags if any are selected
-      if (selectedTags.length > 0 || hack) {
-        await fetch(`/api/admin/tags/hack/${hackId}`, {
+      // Save tags only if they've been loaded (prevents clearing tags during initial load)
+      if (tagsLoaded) {
+        console.log('[HackForm] Saving tags:', { hackId, selectedTags, tagsLoaded });
+        const tagResponse = await fetch(`/api/admin/tags/hack/${hackId}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tag_ids: selectedTags })
         });
+
+        if (!tagResponse.ok) {
+          const tagError = await tagResponse.json();
+          console.error('[HackForm] Tag save error:', tagError);
+        }
       }
       
       router.push('/hacks');
@@ -328,6 +335,7 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
           hackId={hack?.id}
           selectedTags={selectedTags}
           onTagsChange={setSelectedTags}
+          onTagsLoaded={() => setTagsLoaded(true)}
         />
       </div>
 

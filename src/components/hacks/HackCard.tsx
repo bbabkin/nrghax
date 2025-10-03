@@ -126,26 +126,7 @@ export function HackCard({
   
   const cardContent = (
     <>
-      <div className="relative aspect-video w-full overflow-hidden rounded-t-lg">
-        <Image
-          src={getImageSrc()}
-          alt={hack.name}
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        />
-        {isLocked && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <Lock className="h-12 w-12 text-white" />
-          </div>
-        )}
-        {isHackVisited && (
-          <Badge className="absolute top-2 right-2 bg-blue-500">
-            <CheckCircle className="h-3 w-3 mr-1" />
-            Visited
-          </Badge>
-        )}
-      </div>
+
 
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-2">
@@ -161,7 +142,7 @@ export function HackCard({
             <BookOpen className="h-4 w-4 text-gray-500 flex-shrink-0 ml-2" />
           )}
         </div>
-        <p className="text-sm text-gray-600 line-clamp-2">{hack.description}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{hack.description}</p>
         
         {/* Display tags as pills below description */}
         {hack.tags && hack.tags.length > 0 && (
@@ -169,7 +150,7 @@ export function HackCard({
             {hack.tags.map(tag => (
               <span
                 key={tag.id}
-                className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full"
+                className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-full"
               >
                 {tag.name}
               </span>
@@ -278,7 +259,7 @@ export function HackCard({
                 <BookOpen className="h-4 w-4 text-gray-500 flex-shrink-0 ml-2" />
               )}
             </div>
-            <p className="text-sm text-gray-600 line-clamp-2">{hack.description}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{hack.description}</p>
 
             {/* Display tags as pills below description */}
             {hack.tags && hack.tags.length > 0 && (
@@ -286,7 +267,7 @@ export function HackCard({
                 {hack.tags.map(tag => (
                   <span
                     key={tag.id}
-                    className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full"
+                    className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-full"
                   >
                     {tag.name}
                   </span>

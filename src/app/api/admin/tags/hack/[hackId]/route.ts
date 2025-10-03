@@ -65,19 +65,19 @@ export async function POST(
     if (tag_ids && tag_ids.length > 0) {
       const hackTags = tag_ids.map((tagId: string) => ({
         hack_id: hackId,
-        tag_id: tagId,
-        assigned_by: user.id
+        tag_id: tagId
       }));
-      
+
       const { error: insertError } = await supabase
         .from('hack_tags')
         .insert(hackTags);
-      
+
       if (insertError) throw insertError;
     }
     
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    console.error('[POST /api/admin/tags/hack/[hackId]] Error:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to update hack tags' },
       { status: 500 }

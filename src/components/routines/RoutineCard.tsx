@@ -199,7 +199,7 @@ export function RoutineCard({
             by {routine.creator.name || routine.creator.email}
           </p>
         </div>
-        <p className="text-sm text-gray-600 line-clamp-2 mb-3">{routine.description}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-200 line-clamp-2 mb-3">{routine.description}</p>
 
         <div className="flex items-center gap-3 text-sm text-gray-500">
           <span className="flex items-center gap-1">
@@ -217,13 +217,13 @@ export function RoutineCard({
             {routine.tags.slice(0, 3).map(tag => (
               <span
                 key={tag.id}
-                className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full"
+                className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-full"
               >
                 {tag.name}
               </span>
             ))}
             {routine.tags.length > 3 && (
-              <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full">
+              <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-full">
                 +{routine.tags.length - 3}
               </span>
             )}
