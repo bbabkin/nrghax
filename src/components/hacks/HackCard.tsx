@@ -126,7 +126,26 @@ export function HackCard({
   
   const cardContent = (
     <>
-
+      <div className="relative aspect-video w-full overflow-hidden rounded-t-lg">
+        <Image
+          src={getImageSrc()}
+          alt={hack.name}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        />
+        {isLocked && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <Lock className="h-12 w-12 text-white" />
+          </div>
+        )}
+        {isHackVisited && (
+          <Badge className="absolute top-2 right-2 bg-blue-500">
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Visited
+          </Badge>
+        )}
+      </div>
 
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-2">
