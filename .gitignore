@@ -51,3 +51,9 @@ backup/
 # Docker
 .dockerignore
 /src/generated/prisma
+
+# SSL Certificates (local development only)
+/certs/
+*.pem
+*.key
+*.crt
