@@ -47,6 +47,16 @@ export async function createHack(formData: HackFormData) {
   const randomSuffix = crypto.randomUUID().substring(0, 8);
   const slug = `${baseSlug}-${randomSuffix}`;
 
+  // Get the maximum position to add new hack at the end
+  const { data: maxPositionData } = await supabase
+    .from('hacks')
+    .select('position')
+    .order('position', { ascending: false })
+    .limit(1)
+    .single();
+
+  const nextPosition = (maxPositionData?.position ?? -1) + 1;
+
   // Create the hack
   const { data: hack, error } = await supabase
     .from('hacks')
@@ -63,7 +73,8 @@ export async function createHack(formData: HackFormData) {
       media_url: formData.mediaUrl || null,
       difficulty: formData.difficulty,
       time_minutes: formData.timeMinutes,
-      created_by: user.id
+      created_by: user.id,
+      position: nextPosition
     })
     .select()
     .single();
@@ -248,30 +259,46 @@ export async function markHackAsViewed(hackSlug: string) {
   const hackId = hack.id;
 
   if (user) {
-    // Authenticated user - save to database
-    const { data: existingInteraction } = await supabase
-      .from('user_hacks')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('hack_id', hackId)
-      .single();
+    // Authenticated user - increment view count in database
+    const { data: viewCount, error } = await supabase
+      .rpc('increment_hack_view_count', {
+        p_user_id: user.id,
+        p_hack_id: hackId
+      });
 
-    if (existingInteraction) {
-      // Update viewed status
-      await supabase
+    if (error) {
+      console.error('Error incrementing hack view count:', error);
+      // Fallback to old method if the function doesn't exist yet
+      const { data: existingInteraction } = await supabase
         .from('user_hacks')
-        .update({ viewed: true })
-        .eq('id', existingInteraction.id);
-    } else {
-      // Create new interaction
-      await supabase
-        .from('user_hacks')
-        .insert({
-          user_id: user.id,
-          hack_id: hackId,
-          viewed: true,
-          liked: false
-        });
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('hack_id', hackId)
+        .single();
+
+      if (existingInteraction) {
+        // Update viewed status and increment count
+        await supabase
+          .from('user_hacks')
+          .update({
+            viewed: true,
+            view_count: (existingInteraction.view_count || 0) + 1,
+            viewed_at: new Date().toISOString()
+          })
+          .eq('id', existingInteraction.id);
+      } else {
+        // Create new interaction with view count of 1
+        await supabase
+          .from('user_hacks')
+          .insert({
+            user_id: user.id,
+            hack_id: hackId,
+            viewed: true,
+            view_count: 1,
+            viewed_at: new Date().toISOString(),
+            liked: false
+          });
+      }
     }
   } else {
     // Anonymous user - save to cookie
@@ -342,11 +369,50 @@ export async function removeHackTag(hackId: string, tagId: string) {
 
 export async function bulkUpdateHackOrder(updates: { id: string; order: number }[]) {
   await requireAdmin();
-  // Since hacks table doesn't have an order column, this function is a no-op for now
-  // Could be implemented with a separate ordering table if needed
+  const supabase = await createClient();
+
+  // Update position for each hack
+  const promises = updates.map(({ id, order }) =>
+    supabase
+      .from('hacks')
+      .update({ position: order })
+      .eq('id', id)
+  );
+
+  const results = await Promise.all(promises);
+
+  // Check for errors
+  for (const result of results) {
+    if (result.error) throw result.error;
+  }
 
   revalidatePath('/admin/hacks');
   revalidatePath('/hacks');
+}
+
+export async function updateHackPositions(hackIds: string[]) {
+  await requireAdmin();
+  const supabase = await createClient();
+
+  // Update positions based on the order in the array
+  const promises = hackIds.map((id, index) =>
+    supabase
+      .from('hacks')
+      .update({ position: index })
+      .eq('id', id)
+  );
+
+  const results = await Promise.all(promises);
+
+  // Check for errors
+  for (const result of results) {
+    if (result.error) throw result.error;
+  }
+
+  revalidatePath('/admin/hacks');
+  revalidatePath('/hacks');
+
+  return { success: true };
 }
 
 // Alias for toggleHackLike for backwards compatibility

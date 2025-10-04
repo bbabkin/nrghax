@@ -1,16 +1,34 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Plus, PlusCircle } from 'lucide-react';
+import { Search, Plus, PlusCircle, Settings } from 'lucide-react';
 import { HacksList } from './HacksList';
 import { HackCard } from './HackCard';
 import { RoutineCard } from '@/components/routines/RoutineCard';
 import { cn } from '@/lib/utils';
 import { useLocalVisits } from '@/hooks/useLocalVisits';
+import { useToast } from '@/components/ui/use-toast';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { SortableHackCard } from '@/components/admin/SortableHackCard';
+import { updateHackPositions } from '@/lib/hacks/supabase-actions';
 
 interface HacksPageContentProps {
   hacks: any[];
@@ -30,8 +48,24 @@ export function HacksPageContent({
   isAdmin = false
 }: HacksPageContentProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState(isAdmin ? 'hacks' : 'all');
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [sortableHacks, setSortableHacks] = useState(hacks);
+  const [isSaving, setIsSaving] = useState(false);
   const { visitedHacks } = useLocalVisits();
+  const { toast } = useToast();
+
+  // Initialize drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Prevent accidental drags
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Debug logging
   console.log('[HacksPageContent] Props received:', {
@@ -39,13 +73,73 @@ export function HacksPageContent({
     isAuthenticated,
     currentUserId,
     hacksCount: hacks.length,
-    routinesCount: routines.length
+    routinesCount: routines.length,
+    activeTab,
+    isAdminMode
   });
+
+  // Sync sortableHacks when hacks prop changes
+  useEffect(() => {
+    setSortableHacks(hacks);
+  }, [hacks]);
+
+  // Handle drag end for reordering hacks
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    console.log('[DragEnd] Active:', active.id, 'Over:', over?.id);
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    // Find the indices of the dragged items
+    const oldIndex = sortableHacks.findIndex((hack) => hack.id === active.id);
+    const newIndex = sortableHacks.findIndex((hack) => hack.id === over.id);
+
+    console.log('[DragEnd] Old index:', oldIndex, 'New index:', newIndex);
+
+    if (oldIndex === -1 || newIndex === -1) {
+      return;
+    }
+
+    // Update local state immediately for smooth UX
+    const newHacks = arrayMove(sortableHacks, oldIndex, newIndex);
+    setSortableHacks(newHacks);
+
+    // Save to database
+    setIsSaving(true);
+    try {
+      const hackIds = newHacks.map((hack) => hack.id);
+      await updateHackPositions(hackIds);
+
+      toast({
+        title: 'Success',
+        description: 'Hack order updated successfully',
+      });
+    } catch (error) {
+      console.error('Failed to update hack positions:', error);
+
+      // Revert on error
+      setSortableHacks(sortableHacks);
+
+      toast({
+        title: 'Error',
+        description: 'Failed to save new order. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Update prerequisite status for anonymous users
   const hacksWithUpdatedStatus = useMemo(() => {
+    // Use sortableHacks if in admin mode, otherwise use original hacks
+    const baseHacks = isAdminMode ? sortableHacks : hacks;
+
     if (!isAuthenticated) {
-      return hacks.map(hack => {
+      return baseHacks.map(hack => {
         if (hack.prerequisiteIds && hack.prerequisiteIds.length > 0) {
           // Check if all prerequisites are visited
           const allPrerequisitesCompleted = hack.prerequisiteIds.every(id =>
@@ -59,8 +153,8 @@ export function HacksPageContent({
         return hack;
       });
     }
-    return hacks;
-  }, [hacks, isAuthenticated, visitedHacks]);
+    return baseHacks;
+  }, [hacks, sortableHacks, isAdminMode, isAuthenticated, visitedHacks]);
 
   // Combine public routines with user's private routines
   const allRoutines = useMemo(() => {
@@ -85,6 +179,17 @@ export function HacksPageContent({
       hack.tags?.some((tag: any) => tag.name.toLowerCase().includes(query))
     );
   });
+
+  // When in admin mode, use the sortable hacks list for filtering
+  const adminModeFilteredHacks = isAdminMode ? sortableHacks.filter(hack => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      hack.name.toLowerCase().includes(query) ||
+      hack.description.toLowerCase().includes(query) ||
+      hack.tags?.some((tag: any) => tag.name.toLowerCase().includes(query))
+    );
+  }) : filteredHacks;
 
   // Filter all routines based on search query
   const filteredRoutines = allRoutines.filter(routine => {
@@ -123,17 +228,37 @@ export function HacksPageContent({
   return (
     <div className="space-y-6">
 
-      {/* Search Bar */}
-      <div className="relative max-w-2xl mx-auto">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-        <Input
-          type="text"
-          placeholder="Search hacks and routines..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 pr-4"
-        />
+      {/* Search Bar and Admin Controls */}
+      <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+        <div className="relative w-full max-w-2xl">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            type="text"
+            placeholder="Search hacks and routines..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 pr-4"
+          />
+        </div>
+        {isAdmin && activeTab === 'hacks' && (
+          <Button
+            variant={isAdminMode ? "default" : "outline"}
+            onClick={() => setIsAdminMode(!isAdminMode)}
+            className="shrink-0"
+            title={isAdminMode ? 'Exit reordering mode' : 'Enable drag-and-drop reordering'}
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            {isAdminMode ? 'Exit Admin Mode' : 'Admin Mode'}
+          </Button>
+        )}
       </div>
+
+      {/* Saving indicator */}
+      {isSaving && (
+        <div className="fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50">
+          Saving order...
+        </div>
+      )}
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -198,6 +323,37 @@ export function HacksPageContent({
                 {searchQuery ? 'No hacks found for your search.' : 'No hacks available yet.'}
               </p>
             </div>
+          ) : isAdminMode && isAdmin ? (
+            <>
+              {/* Admin mode instructions */}
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h3 className="font-semibold mb-2 text-blue-900">Admin Mode: Reorder Hacks</h3>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• Look for the <strong>⋮⋮</strong> grip handle on the LEFT side of each card</li>
+                  <li>• Click and drag the grip handle to reorder hacks</li>
+                  <li>• Changes are saved automatically</li>
+                  <li>• Click "Exit Admin Mode" when done</li>
+                </ul>
+              </div>
+
+              {/* Drag and drop list */}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={adminModeFilteredHacks.map((hack) => hack.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="grid gap-4">
+                    {adminModeFilteredHacks.map((hack) => (
+                      <SortableHackCard key={hack.id} hack={hack} />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            </>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredHacks.map(hack => (

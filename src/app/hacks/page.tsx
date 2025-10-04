@@ -70,6 +70,7 @@ export default async function HacksPage() {
       content_type: hack.contentType as 'content' | 'link',
       external_link: hack.externalLink,
       like_count: hack.likeCount,
+      view_count: hack.viewCount,
       is_liked: hack.isLiked,
       is_completed: hack.isViewed,
       tags: hack.tags,

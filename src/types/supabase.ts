@@ -177,6 +177,7 @@ export type Database = {
           media_type: string | null
           media_url: string | null
           name: string
+          position: number | null
           slug: string
           time_minutes: number | null
           updated_at: string | null
@@ -198,6 +199,7 @@ export type Database = {
           media_type?: string | null
           media_url?: string | null
           name: string
+          position?: number | null
           slug: string
           time_minutes?: number | null
           updated_at?: string | null
@@ -219,6 +221,7 @@ export type Database = {
           media_type?: string | null
           media_url?: string | null
           name?: string
+          position?: number | null
           slug?: string
           time_minutes?: number | null
           updated_at?: string | null
@@ -391,6 +394,7 @@ export type Database = {
           image_url: string | null
           is_public: boolean | null
           name: string
+          position: number | null
           slug: string
           updated_at: string | null
         }
@@ -403,6 +407,7 @@ export type Database = {
           image_url?: string | null
           is_public?: boolean | null
           name: string
+          position?: number | null
           slug: string
           updated_at?: string | null
         }
@@ -415,6 +420,7 @@ export type Database = {
           image_url?: string | null
           is_public?: boolean | null
           name?: string
+          position?: number | null
           slug?: string
           updated_at?: string | null
         }

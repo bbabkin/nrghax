@@ -26,7 +26,7 @@ export function DeleteHackButton({ hackId, hackName = 'this hack' }: DeleteHackB
         title: 'Success',
         description: `Hack "${hackName}" has been deleted successfully`,
       });
-      router.push('/admin/hacks');
+      router.push('/hacks');
       router.refresh();
     } catch (error) {
       console.error('Failed to delete hack:', error);

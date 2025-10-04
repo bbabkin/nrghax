@@ -1,6 +1,10 @@
 -- Seed file for NRGHax development
 -- This file will be run after migrations during `supabase db reset`
 
+-- Add admin email
+INSERT INTO public.admin_emails (email) VALUES ('admin@example.com')
+ON CONFLICT (email) DO NOTHING;
+
 -- Insert sample tags
 INSERT INTO public.tags (name, slug, tag_type, description, category, color) VALUES
   ('Productivity', 'productivity', 'content', 'Hacks to boost your productivity', 'Lifestyle', '#fb0'),

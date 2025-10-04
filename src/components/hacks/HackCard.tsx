@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Heart, Lock, CheckCircle, ExternalLink, BookOpen, Trash2 } from 'lucide-react';
+import { Heart, Lock, CheckCircle, ExternalLink, BookOpen, Trash2, Eye } from 'lucide-react';
 import { toggleLike, deleteHack } from '@/lib/hacks/actions';
 import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/components/ui/confirmation-dialog';
@@ -26,6 +26,7 @@ interface HackCardProps {
     content_type: 'content' | 'link';
     external_link?: string | null;
     like_count?: number;
+    view_count?: number;
     is_liked?: boolean;
     is_completed?: boolean;
     tags?: Array<{ id: string; name: string; slug: string }>;
@@ -145,6 +146,12 @@ export function HackCard({
             Visited
           </Badge>
         )}
+        {hack.view_count && hack.view_count > 1 && (
+          <Badge className="absolute top-2 right-20 bg-gray-700 text-white">
+            <Eye className="h-3 w-3 mr-1" />
+            x{hack.view_count}
+          </Badge>
+        )}
       </div>
 
       <CardContent className="p-4">
@@ -261,6 +268,12 @@ export function HackCard({
               <Badge className="absolute top-2 right-2 bg-blue-500">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Visited
+              </Badge>
+            )}
+            {hack.view_count && hack.view_count > 1 && (
+              <Badge className="absolute top-2 right-20 bg-gray-700 text-white">
+                <Eye className="h-3 w-3 mr-1" />
+                x{hack.view_count}
               </Badge>
             )}
           </div>

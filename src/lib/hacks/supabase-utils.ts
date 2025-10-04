@@ -46,6 +46,7 @@ export async function getHacks() {
           )
         )
       `)
+      .order('position', { ascending: true })
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -58,7 +59,7 @@ export async function getHacks() {
     if (user) {
       const { data } = await supabase
         .from('user_hacks')
-        .select('hack_id, liked, viewed')
+        .select('hack_id, liked, viewed, view_count')
         .eq('user_id', user.id);
 
       userHacks = data || [];
@@ -97,6 +98,7 @@ export async function getHacks() {
         timeMinutes: hack.time_minutes,
         tags: hack.hack_tags?.map((ht: any) => ht.tags).filter(Boolean) || [],
         likeCount: likeCountMap[hack.id] || 0,
+        viewCount: userInteraction?.view_count || 0,
         isLiked: userInteraction?.liked || false,
         isViewed: userInteraction?.viewed || false,
       };
@@ -148,7 +150,7 @@ export async function getHackById(id: string) {
     if (user) {
       const { data } = await supabase
         .from('user_hacks')
-        .select('liked, viewed')
+        .select('liked, viewed, view_count')
         .eq('user_id', user.id)
         .eq('hack_id', id)
         .single();

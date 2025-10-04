@@ -173,7 +173,7 @@ export default function AdminCheckPage() {
             <p className="text-green-700 mb-4">You have admin access! You can now access:</p>
             <div className="grid grid-cols-2 gap-2">
               <a href="/admin/users" className="text-blue-500 hover:underline">→ User Management</a>
-              <a href="/admin/hacks" className="text-blue-500 hover:underline">→ Hack Management</a>
+              <a href="/hacks" className="text-blue-500 hover:underline">→ Hack Management</a>
               <a href="/admin/tags" className="text-blue-500 hover:underline">→ Tag Management</a>
               <a href="/admin/onboarding" className="text-blue-500 hover:underline">→ Onboarding Settings</a>
             </div>

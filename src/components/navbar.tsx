@@ -1,13 +1,35 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { Menu, X, Shield } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  Menu,
+  X,
+  Shield,
+  User,
+  Settings,
+  LogOut,
+  LayoutDashboard,
+  History,
+  Users,
+  Tag,
+  BookOpen,
+  Moon,
+  Sun,
+} from 'lucide-react'
 
 interface NavbarProps {
   user?: {
@@ -21,8 +43,29 @@ interface NavbarProps {
 
 export function Navbar({ user }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [theme, setThemeState] = useState<'light' | 'dark'>('light')
   const pathname = usePathname()
   const router = useRouter()
+
+  // Initialize theme
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    const currentTheme = savedTheme || systemTheme
+    setThemeState(currentTheme)
+  }, [])
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light'
+    setThemeState(newTheme)
+    localStorage.setItem('theme', newTheme)
+
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -80,45 +123,116 @@ export function Navbar({ user }: NavbarProps) {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex md:items-center md:space-x-4">
-            <ThemeToggle />
             {user ? (
-              <>
-                <div className="flex items-center space-x-3">
-                  {user.avatar_url ? (
-                    <img
-                      src={user.avatar_url}
-                      alt="Profile"
-                      className="h-8 w-8 rounded-full object-cover border border-border"
-                    />
-                  ) : (
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-xs font-medium text-primary">
-                        {user.email?.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">
-                      {user.name || user.email}
-                    </span>
-                    {user.is_admin && (
-                      <Badge variant="default" className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 px-2 py-0 text-xs flex items-center gap-1">
-                        <Shield className="h-3 w-3" />
-                        Admin
-                      </Badge>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="relative p-1 rounded-full">
+                    {user.avatar_url ? (
+                      <img
+                        src={user.avatar_url}
+                        alt="Profile"
+                        className="h-8 w-8 rounded-full object-cover border border-border"
+                      />
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="text-xs font-medium text-primary">
+                          {user.email?.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
                     )}
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSignOut}
-                >
-                  Sign Out
-                </Button>
-              </>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{user.name || 'User'}</span>
+                        {user.is_admin && (
+                          <Badge variant="default" className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 px-2 py-0 text-xs">
+                            <Shield className="h-3 w-3" />
+                          </Badge>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground">{user.email}</span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+
+                  {/* User Links */}
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard" className="cursor-pointer">
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile/history" className="cursor-pointer">
+                      <History className="mr-2 h-4 w-4" />
+                      My History
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/account" className="cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Account Settings
+                    </Link>
+                  </DropdownMenuItem>
+
+                  {/* Admin Links */}
+                  {user.is_admin && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel className="text-xs text-muted-foreground">Admin</DropdownMenuLabel>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/users" className="cursor-pointer">
+                          <Users className="mr-2 h-4 w-4" />
+                          Manage Users
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/tags" className="cursor-pointer">
+                          <Tag className="mr-2 h-4 w-4" />
+                          Manage Tags
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/onboarding" className="cursor-pointer">
+                          <BookOpen className="mr-2 h-4 w-4" />
+                          Onboarding
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
+                  <DropdownMenuSeparator />
+
+                  {/* Theme Toggle */}
+                  <DropdownMenuItem onClick={toggleTheme}>
+                    {theme === 'dark' ? (
+                      <>
+                        <Sun className="mr-2 h-4 w-4" />
+                        Light Mode
+                      </>
+                    ) : (
+                      <>
+                        <Moon className="mr-2 h-4 w-4" />
+                        Dark Mode
+                      </>
+                    )}
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+
+                  {/* Sign Out */}
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600 focus:text-red-600">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <>
+                <ThemeToggle />
                 <Button variant="ghost" size="sm" asChild>
                   <Link href="/auth">Login</Link>
                 </Button>
