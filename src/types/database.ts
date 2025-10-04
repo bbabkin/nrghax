@@ -137,7 +137,11 @@ export type Database = {
           id: string
           image_path: string | null
           image_url: string | null
+          media_thumbnail_url: string | null
+          media_type: string | null
+          media_url: string | null
           name: string
+          position: number | null
           slug: string
           time_minutes: number | null
           updated_at: string | null
@@ -154,7 +158,11 @@ export type Database = {
           id?: string
           image_path?: string | null
           image_url?: string | null
+          media_thumbnail_url?: string | null
+          media_type?: string | null
+          media_url?: string | null
           name: string
+          position?: number | null
           slug: string
           time_minutes?: number | null
           updated_at?: string | null
@@ -171,7 +179,11 @@ export type Database = {
           id?: string
           image_path?: string | null
           image_url?: string | null
+          media_thumbnail_url?: string | null
+          media_type?: string | null
+          media_url?: string | null
           name?: string
+          position?: number | null
           slug?: string
           time_minutes?: number | null
           updated_at?: string | null
@@ -202,6 +214,7 @@ export type Database = {
           id: string
           is_admin: boolean | null
           name: string | null
+          onboarded: boolean | null
           updated_at: string
         }
         Insert: {
@@ -211,6 +224,7 @@ export type Database = {
           id: string
           is_admin?: boolean | null
           name?: string | null
+          onboarded?: boolean | null
           updated_at?: string
         }
         Update: {
@@ -220,6 +234,7 @@ export type Database = {
           id?: string
           is_admin?: boolean | null
           name?: string | null
+          onboarded?: boolean | null
           updated_at?: string
         }
         Relationships: []
@@ -320,6 +335,7 @@ export type Database = {
           image_url: string | null
           is_public: boolean | null
           name: string
+          position: number | null
           slug: string
           updated_at: string | null
         }
@@ -332,6 +348,7 @@ export type Database = {
           image_url?: string | null
           is_public?: boolean | null
           name: string
+          position?: number | null
           slug: string
           updated_at?: string | null
         }
@@ -344,6 +361,7 @@ export type Database = {
           image_url?: string | null
           is_public?: boolean | null
           name?: string
+          position?: number | null
           slug?: string
           updated_at?: string | null
         }
@@ -404,6 +422,7 @@ export type Database = {
           status: string | null
           updated_at: string | null
           user_id: string | null
+          view_count: number | null
           viewed: boolean | null
           viewed_at: string | null
         }
@@ -417,6 +436,7 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          view_count?: number | null
           viewed?: boolean | null
           viewed_at?: string | null
         }
@@ -430,6 +450,7 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          view_count?: number | null
           viewed?: boolean | null
           viewed_at?: string | null
         }
@@ -520,6 +541,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      onboarding_questions: {
+        Row: {
+          id: string
+          questions: Json
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          questions: Json
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          questions?: Json
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       user_tags: {
         Row: {
@@ -625,7 +667,13 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      increment_hack_view_count: {
+        Args: {
+          p_user_id: string
+          p_hack_id: string
+        }
+        Returns: number
+      }
     }
     Enums: {
       content_type: "content" | "link"

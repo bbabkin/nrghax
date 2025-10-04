@@ -332,7 +332,7 @@ export function HacksPageContent({
                   <li>• Look for the <strong>⋮⋮</strong> grip handle on the LEFT side of each card</li>
                   <li>• Click and drag the grip handle to reorder hacks</li>
                   <li>• Changes are saved automatically</li>
-                  <li>• Click "Exit Admin Mode" when done</li>
+                  <li>• Click &quot;Exit Admin Mode&quot; when done</li>
                 </ul>
               </div>
 

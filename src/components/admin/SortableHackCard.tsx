@@ -193,7 +193,7 @@ export function SortableHackCard({ hack }: SortableHackCardProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete "{hack.name}". This action cannot be
+              This will permanently delete &quot;{hack.name}&quot;. This action cannot be
               undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
