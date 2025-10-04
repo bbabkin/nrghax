@@ -54,6 +54,13 @@ export async function getHacks() {
       return [];
     }
 
+    if (!hacks || hacks.length === 0) {
+      console.warn('No hacks returned from database');
+      return [];
+    }
+
+    console.log(`Found ${hacks.length} hacks in database`);
+
     // If user is logged in, fetch their interactions
     let userHacks: any[] = [];
     if (user) {
@@ -65,11 +72,15 @@ export async function getHacks() {
       userHacks = data || [];
     }
 
-    // Get like counts
-    const { data: likeCounts } = await supabase
+    // Get like counts - with error handling
+    const { data: likeCounts, error: likeCountError } = await supabase
       .from('user_hacks')
       .select('hack_id')
       .eq('liked', true);
+
+    if (likeCountError) {
+      console.error('Error fetching like counts:', likeCountError);
+    }
 
     const likeCountMap = (likeCounts || []).reduce((acc: any, item) => {
       acc[item.hack_id] = (acc[item.hack_id] || 0) + 1;
