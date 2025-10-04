@@ -2,6 +2,7 @@ import { VideoBackground } from '@/components/landing/VideoBackground'
 import { EnergyHero } from '@/components/landing/EnergyHero'
 import { HackCategories } from '@/components/landing/HackCategories'
 import { TransformationStats } from '@/components/landing/TransformationStats'
+import { GlitchCTA } from '@/components/landing/GlitchCTA'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -119,13 +120,12 @@ export default async function HomePage() {
               The wellness industry profits from your problems. We teach independence.
             </p>
             <div className="pt-8">
-              <a
+              <GlitchCTA
                 href="/auth"
-                className="inline-flex items-center gap-3 px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-orange-500 to-pink-500 rounded-full hover:from-orange-600 hover:to-pink-600 transition-all duration-300 shadow-lg shadow-pink-500/25"
-              >
-                Get Started - Actually Free
-                <span className="text-2xl">→</span>
-              </a>
+                text="Get Started - Actually Free"
+                showArrow={true}
+                variant="primary"
+              />
             </div>
           </div>
         </section>

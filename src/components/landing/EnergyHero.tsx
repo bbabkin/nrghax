@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import '@/styles/glitch.css';
 
 const taglines = [
   "How much of your mind is yours?",
@@ -64,9 +64,9 @@ export function EnergyHero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-xl md:text-2xl text-white/80 font-light"
+          className="text-lg md:text-xl text-white/80 font-light"
         >
-          Practical methods without the mysticism.
+          Practical bio-energy methods without the mysticism.
         </motion.h2>
 
         {/* Rotating taglines with typewriter effect */}
@@ -107,17 +107,16 @@ export function EnergyHero() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="flex flex-col sm:flex-row gap-4 justify-center pt-8"
         >
-          <Button
-            size="lg"
-            asChild
-            className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white border-0 shadow-lg shadow-pink-500/25 group"
+          <Link
+            href="/hacks"
+            className="inline-flex items-center gap-3 px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-orange-500 to-pink-500 rounded-full hover:from-orange-600 hover:to-pink-600 transition-all duration-300 shadow-lg shadow-pink-500/25 glitch-cta-wrapper group"
+            aria-label="Get Started with Energy Hacks"
           >
-            <Link href="/hacks" aria-label="Get Started with Energy Hacks">
-              {/* <PlugZap className="w-5 h-5 mr-2" aria-hidden="true" /> */}
+            <span className="glitch-cta" data-text="Jedi Time">
               Jedi Time
-              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
-            </Link>
-          </Button>
+            </span>
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+          </Link>
 
           {/* <Button
             size="lg"

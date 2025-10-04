@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import { Toaster } from '@/components/ui/toaster'
 import { NavbarWrapper } from '@/components/navbar-wrapper'
 import { Footer } from '@/components/Footer'
+import { ThemeScript } from '@/components/theme-script'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -65,7 +66,10 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body className={`${inter.className} min-h-screen flex flex-col`}>
         <NavbarWrapper />
         <main className="flex-1">

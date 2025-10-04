@@ -56,6 +56,19 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Color scheme for native elements */
+  :root {
+    color-scheme: light;
+  }
+
+  :root.dark {
+    color-scheme: dark;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
 }
 
 /* Custom Animations */

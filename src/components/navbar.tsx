@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import '@/styles/glitch.css'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,6 +54,13 @@ export function Navbar({ user }: NavbarProps) {
     const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
     const currentTheme = savedTheme || systemTheme
     setThemeState(currentTheme)
+
+    // Apply the theme class to ensure consistency
+    if (currentTheme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
   }, [])
 
   const toggleTheme = () => {
@@ -97,8 +105,11 @@ export function Navbar({ user }: NavbarProps) {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2">
-              <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            <Link href="/" className="flex items-center space-x-2 group">
+              <span
+                className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent glitch"
+                data-text="NRG Hax"
+              >
                 NRG Hax
               </span>
             </Link>
