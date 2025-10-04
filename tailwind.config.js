@@ -65,10 +65,56 @@ module.exports = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: 0 },
         },
+        "glitch-1": {
+          "0%, 100%": {
+            transform: "translate(0)",
+            opacity: "0.7"
+          },
+          "20%": {
+            transform: "translate(-2px, 2px)",
+            opacity: "1"
+          },
+          "40%": {
+            transform: "translate(-2px, -2px)",
+            opacity: "0.5"
+          },
+          "60%": {
+            transform: "translate(2px, 2px)",
+            opacity: "0.8"
+          },
+          "80%": {
+            transform: "translate(2px, -2px)",
+            opacity: "0.6"
+          },
+        },
+        "glitch-2": {
+          "0%, 100%": {
+            transform: "translate(0)",
+            opacity: "0.7"
+          },
+          "20%": {
+            transform: "translate(2px, -2px)",
+            opacity: "0.8"
+          },
+          "40%": {
+            transform: "translate(2px, 2px)",
+            opacity: "0.6"
+          },
+          "60%": {
+            transform: "translate(-2px, -2px)",
+            opacity: "1"
+          },
+          "80%": {
+            transform: "translate(-2px, 2px)",
+            opacity: "0.5"
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "glitch-1": "glitch-1 2s ease-in-out infinite",
+        "glitch-2": "glitch-2 2s ease-in-out infinite reverse",
       },
     },
   },
