@@ -22,10 +22,10 @@ vi.mock('@/lib/hacks/client-actions', () => ({
 
 // Mock child components to simplify testing
 vi.mock('./RichTextEditor', () => ({
-  RichTextEditor: ({ value, onChange }: any) => (
+  RichTextEditor: ({ content, onChange }: any) => (
     <textarea
       data-testid="rich-text-editor"
-      value={value}
+      value={content}
       onChange={(e) => onChange(e.target.value)}
     />
   ),
@@ -76,23 +76,23 @@ vi.mock('./TagSelector', () => ({
 }));
 
 vi.mock('@/components/ui/media-input', () => ({
-  MediaInput: ({ type, url, onTypeChange, onUrlChange }: any) => (
+  MediaInput: ({ mediaType, mediaUrl, onMediaTypeChange, onMediaUrlChange }: any) => (
     <div data-testid="media-input">
       <select
         data-testid="media-type"
-        value={type}
-        onChange={(e) => onTypeChange(e.target.value)}
+        value={mediaType || 'none'}
+        onChange={(e) => onMediaTypeChange && onMediaTypeChange(e.target.value)}
       >
         <option value="none">None</option>
         <option value="video">Video</option>
         <option value="iframe">iFrame</option>
       </select>
-      {type !== 'none' && (
+      {mediaType !== 'none' && mediaType != null && (
         <input
           data-testid="media-url"
           type="text"
-          value={url}
-          onChange={(e) => onUrlChange(e.target.value)}
+          value={mediaUrl || ''}
+          onChange={(e) => onMediaUrlChange && onMediaUrlChange(e.target.value)}
         />
       )}
     </div>
@@ -385,7 +385,24 @@ describe('HackForm', () => {
       prerequisite_ids: ['hack1'],
     };
 
-    it('populates form with existing hack data', () => {
+    // Test with camelCase data (as returned by API)
+    const mockHackCamelCase = {
+      id: 'existing-hack-123',
+      name: 'Existing Hack',
+      slug: 'existing-hack',
+      description: 'Existing Description',
+      imageUrl: 'https://example.com/image.png',
+      imagePath: '/images/existing.png',
+      contentType: 'content' as const,
+      contentBody: 'Existing content',
+      externalLink: null,
+      mediaType: 'video',
+      mediaUrl: 'https://youtube.com/watch?v=existing',
+      mediaThumbnailUrl: null,
+      prerequisiteIds: ['hack1'],
+    };
+
+    it('populates form with existing hack data (snake_case)', () => {
       render(
         <HackForm
           hack={mockHack}
@@ -395,6 +412,26 @@ describe('HackForm', () => {
       );
 
       // Check if fields are populated
+      expect(screen.getByDisplayValue('Existing Hack')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('Existing Description')).toBeInTheDocument();
+      expect(screen.getByTestId('rich-text-editor')).toHaveValue('Existing content');
+      expect(screen.getByTestId('media-type')).toHaveValue('video');
+      expect(screen.getByTestId('media-url')).toHaveValue('https://youtube.com/watch?v=existing');
+
+      // Check submit button text
+      expect(screen.getByRole('button', { name: /Update Hack/i })).toBeInTheDocument();
+    });
+
+    it('populates form with existing hack data (camelCase from API)', () => {
+      render(
+        <HackForm
+          hack={mockHackCamelCase as any}
+          availableHacks={mockAvailableHacks}
+          userId={mockUserId}
+        />
+      );
+
+      // Check if fields are populated correctly with camelCase data
       expect(screen.getByDisplayValue('Existing Hack')).toBeInTheDocument();
       expect(screen.getByDisplayValue('Existing Description')).toBeInTheDocument();
       expect(screen.getByTestId('rich-text-editor')).toHaveValue('Existing content');

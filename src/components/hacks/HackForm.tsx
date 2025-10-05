@@ -21,15 +21,25 @@ interface HackFormProps {
     name: string;
     slug?: string;
     description: string;
-    image_url: string;
+    // Support both snake_case and camelCase
+    image_url?: string;
+    imageUrl?: string;
     image_path?: string | null;
-    content_type: 'content' | 'link';
-    content_body: string | null;
-    external_link: string | null;
+    imagePath?: string | null;
+    content_type?: 'content' | 'link';
+    contentType?: 'content' | 'link';
+    content_body?: string | null;
+    contentBody?: string | null;
+    external_link?: string | null;
+    externalLink?: string | null;
     media_type?: string | null;
+    mediaType?: string | null;
     media_url?: string | null;
+    mediaUrl?: string | null;
     media_thumbnail_url?: string | null;
+    mediaThumbnailUrl?: string | null;
     prerequisite_ids?: string[];
+    prerequisiteIds?: string[];
   };
   availableHacks: { id: string; name: string }[];
   userId: string;
@@ -38,20 +48,26 @@ interface HackFormProps {
 export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
   const router = useRouter();
   const [contentType, setContentType] = useState<'content' | 'link'>(
-    hack?.content_type || 'content'
+    hack?.content_type || hack?.contentType || 'content'
   );
-  const [contentBody, setContentBody] = useState(hack?.content_body || '');
+  const [contentBody, setContentBody] = useState(
+    hack?.content_body || hack?.contentBody || ''
+  );
   const [prerequisites, setPrerequisites] = useState<string[]>(
-    hack?.prerequisite_ids || []
+    hack?.prerequisite_ids || hack?.prerequisiteIds || []
   );
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [tagsLoaded, setTagsLoaded] = useState(false);
-  const [mediaType, setMediaType] = useState(hack?.media_type || 'none');
-  const [mediaUrl, setMediaUrl] = useState(hack?.media_url || '');
+  const [mediaType, setMediaType] = useState(
+    hack?.media_type || hack?.mediaType || 'none'
+  );
+  const [mediaUrl, setMediaUrl] = useState(
+    hack?.media_url || hack?.mediaUrl || ''
+  );
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(
-    hack?.image_url || null
+    hack?.image_url || hack?.imageUrl || null
   );
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -87,7 +103,7 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
 
   const handleRemoveImage = () => {
     setImageFile(null);
-    setImagePreview(hack?.image_url || null);
+    setImagePreview(hack?.image_url || hack?.imageUrl || null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -304,7 +320,7 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
             name="external_link"
             type="url"
             required={contentType === 'link'}
-            defaultValue={hack?.external_link || ''}
+            defaultValue={hack?.external_link || hack?.externalLink || ''}
             placeholder="https://example.com/resource"
           />
         </div>
