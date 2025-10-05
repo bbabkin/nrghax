@@ -114,7 +114,7 @@ export default async function RoutinePage({ params }: Props) {
             <p className="text-gray-600 text-lg">{routine.description}</p>
           </div>
           {canEdit && (
-            <Link href={`/routines/${routine.slug}/edit`}>
+            <Link href={`/dashboard/routines/${routine.id}/edit`}>
               <Button variant="outline">
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
