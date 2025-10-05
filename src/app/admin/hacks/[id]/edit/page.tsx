@@ -34,6 +34,15 @@ export default async function EditHackPage({ params }: EditHackPageProps) {
     redirect('/admin/hacks');
   }
 
+  console.log('[EditHackPage] Hack data:', {
+    id: hack.id,
+    name: hack.name,
+    imageUrl: hack.imageUrl,
+    imagePath: hack.imagePath,
+    hasImageUrl: !!hack.imageUrl,
+    hasImagePath: !!hack.imagePath,
+  });
+
   // Get all hacks for prerequisites (excluding current hack)
   const allHacks = await getAllHacksForSelect();
   const availableHacks = allHacks.filter(h => h.id !== params.id);

@@ -47,6 +47,15 @@ interface HackFormProps {
 
 export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
   const router = useRouter();
+
+  console.log('[HackForm] Received hack prop:', {
+    hasHack: !!hack,
+    imageUrl: hack?.imageUrl,
+    image_url: hack?.image_url,
+    imagePath: hack?.imagePath,
+    image_path: hack?.image_path,
+  });
+
   const [contentType, setContentType] = useState<'content' | 'link'>(
     hack?.content_type || hack?.contentType || 'content'
   );
@@ -66,9 +75,29 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
   );
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(
-    hack?.image_url || hack?.imageUrl || null
-  );
+
+  // Construct image URL from either imageUrl or imagePath
+  const getImageUrl = () => {
+    const url = hack?.imageUrl || hack?.image_url;
+    if (url) {
+      console.log('[HackForm getImageUrl] Using existing URL:', url);
+      return url;
+    }
+
+    const path = hack?.imagePath || hack?.image_path;
+    if (path) {
+      // Construct Supabase storage URL from path
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const constructedUrl = `${supabaseUrl}/storage/v1/object/public/hack-images/${path}`;
+      console.log('[HackForm getImageUrl] Constructed URL from path:', { path, constructedUrl });
+      return constructedUrl;
+    }
+
+    console.log('[HackForm getImageUrl] No image URL or path found');
+    return null;
+  };
+
+  const [imagePreview, setImagePreview] = useState<string | null>(getImageUrl());
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -103,7 +132,7 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
 
   const handleRemoveImage = () => {
     setImageFile(null);
-    setImagePreview(hack?.image_url || hack?.imageUrl || null);
+    setImagePreview(getImageUrl());
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -129,8 +158,8 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
         throw new Error('Description is required');
       }
       
-      // Check if we have an image
-      if (!imageFile && !hack?.image_path && !hack?.image_url) {
+      // Check if we have an image (support both snake_case and camelCase)
+      if (!imageFile && !hack?.image_path && !hack?.imagePath && !hack?.image_url && !hack?.imageUrl) {
         throw new Error('Please select an image');
       }
       
@@ -146,8 +175,8 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
         name,
         description,
         imageFile,
-        existingImagePath: hack?.image_path || undefined,
-        existingImageUrl: hack?.image_url || undefined,
+        existingImagePath: hack?.image_path || hack?.imagePath || undefined,
+        existingImageUrl: hack?.image_url || hack?.imageUrl || undefined,
         content_type: contentType,
         content_body: contentType === 'content' ? contentBody : null,
         external_link: contentType === 'link' ? (formData.get('external_link') as string) : null,

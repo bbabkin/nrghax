@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Lock, CheckCircle, ExternalLink, ArrowLeft } from 'lucide-react';
 import { useLocalVisits } from '@/hooks/useLocalVisits';
@@ -203,14 +203,12 @@ export function HackView({ hack, canAccess: serverCanAccess, user, children }: H
           )}
 
           {hack.contentType === 'content' && hack.contentBody && (
-            <Card>
-              <CardContent className="p-8">
-                <div
-                  className="prose prose-lg max-w-none"
-                  dangerouslySetInnerHTML={{ __html: hack.contentBody }}
-                />
-              </CardContent>
-            </Card>
+            <div className="p-8">
+              <div
+                className="prose prose-lg max-w-none"
+                dangerouslySetInnerHTML={{ __html: hack.contentBody }}
+              />
+            </div>
           )}
         </>
       )}
