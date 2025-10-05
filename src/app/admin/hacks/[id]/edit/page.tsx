@@ -15,7 +15,7 @@ export default async function EditHackPage({ params }: EditHackPageProps) {
   // Check if user is admin
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    redirect('/signin');
+    redirect('/auth');
   }
 
   const { data: profile } = await supabase

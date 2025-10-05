@@ -60,7 +60,7 @@ allowed_mime_types = ["image/png", "image/jpeg", "image/jpg", "image/gif", "imag
 enabled = true
 site_url = "http://localhost:3000"
 additional_redirect_urls = ["http://localhost:3000/auth/callback"]
-jwt_expiry = 3600
+jwt_expiry = 1209600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
 enable_signup = true
@@ -91,8 +91,8 @@ enable_signup = false
 enable_confirmations = false
 
 [auth.sessions]
-timebox = "24h"
-inactivity_timeout = "8h"
+timebox = "2w"
+inactivity_timeout = "1w"
 
 # OAuth Providers
 [auth.external.google]
