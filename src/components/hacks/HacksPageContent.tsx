@@ -48,7 +48,7 @@ export function HacksPageContent({
   isAdmin = false
 }: HacksPageContentProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState(isAdmin ? 'hacks' : 'all');
+  const [activeTab, setActiveTab] = useState('all');
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [sortableHacks, setSortableHacks] = useState(hacks);
   const [isSaving, setIsSaving] = useState(false);

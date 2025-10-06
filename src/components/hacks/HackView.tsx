@@ -138,16 +138,6 @@ export function HackView({ hack, canAccess: serverCanAccess, user, children }: H
         </Card>
       ) : (
         <>
-          <div className="relative aspect-video w-full overflow-hidden rounded-lg mb-8">
-            <Image
-              src={getImageSrc(hack.imagePath, hack.imageUrl)}
-              alt={hack.name}
-              fill
-              className="object-cover"
-              priority
-            />
-          </div>
-
           <div className="mb-6">
             <div className="flex items-start justify-between mb-4">
               <div>

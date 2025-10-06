@@ -155,21 +155,18 @@ export default async function RoutinePage({ params }: Props) {
         {/* Actions */}
         {user && (
           <div className="flex gap-2">
-            <form action={async () => {
-              'use server';
-              await startRoutine(routine.id);
-            }}>
-              <Button type="submit" variant={userRoutine?.started ? 'outline' : 'default'}>
-                <Play className="h-4 w-4 mr-2" />
-                {userRoutine?.started ? 'Continue' : 'Start Routine'}
+            <Link href={`/routines/${routine.slug}/play`}>
+              <Button variant={userRoutine?.started ? 'outline' : 'default'} size="lg">
+                <Play className="h-5 w-5 mr-2" />
+                {userRoutine?.started ? 'Continue Routine' : 'Start Routine'}
               </Button>
-            </form>
+            </Link>
 
             <form action={async () => {
               'use server';
               await toggleRoutineLike(routine.id);
             }}>
-              <Button type="submit" variant="outline">
+              <Button type="submit" variant="outline" size="lg">
                 <Heart className={`h-4 w-4 mr-2 ${userRoutine?.liked ? 'fill-red-500 text-red-500' : ''}`} />
                 {userRoutine?.liked ? 'Liked' : 'Like'}
               </Button>
