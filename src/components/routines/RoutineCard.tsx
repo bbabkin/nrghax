@@ -163,24 +163,32 @@ export function RoutineCard({
           className="object-cover"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
-        <div className="absolute top-2 right-2 flex gap-2">
-          {routine.isPublic ? (
-            <Badge className="bg-green-500">
-              <Globe className="h-3 w-3 mr-1" />
-              Public
-            </Badge>
-          ) : (
-            <Badge variant="secondary">
-              <Lock className="h-3 w-3 mr-1" />
-              Private
-            </Badge>
-          )}
-          {routine.isCompleted && (
-            <Badge className="bg-blue-500">
-              <CheckCircle2 className="h-3 w-3 mr-1" />
-              Completed
-            </Badge>
-          )}
+        <div className="absolute top-2 left-2 right-2 flex items-start justify-between">
+          {/* Stack count badge */}
+          <Badge className="bg-purple-600 text-white shadow-lg">
+            <BookOpen className="h-3 w-3 mr-1" />
+            {routine._count?.routineHacks || 0} hacks
+          </Badge>
+
+          <div className="flex gap-2">
+            {routine.isPublic ? (
+              <Badge className="bg-green-500">
+                <Globe className="h-3 w-3 mr-1" />
+                Public
+              </Badge>
+            ) : (
+              <Badge variant="secondary">
+                <Lock className="h-3 w-3 mr-1" />
+                Private
+              </Badge>
+            )}
+            {routine.isCompleted && (
+              <Badge className="bg-blue-500">
+                <CheckCircle2 className="h-3 w-3 mr-1" />
+                Completed
+              </Badge>
+            )}
+          </div>
         </div>
         {routine.progress !== undefined && routine.progress > 0 && !routine.isCompleted && (
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200">
@@ -304,9 +312,16 @@ export function RoutineCard({
 
   return (
     <Link href={`/routines/${routine.slug}`}>
-      <Card className="overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 dark:hover:shadow-[0_0_20px_rgba(255,255,255,0.25)] transition-all duration-500">
-        {cardContent}
-      </Card>
+      <div className="relative group">
+        {/* Stack effect - bottom cards */}
+        <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg shadow-md transform translate-x-2 translate-y-2 opacity-60 transition-all duration-300 group-hover:translate-x-3 group-hover:translate-y-3" />
+        <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg shadow-md transform translate-x-1 translate-y-1 opacity-80 transition-all duration-300 group-hover:translate-x-1.5 group-hover:translate-y-1.5" />
+
+        {/* Main card */}
+        <Card className="relative overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-1 dark:hover:shadow-[0_0_20px_rgba(255,255,255,0.25)] transition-all duration-300 bg-white dark:bg-gray-800">
+          {cardContent}
+        </Card>
+      </div>
     </Link>
   );
 }

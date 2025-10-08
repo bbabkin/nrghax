@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NRGHax Testing Checklist</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    h1 { font-size: 2.5em; margin-bottom: 10px; }
+    .subtitle { opacity: 0.9; font-size: 1.1em; }
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 20px;
+      padding: 20px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+    }
+    .stat {
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 2em;
+      font-weight: bold;
+    }
+    .stat-label {
+      font-size: 0.9em;
+      opacity: 0.9;
+      margin-top: 5px;
+    }
+    .content { padding: 30px; }
+    .section {
+      margin-bottom: 30px;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .section-header {
+      background: #f5f5f5;
+      padding: 15px 20px;
+      font-weight: 600;
+      font-size: 1.2em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .section-header:hover { background: #ececec; }
+    .section-progress {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9em;
+    }
+    .progress-bar {
+      width: 100px;
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      transition: width 0.3s ease;
+    }
+    .section-items {
+      padding: 10px 20px;
+      display: none;
+    }
+    .section.open .section-items { display: block; }
+    .test-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .test-item:last-child { border-bottom: none; }
+    .checkbox {
+      width: 20px;
+      height: 20px;
+      margin-right: 15px;
+      cursor: pointer;
+    }
+    .test-name { flex: 1; }
+    .priority {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      font-weight: 500;
+    }
+    .priority-high {
+      background: #fee; color: #c00;
+    }
+    .priority-medium {
+      background: #ffeaa7; color: #d68910;
+    }
+    .priority-low {
+      background: #e8f5e9; color: #27ae60;
+    }
+    .test-users {
+      margin: 30px 0;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 10px;
+    }
+    .test-users h2 { margin-bottom: 15px; color: #333; }
+    .user-card {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .user-info { flex: 1; }
+    .user-role {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      font-weight: 600;
+      background: #667eea;
+      color: white;
+    }
+    .user-role.admin { background: #f39c12; }
+    .copy-btn {
+      padding: 8px 16px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
+    .copy-btn:hover { background: #5a67d8; }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🚀 NRGHax Testing Checklist</h1>
+      <div class="subtitle">Comprehensive manual testing guide</div>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value" id="totalTests">0</div>
+          <div class="stat-label">Total Tests</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="completedTests">0</div>
+          <div class="stat-label">Completed</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="progressPercent">0%</div>
+          <div class="stat-label">Progress</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="test-users">
+        <h2>🔑 Test Accounts</h2>
+        <div class="user-card">
+          <div class="user-info">
+            <strong>Admin User</strong><br>
+            Email: admin@test.com | Password: Admin123!
+          </div>
+          <span class="user-role admin">ADMIN</span>
+        </div>
+        <div class="user-card">
+          <div class="user-info">
+            <strong>John Doe</strong><br>
+            Email: user1@test.com | Password: User123!
+          </div>
+          <span class="user-role">USER</span>
+        </div>
+        <div class="user-card">
+          <div class="user-info">
+            <strong>Jane Smith</strong><br>
+            Email: user2@test.com | Password: User123!
+          </div>
+          <span class="user-role">USER</span>
+        </div>
+      </div>
+
+      
+        <div class="section" data-section="Authentication">
+          <div class="section-header" onclick="toggleSection(this)">
+            <span>Authentication</span>
+            <div class="section-progress">
+              <span class="section-count">0/8</span>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="section-items">
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Authentication-0" onchange="updateProgress()">
+                <label for="Authentication-0" class="test-name">Sign up with email/password</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Authentication-1" onchange="updateProgress()">
+                <label for="Authentication-1" class="test-name">Sign in with email/password</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Authentication-2" onchange="updateProgress()">
+                <label for="Authentication-2" class="test-name">Sign out functionality</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Authentication-3" onchange="updateProgress()">
+                <label for="Authentication-3" class="test-name">Password reset flow</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Authentication-4" onchange="updateProgress()">
+                <label for="Authentication-4" class="test-name">OAuth sign in (Google)</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Authentication-5" onchange="updateProgress()">
+                <label for="Authentication-5" class="test-name">OAuth sign in (Discord)</label>
+                <span class="priority priority-low">LOW</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Authentication-6" onchange="updateProgress()">
+                <label for="Authentication-6" class="test-name">Session persistence across page reloads</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Authentication-7" onchange="updateProgress()">
+                <label for="Authentication-7" class="test-name">Protected route access (redirect when not logged in)</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+          </div>
+        </div>
+      
+        <div class="section" data-section="Admin Features">
+          <div class="section-header" onclick="toggleSection(this)">
+            <span>Admin Features</span>
+            <div class="section-progress">
+              <span class="section-count">0/9</span>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="section-items">
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Admin Features-0" onchange="updateProgress()">
+                <label for="Admin Features-0" class="test-name">Access admin dashboard (admin@test.com)</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Admin Features-1" onchange="updateProgress()">
+                <label for="Admin Features-1" class="test-name">Create new hack with content</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Admin Features-2" onchange="updateProgress()">
+                <label for="Admin Features-2" class="test-name">Create hack with video link</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Admin Features-3" onchange="updateProgress()">
+                <label for="Admin Features-3" class="test-name">Edit existing hack</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Admin Features-4" onchange="updateProgress()">
+                <label for="Admin Features-4" class="test-name">Delete hack</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Admin Features-5" onchange="updateProgress()">
+                <label for="Admin Features-5" class="test-name">Upload hack image</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Admin Features-6" onchange="updateProgress()">
+                <label for="Admin Features-6" class="test-name">Set hack prerequisites</label>
+                <span class="priority priority-low">LOW</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Admin Features-7" onchange="updateProgress()">
+                <label for="Admin Features-7" class="test-name">Manage tags</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Admin Features-8" onchange="updateProgress()">
+                <label for="Admin Features-8" class="test-name">View analytics/statistics</label>
+                <span class="priority priority-low">LOW</span>
+              </div>
+            
+          </div>
+        </div>
+      
+        <div class="section" data-section="Hack Viewing & Interaction">
+          <div class="section-header" onclick="toggleSection(this)">
+            <span>Hack Viewing & Interaction</span>
+            <div class="section-progress">
+              <span class="section-count">0/9</span>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="section-items">
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Hack Viewing & Interaction-0" onchange="updateProgress()">
+                <label for="Hack Viewing & Interaction-0" class="test-name">Browse all hacks</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Hack Viewing & Interaction-1" onchange="updateProgress()">
+                <label for="Hack Viewing & Interaction-1" class="test-name">View individual hack details</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Hack Viewing & Interaction-2" onchange="updateProgress()">
+                <label for="Hack Viewing & Interaction-2" class="test-name">Like/unlike a hack</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Hack Viewing & Interaction-3" onchange="updateProgress()">
+                <label for="Hack Viewing & Interaction-3" class="test-name">Mark hack as completed</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Hack Viewing & Interaction-4" onchange="updateProgress()">
+                <label for="Hack Viewing & Interaction-4" class="test-name">Filter hacks by category</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Hack Viewing & Interaction-5" onchange="updateProgress()">
+                <label for="Hack Viewing & Interaction-5" class="test-name">Filter hacks by difficulty</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Hack Viewing & Interaction-6" onchange="updateProgress()">
+                <label for="Hack Viewing & Interaction-6" class="test-name">Search hacks by name/description</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Hack Viewing & Interaction-7" onchange="updateProgress()">
+                <label for="Hack Viewing & Interaction-7" class="test-name">View hack prerequisites</label>
+                <span class="priority priority-low">LOW</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Hack Viewing & Interaction-8" onchange="updateProgress()">
+                <label for="Hack Viewing & Interaction-8" class="test-name">Share hack (copy link)</label>
+                <span class="priority priority-low">LOW</span>
+              </div>
+            
+          </div>
+        </div>
+      
+        <div class="section" data-section="Video Player">
+          <div class="section-header" onclick="toggleSection(this)">
+            <span>Video Player</span>
+            <div class="section-progress">
+              <span class="section-count">0/6</span>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="section-items">
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Video Player-0" onchange="updateProgress()">
+                <label for="Video Player-0" class="test-name">Play YouTube video in hack</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Video Player-1" onchange="updateProgress()">
+                <label for="Video Player-1" class="test-name">Video player controls work</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Video Player-2" onchange="updateProgress()">
+                <label for="Video Player-2" class="test-name">Timestamp comments display at correct time</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Video Player-3" onchange="updateProgress()">
+                <label for="Video Player-3" class="test-name">Add comment with timestamp</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Video Player-4" onchange="updateProgress()">
+                <label for="Video Player-4" class="test-name">Full screen mode</label>
+                <span class="priority priority-low">LOW</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Video Player-5" onchange="updateProgress()">
+                <label for="Video Player-5" class="test-name">Video progress saves</label>
+                <span class="priority priority-low">LOW</span>
+              </div>
+            
+          </div>
+        </div>
+      
+        <div class="section" data-section="Routines">
+          <div class="section-header" onclick="toggleSection(this)">
+            <span>Routines</span>
+            <div class="section-progress">
+              <span class="section-count">0/11</span>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="section-items">
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Routines-0" onchange="updateProgress()">
+                <label for="Routines-0" class="test-name">Browse public routines</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Routines-1" onchange="updateProgress()">
+                <label for="Routines-1" class="test-name">View routine details</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Routines-2" onchange="updateProgress()">
+                <label for="Routines-2" class="test-name">Create new routine</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Routines-3" onchange="updateProgress()">
+                <label for="Routines-3" class="test-name">Add hacks to routine</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Routines-4" onchange="updateProgress()">
+                <label for="Routines-4" class="test-name">Remove hacks from routine</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Routines-5" onchange="updateProgress()">
+                <label for="Routines-5" class="test-name">Reorder hacks in routine (drag & drop)</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Routines-6" onchange="updateProgress()">
+                <label for="Routines-6" class="test-name">Edit routine details</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Routines-7" onchange="updateProgress()">
+                <label for="Routines-7" class="test-name">Delete routine</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Routines-8" onchange="updateProgress()">
+                <label for="Routines-8" class="test-name">Set routine visibility (public/private)</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Routines-9" onchange="updateProgress()">
+                <label for="Routines-9" class="test-name">Copy/fork public routine</label>
+                <span class="priority priority-low">LOW</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Routines-10" onchange="updateProgress()">
+                <label for="Routines-10" class="test-name">Add tags to routine</label>
+                <span class="priority priority-low">LOW</span>
+              </div>
+            
+          </div>
+        </div>
+      
+        <div class="section" data-section="Routine Execution">
+          <div class="section-header" onclick="toggleSection(this)">
+            <span>Routine Execution</span>
+            <div class="section-progress">
+              <span class="section-count">0/8</span>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="section-items">
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Routine Execution-0" onchange="updateProgress()">
+                <label for="Routine Execution-0" class="test-name">Start routine session</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Routine Execution-1" onchange="updateProgress()">
+                <label for="Routine Execution-1" class="test-name">Navigate between hacks in routine</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Routine Execution-2" onchange="updateProgress()">
+                <label for="Routine Execution-2" class="test-name">Mark hack as completed in session</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Routine Execution-3" onchange="updateProgress()">
+                <label for="Routine Execution-3" class="test-name">Pause/resume routine session</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Routine Execution-4" onchange="updateProgress()">
+                <label for="Routine Execution-4" class="test-name">Skip hack in routine</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Routine Execution-5" onchange="updateProgress()">
+                <label for="Routine Execution-5" class="test-name">Complete full routine</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Routine Execution-6" onchange="updateProgress()">
+                <label for="Routine Execution-6" class="test-name">View routine completion stats</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Routine Execution-7" onchange="updateProgress()">
+                <label for="Routine Execution-7" class="test-name">Exit routine mid-session</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+          </div>
+        </div>
+      
+        <div class="section" data-section="Comments System">
+          <div class="section-header" onclick="toggleSection(this)">
+            <span>Comments System</span>
+            <div class="section-progress">
+              <span class="section-count">0/8</span>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="section-items">
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Comments System-0" onchange="updateProgress()">
+                <label for="Comments System-0" class="test-name">Add comment to hack</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Comments System-1" onchange="updateProgress()">
+                <label for="Comments System-1" class="test-name">Add comment to routine</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Comments System-2" onchange="updateProgress()">
+                <label for="Comments System-2" class="test-name">Reply to existing comment</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Comments System-3" onchange="updateProgress()">
+                <label for="Comments System-3" class="test-name">Edit own comment</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Comments System-4" onchange="updateProgress()">
+                <label for="Comments System-4" class="test-name">Delete own comment</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Comments System-5" onchange="updateProgress()">
+                <label for="Comments System-5" class="test-name">Like/unlike comment</label>
+                <span class="priority priority-low">LOW</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Comments System-6" onchange="updateProgress()">
+                <label for="Comments System-6" class="test-name">View nested comment threads</label>
+                <span class="priority priority-low">LOW</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Comments System-7" onchange="updateProgress()">
+                <label for="Comments System-7" class="test-name">Add timestamp comment on video</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+          </div>
+        </div>
+      
+        <div class="section" data-section="User Profile & History">
+          <div class="section-header" onclick="toggleSection(this)">
+            <span>User Profile & History</span>
+            <div class="section-progress">
+              <span class="section-count">0/8</span>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="section-items">
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="User Profile & History-0" onchange="updateProgress()">
+                <label for="User Profile & History-0" class="test-name">View own profile</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="User Profile & History-1" onchange="updateProgress()">
+                <label for="User Profile & History-1" class="test-name">Edit profile information</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="User Profile & History-2" onchange="updateProgress()">
+                <label for="User Profile & History-2" class="test-name">Upload profile picture</label>
+                <span class="priority priority-low">LOW</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="User Profile & History-3" onchange="updateProgress()">
+                <label for="User Profile & History-3" class="test-name">View completed hacks history</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="User Profile & History-4" onchange="updateProgress()">
+                <label for="User Profile & History-4" class="test-name">View liked hacks</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="User Profile & History-5" onchange="updateProgress()">
+                <label for="User Profile & History-5" class="test-name">View created routines</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="User Profile & History-6" onchange="updateProgress()">
+                <label for="User Profile & History-6" class="test-name">View routine session history</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="User Profile & History-7" onchange="updateProgress()">
+                <label for="User Profile & History-7" class="test-name">View statistics/progress</label>
+                <span class="priority priority-low">LOW</span>
+              </div>
+            
+          </div>
+        </div>
+      
+        <div class="section" data-section="Mobile Responsiveness">
+          <div class="section-header" onclick="toggleSection(this)">
+            <span>Mobile Responsiveness</span>
+            <div class="section-progress">
+              <span class="section-count">0/7</span>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="section-items">
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Mobile Responsiveness-0" onchange="updateProgress()">
+                <label for="Mobile Responsiveness-0" class="test-name">Navigation menu on mobile</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Mobile Responsiveness-1" onchange="updateProgress()">
+                <label for="Mobile Responsiveness-1" class="test-name">Hack cards display correctly</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Mobile Responsiveness-2" onchange="updateProgress()">
+                <label for="Mobile Responsiveness-2" class="test-name">Video player on mobile</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Mobile Responsiveness-3" onchange="updateProgress()">
+                <label for="Mobile Responsiveness-3" class="test-name">Forms on mobile devices</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Mobile Responsiveness-4" onchange="updateProgress()">
+                <label for="Mobile Responsiveness-4" class="test-name">Drag & drop on touch devices</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Mobile Responsiveness-5" onchange="updateProgress()">
+                <label for="Mobile Responsiveness-5" class="test-name">Comment system on mobile</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Mobile Responsiveness-6" onchange="updateProgress()">
+                <label for="Mobile Responsiveness-6" class="test-name">Routine execution on mobile</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+          </div>
+        </div>
+      
+        <div class="section" data-section="Performance & UX">
+          <div class="section-header" onclick="toggleSection(this)">
+            <span>Performance & UX</span>
+            <div class="section-progress">
+              <span class="section-count">0/8</span>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="section-items">
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Performance & UX-0" onchange="updateProgress()">
+                <label for="Performance & UX-0" class="test-name">Page load times < 3s</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Performance & UX-1" onchange="updateProgress()">
+                <label for="Performance & UX-1" class="test-name">Smooth scrolling</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Performance & UX-2" onchange="updateProgress()">
+                <label for="Performance & UX-2" class="test-name">Loading states display properly</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Performance & UX-3" onchange="updateProgress()">
+                <label for="Performance & UX-3" class="test-name">Error messages are clear</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Performance & UX-4" onchange="updateProgress()">
+                <label for="Performance & UX-4" class="test-name">Success notifications work</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Performance & UX-5" onchange="updateProgress()">
+                <label for="Performance & UX-5" class="test-name">Form validation messages</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Performance & UX-6" onchange="updateProgress()">
+                <label for="Performance & UX-6" class="test-name">Keyboard navigation</label>
+                <span class="priority priority-low">LOW</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Performance & UX-7" onchange="updateProgress()">
+                <label for="Performance & UX-7" class="test-name">Dark mode (if implemented)</label>
+                <span class="priority priority-low">LOW</span>
+              </div>
+            
+          </div>
+        </div>
+      
+        <div class="section" data-section="Data Persistence">
+          <div class="section-header" onclick="toggleSection(this)">
+            <span>Data Persistence</span>
+            <div class="section-progress">
+              <span class="section-count">0/5</span>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="section-items">
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Data Persistence-0" onchange="updateProgress()">
+                <label for="Data Persistence-0" class="test-name">Changes save correctly to database</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Data Persistence-1" onchange="updateProgress()">
+                <label for="Data Persistence-1" class="test-name">Data persists after logout/login</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Data Persistence-2" onchange="updateProgress()">
+                <label for="Data Persistence-2" class="test-name">Optimistic updates work correctly</label>
+                <span class="priority priority-medium">MEDIUM</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Data Persistence-3" onchange="updateProgress()">
+                <label for="Data Persistence-3" class="test-name">Concurrent user updates handled</label>
+                <span class="priority priority-low">LOW</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Data Persistence-4" onchange="updateProgress()">
+                <label for="Data Persistence-4" class="test-name">Offline functionality (if any)</label>
+                <span class="priority priority-low">LOW</span>
+              </div>
+            
+          </div>
+        </div>
+      
+        <div class="section" data-section="Security">
+          <div class="section-header" onclick="toggleSection(this)">
+            <span>Security</span>
+            <div class="section-progress">
+              <span class="section-count">0/6</span>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="section-items">
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Security-0" onchange="updateProgress()">
+                <label for="Security-0" class="test-name">Cannot access admin features as regular user</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Security-1" onchange="updateProgress()">
+                <label for="Security-1" class="test-name">Cannot edit other users content</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Security-2" onchange="updateProgress()">
+                <label for="Security-2" class="test-name">Private routines not visible to others</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Security-3" onchange="updateProgress()">
+                <label for="Security-3" class="test-name">SQL injection prevention</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Security-4" onchange="updateProgress()">
+                <label for="Security-4" class="test-name">XSS prevention in comments</label>
+                <span class="priority priority-high">HIGH</span>
+              </div>
+            
+              <div class="test-item">
+                <input type="checkbox" class="checkbox" id="Security-5" onchange="updateProgress()">
+                <label for="Security-5" class="test-name">Rate limiting on API calls</label>
+                <span class="priority priority-low">LOW</span>
+              </div>
+            
+          </div>
+        </div>
+      
+    </div>
+
+    <div class="footer">
+      Generated on 10/6/2025 |
+      <a href="http://localhost:3000" target="_blank">Open App</a> |
+      <a href="#" onclick="resetProgress()">Reset Progress</a>
+    </div>
+  </div>
+
+  <script>
+    function toggleSection(header) {
+      header.parentElement.classList.toggle('open');
+    }
+
+    function updateProgress() {
+      const allCheckboxes = document.querySelectorAll('.checkbox');
+      const checkedBoxes = document.querySelectorAll('.checkbox:checked');
+
+      document.getElementById('totalTests').textContent = allCheckboxes.length;
+      document.getElementById('completedTests').textContent = checkedBoxes.length;
+      document.getElementById('progressPercent').textContent =
+        Math.round((checkedBoxes.length / allCheckboxes.length) * 100) + '%';
+
+      // Update section progress
+      document.querySelectorAll('.section').forEach(section => {
+        const sectionBoxes = section.querySelectorAll('.checkbox');
+        const sectionChecked = section.querySelectorAll('.checkbox:checked');
+        const progress = (sectionChecked.length / sectionBoxes.length) * 100;
+
+        section.querySelector('.section-count').textContent =
+          sectionChecked.length + '/' + sectionBoxes.length;
+        section.querySelector('.progress-fill').style.width = progress + '%';
+      });
+
+      // Save to localStorage
+      const progress = {};
+      allCheckboxes.forEach(box => {
+        progress[box.id] = box.checked;
+      });
+      localStorage.setItem('nrghax-test-progress', JSON.stringify(progress));
+    }
+
+    function loadProgress() {
+      const saved = localStorage.getItem('nrghax-test-progress');
+      if (saved) {
+        const progress = JSON.parse(saved);
+        Object.entries(progress).forEach(([id, checked]) => {
+          const checkbox = document.getElementById(id);
+          if (checkbox) checkbox.checked = checked;
+        });
+      }
+      updateProgress();
+    }
+
+    function resetProgress() {
+      if (confirm('Reset all progress?')) {
+        document.querySelectorAll('.checkbox').forEach(box => box.checked = false);
+        localStorage.removeItem('nrghax-test-progress');
+        updateProgress();
+      }
+    }
+
+    // Load progress on page load
+    loadProgress();
+
+    // Open high priority sections by default
+    document.querySelectorAll('.section').forEach((section, index) => {
+      if (index < 3) section.classList.add('open');
+    });
+  </script>
+</body>
+</html>

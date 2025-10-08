@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Lock, CheckCircle, ExternalLink, ArrowLeft } from 'lucide-react';
 import { useLocalVisits } from '@/hooks/useLocalVisits';
-import { MediaEmbed } from '@/components/ui/media-embed';
+import { VideoPlayer, type VideoPlayerRef } from '@/components/ui/VideoPlayer';
+import { CommentSection } from '@/components/comments/CommentSection';
 
 interface HackViewProps {
   hack: {
@@ -44,6 +45,7 @@ export function HackView({ hack, canAccess: serverCanAccess, user, children }: H
   const { markAsVisited, visitedHacks } = useLocalVisits();
   const [canAccess, setCanAccess] = useState(serverCanAccess);
   const [hasMarkedVisit, setHasMarkedVisit] = useState(false);
+  const videoPlayerRef = useRef<VideoPlayerRef>(null);
 
   // Memoize prerequisites check
   const prerequisiteIds = useMemo(() => {
@@ -184,7 +186,8 @@ export function HackView({ hack, canAccess: serverCanAccess, user, children }: H
 
           {hack.mediaType && hack.mediaUrl && (
             <div className="mb-8">
-              <MediaEmbed
+              <VideoPlayer
+                ref={videoPlayerRef}
                 type={hack.mediaType}
                 url={hack.mediaUrl}
                 title={hack.name}
@@ -200,6 +203,16 @@ export function HackView({ hack, canAccess: serverCanAccess, user, children }: H
               />
             </div>
           )}
+
+          {/* Comments Section */}
+          <div className="mt-12 border-t pt-8">
+            <h2 className="text-2xl font-bold mb-6">Comments</h2>
+            <CommentSection
+              entityType="hack"
+              entityId={hack.id}
+              videoRef={hack.mediaType && hack.mediaUrl ? videoPlayerRef : undefined}
+            />
+          </div>
         </>
       )}
     </div>

@@ -7,13 +7,141 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
+      admin_emails: {
+        Row: {
+          created_at: string | null
+          email: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+        }
+        Relationships: []
+      }
+      comment_likes: {
+        Row: {
+          comment_id: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comment_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comments: {
+        Row: {
+          content: string
+          created_at: string
+          edited_at: string | null
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["comment_entity_type"]
+          id: string
+          is_deleted: boolean | null
+          is_edited: boolean | null
+          parent_id: string | null
+          timestamp_seconds: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          edited_at?: string | null
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["comment_entity_type"]
+          id?: string
+          is_deleted?: boolean | null
+          is_edited?: boolean | null
+          parent_id?: string | null
+          timestamp_seconds?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          edited_at?: string | null
+          entity_id?: string
+          entity_type?: Database["public"]["Enums"]["comment_entity_type"]
+          id?: string
+          is_deleted?: boolean | null
+          is_edited?: boolean | null
+          parent_id?: string | null
+          timestamp_seconds?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hack_prerequisites: {
         Row: {
           created_at: string | null
@@ -127,6 +255,7 @@ export type Database = {
       }
       hacks: {
         Row: {
+          category: string | null
           content_body: string | null
           content_type: string | null
           created_at: string | null
@@ -148,6 +277,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          category?: string | null
           content_body?: string | null
           content_type?: string | null
           created_at?: string | null
@@ -169,6 +299,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          category?: string | null
           content_body?: string | null
           content_type?: string | null
           created_at?: string | null
@@ -205,6 +336,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      onboarding_questions: {
+        Row: {
+          created_at: string | null
+          id: string
+          questions: Json
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          questions: Json
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          questions?: Json
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -487,10 +639,13 @@ export type Database = {
       }
       user_routines: {
         Row: {
+          autoplay_enabled: boolean | null
           completed: boolean | null
           completed_at: string | null
           created_at: string | null
+          current_hack_position: number | null
           id: string
+          last_played_at: string | null
           liked: boolean | null
           progress: number | null
           routine_id: string | null
@@ -500,10 +655,13 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          autoplay_enabled?: boolean | null
           completed?: boolean | null
           completed_at?: string | null
           created_at?: string | null
+          current_hack_position?: number | null
           id?: string
+          last_played_at?: string | null
           liked?: boolean | null
           progress?: number | null
           routine_id?: string | null
@@ -513,10 +671,13 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          autoplay_enabled?: boolean | null
           completed?: boolean | null
           completed_at?: string | null
           created_at?: string | null
+          current_hack_position?: number | null
           id?: string
+          last_played_at?: string | null
           liked?: boolean | null
           progress?: number | null
           routine_id?: string | null
@@ -541,27 +702,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      onboarding_questions: {
-        Row: {
-          id: string
-          questions: Json
-          created_at: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          id?: string
-          questions: Json
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          questions?: Json
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
       }
       user_tags: {
         Row: {
@@ -643,6 +783,41 @@ export type Database = {
           },
         ]
       }
+      routine_play_state: {
+        Row: {
+          autoplay_enabled: boolean | null
+          completed: boolean | null
+          completed_at: string | null
+          completed_hacks: Json | null
+          current_hack_position: number | null
+          id: string | null
+          last_played_at: string | null
+          progress: number | null
+          routine_id: string | null
+          routine_name: string | null
+          routine_slug: string | null
+          started: boolean | null
+          started_at: string | null
+          total_hacks: number | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_routines_routine_id_fkey"
+            columns: ["routine_id"]
+            isOneToOne: false
+            referencedRelation: "routines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_routines_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_hack_progress: {
         Row: {
           completed_at: string | null
@@ -667,15 +842,44 @@ export type Database = {
       }
     }
     Functions: {
-      increment_hack_view_count: {
+      add_admin_email: {
+        Args: { email_address: string }
+        Returns: undefined
+      }
+      get_comment_count: {
         Args: {
-          p_user_id: string
-          p_hack_id: string
+          p_entity_id: string
+          p_entity_type: Database["public"]["Enums"]["comment_entity_type"]
         }
         Returns: number
       }
+      get_comment_like_count: {
+        Args: { p_comment_id: string }
+        Returns: number
+      }
+      increment_hack_view_count: {
+        Args: { p_hack_id: string; p_user_id: string }
+        Returns: number
+      }
+      remove_admin_email: {
+        Args: { email_address: string }
+        Returns: undefined
+      }
+      toggle_routine_autoplay: {
+        Args: { p_enabled: boolean; p_routine_id: string }
+        Returns: boolean
+      }
+      update_routine_position: {
+        Args: {
+          p_position: number
+          p_routine_id: string
+          p_total_hacks?: number
+        }
+        Returns: Json
+      }
     }
     Enums: {
+      comment_entity_type: "hack" | "routine"
       content_type: "content" | "link"
       question_type: "single_choice" | "multiple_choice" | "text"
       tag_source: "web" | "discord" | "onboarding" | "admin" | "system"
@@ -806,8 +1010,12 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
+      comment_entity_type: ["hack", "routine"],
       content_type: ["content", "link"],
       question_type: ["single_choice", "multiple_choice", "text"],
       tag_source: ["web", "discord", "onboarding", "admin", "system"],
@@ -816,3 +1024,4 @@ export const Constants = {
     },
   },
 } as const
+

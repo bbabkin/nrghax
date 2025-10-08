@@ -17,6 +17,8 @@ export interface VideoPlayerRef {
   play: () => void;
   pause: () => void;
   stop: () => void;
+  getCurrentTime: () => number;
+  seekTo: (seconds: number) => void;
 }
 
 declare global {
@@ -30,6 +32,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
   ({ type, url, autoplay = false, onEnded, onError, title = 'Video', className = '' }, ref) => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isReady, setIsReady] = useState(false);
     const ytPlayerRef = useRef<any>(null);
     const htmlVideoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -37,10 +40,33 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
     // Expose player controls via ref
     useImperativeHandle(ref, () => ({
       play: () => {
-        if (type === 'youtube' && ytPlayerRef.current) {
-          ytPlayerRef.current.playVideo();
+        console.log('VideoPlayer.play() called, type:', type, 'ytPlayerRef:', !!ytPlayerRef.current, 'htmlVideoRef:', !!htmlVideoRef.current, 'isReady:', isReady);
+
+        // Try to play immediately if ready
+        if (type === 'youtube' && ytPlayerRef.current && ytPlayerRef.current.playVideo) {
+          console.log('Calling YouTube playVideo()');
+          try {
+            ytPlayerRef.current.playVideo();
+          } catch (err) {
+            console.error('Error calling playVideo:', err);
+          }
         } else if (htmlVideoRef.current) {
-          htmlVideoRef.current.play();
+          console.log('Calling HTML5 video play()');
+          htmlVideoRef.current.play().catch(err => console.error('HTML5 play error:', err));
+        } else if (!isReady) {
+          console.log('Player not ready yet, will retry in 500ms');
+          // If not ready, retry after a short delay
+          setTimeout(() => {
+            if (type === 'youtube' && ytPlayerRef.current && ytPlayerRef.current.playVideo) {
+              console.log('Retry: Calling YouTube playVideo()');
+              ytPlayerRef.current.playVideo();
+            } else if (htmlVideoRef.current) {
+              console.log('Retry: Calling HTML5 video play()');
+              htmlVideoRef.current.play().catch(err => console.error('HTML5 play error (retry):', err));
+            }
+          }, 500);
+        } else {
+          console.log('Cannot play - no player ref available');
         }
       },
       pause: () => {
@@ -58,7 +84,22 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
           htmlVideoRef.current.currentTime = 0;
         }
       },
-    }));
+      getCurrentTime: () => {
+        if (type === 'youtube' && ytPlayerRef.current && ytPlayerRef.current.getCurrentTime) {
+          return ytPlayerRef.current.getCurrentTime();
+        } else if (htmlVideoRef.current) {
+          return htmlVideoRef.current.currentTime;
+        }
+        return 0;
+      },
+      seekTo: (seconds: number) => {
+        if (type === 'youtube' && ytPlayerRef.current && ytPlayerRef.current.seekTo) {
+          ytPlayerRef.current.seekTo(seconds, true);
+        } else if (htmlVideoRef.current) {
+          htmlVideoRef.current.currentTime = seconds;
+        }
+      },
+    }), [type, isReady]);
 
     // Extract YouTube video ID
     const extractYouTubeId = (url: string): string | null => {
@@ -142,7 +183,9 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
             },
             events: {
               onReady: (event: any) => {
+                console.log('YouTube player ready');
                 setIsLoading(false);
+                setIsReady(true);
                 if (autoplay) {
                   event.target.playVideo();
                 }
@@ -194,7 +237,9 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
       };
 
       const handleLoadedData = () => {
+        console.log('HTML5 video loaded');
         setIsLoading(false);
+        setIsReady(true);
       };
 
       video.addEventListener('ended', handleEnded);

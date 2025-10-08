@@ -264,7 +264,7 @@ export function RoutinePlayer({
           <Trophy className="h-20 w-20 text-yellow-500 mx-auto mb-4" />
           <h1 className="text-4xl font-bold mb-4">Routine Completed! 🎉</h1>
           <p className="text-xl text-gray-400 mb-8">
-            Congratulations! You've completed all {totalHacks} hacks in "{routine.name}"
+            Congratulations! You&apos;ve completed all {totalHacks} hacks in &quot;{routine.name}&quot;
           </p>
           <div className="flex gap-4 justify-center">
             <Button onClick={() => router.push('/hacks')}>

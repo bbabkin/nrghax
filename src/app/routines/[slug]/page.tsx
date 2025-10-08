@@ -153,26 +153,42 @@ export default async function RoutinePage({ params }: Props) {
         )}
 
         {/* Actions */}
-        {user && (
-          <div className="flex gap-2">
-            <Link href={`/routines/${routine.slug}/play`}>
-              <Button variant={userRoutine?.started ? 'outline' : 'default'} size="lg">
-                <Play className="h-5 w-5 mr-2" />
-                {userRoutine?.started ? 'Continue Routine' : 'Start Routine'}
-              </Button>
-            </Link>
+        <div className="flex gap-2">
+          {user ? (
+            <>
+              <Link href={`/routines/${routine.slug}/play`}>
+                <Button variant={userRoutine?.started ? 'outline' : 'default'} size="lg">
+                  <Play className="h-5 w-5 mr-2" />
+                  {userRoutine?.started ? 'Continue Routine' : 'Start Routine'}
+                </Button>
+              </Link>
 
-            <form action={async () => {
-              'use server';
-              await toggleRoutineLike(routine.id);
-            }}>
-              <Button type="submit" variant="outline" size="lg">
-                <Heart className={`h-4 w-4 mr-2 ${userRoutine?.liked ? 'fill-red-500 text-red-500' : ''}`} />
-                {userRoutine?.liked ? 'Liked' : 'Like'}
-              </Button>
-            </form>
-          </div>
-        )}
+              <form action={async () => {
+                'use server';
+                await toggleRoutineLike(routine.id);
+              }}>
+                <Button type="submit" variant="outline" size="lg">
+                  <Heart className={`h-4 w-4 mr-2 ${userRoutine?.liked ? 'fill-red-500 text-red-500' : ''}`} />
+                  {userRoutine?.liked ? 'Liked' : 'Like'}
+                </Button>
+              </form>
+            </>
+          ) : (
+            <>
+              <Link href={`/routines/${routine.slug}/try`}>
+                <Button variant="default" size="lg">
+                  <Play className="h-5 w-5 mr-2" />
+                  Try Routine
+                </Button>
+              </Link>
+              <Link href={`/auth?redirect=/routines/${routine.slug}/play`}>
+                <Button variant="outline" size="lg">
+                  Sign In
+                </Button>
+              </Link>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Progress (if user has started) */}

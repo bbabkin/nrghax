@@ -11,8 +11,13 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:ui": "vitest --ui",
+    "test:unit": "vitest run src",
+    "test:integration": "vitest run test/integration",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
@@ -20,7 +25,11 @@
     "db:types": "supabase gen types --local > src/types/supabase.ts",
     "db:migrate": "supabase migration new",
     "db:seed": "tsx scripts/seed-database.ts",
-    "create-admin": "tsx scripts/create-admin.ts"
+    "create-admin": "tsx scripts/create-admin.ts",
+    "seed:test-users": "tsx scripts/seed-test-users.ts",
+    "test:checklist": "tsx scripts/test-checklist.ts",
+    "pretest": "npm run db:types",
+    "ci:test": "npm run typecheck && npm run lint && npm run test:all"
   },
   "workspaces": [
     "supabase/tests"
@@ -83,6 +92,7 @@
     "@vitest/coverage-v8": "^2.1.8",
     "@vitest/ui": "^2.1.8",
     "autoprefixer": "^10.4.20",
+    "chalk": "^5.6.2",
     "eslint": "^8.57.1",
     "eslint-config-next": "14.2.20",
     "jest": "^30.1.3",
