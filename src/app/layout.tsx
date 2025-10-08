@@ -1,12 +1,22 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Nunito, Montserrat } from 'next/font/google'
 import { Toaster } from '@/components/ui/toaster'
 import { NavbarWrapper } from '@/components/navbar-wrapper'
 import { Footer } from '@/components/Footer'
 import { ThemeScript } from '@/components/theme-script'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+const nunito = Nunito({
+  subsets: ['latin'],
+  weight: ['200', '300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-nunito',
+})
+
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-montserrat',
+})
 
 export const metadata: Metadata = {
   title: 'Energy Hacks - Practical Energy Control Without the BS | NRGHAX',
@@ -70,9 +80,9 @@ export default function RootLayout({
       <head>
         <ThemeScript />
       </head>
-      <body className={`${inter.className} min-h-screen flex flex-col`}>
+      <body className={`${nunito.variable} ${montserrat.variable} font-sans min-h-screen flex flex-col`}>
         <NavbarWrapper />
-        <main className="flex-1">
+        <main className="flex-1 pt-16">
           {children}
         </main>
         <Footer />

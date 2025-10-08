@@ -55,7 +55,7 @@ export function HacksList({ hacks, isAuthenticated }: HacksListProps) {
   if (hacks.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">No hacks available yet. Check back later!</p>
+        <p className="text-gray-500 dark:text-gray-300 dark:text-gray-500">No hacks available yet. Check back later!</p>
       </div>
     );
   }

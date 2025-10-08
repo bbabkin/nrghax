@@ -63,7 +63,7 @@ export function MediaEmbed({ type, url, title = 'Media', className = '' }: Media
   if (type === 'tiktok') {
     return (
       <div className={`p-4 border rounded-lg ${className}`}>
-        <p className="text-sm text-gray-600 mb-2">TikTok Video:</p>
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">TikTok Video:</p>
         <a
           href={embedUrl}
           target="_blank"

@@ -81,7 +81,7 @@ export function HackCategories() {
   };
 
   return (
-    <section className="py-20 px-4 bg-black/50 backdrop-blur-md">
+    <section className="py-20 px-4 bg-black/20">
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <motion.div

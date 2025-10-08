@@ -263,7 +263,7 @@ export function RoutinePlayer({
         <Card className="max-w-2xl w-full p-8 text-center">
           <Trophy className="h-20 w-20 text-yellow-500 mx-auto mb-4" />
           <h1 className="text-4xl font-bold mb-4">Routine Completed! 🎉</h1>
-          <p className="text-xl text-gray-400 mb-8">
+          <p className="text-xl text-gray-400 dark:text-gray-500 mb-8">
             Congratulations! You&apos;ve completed all {totalHacks} hacks in &quot;{routine.name}&quot;
           </p>
           <div className="flex gap-4 justify-center">
@@ -296,7 +296,7 @@ export function RoutinePlayer({
               </Button>
               <div>
                 <h1 className="text-xl font-bold">{routine.name}</h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   {currentIndex + 1} of {totalHacks}
                 </p>
               </div>
@@ -336,7 +336,7 @@ export function RoutinePlayer({
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <p className="text-xs text-gray-600 mt-1">{progress}% complete</p>
+            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">{progress}% complete</p>
           </div>
         </div>
       </div>
@@ -349,7 +349,7 @@ export function RoutinePlayer({
               {/* Hack title */}
               <div className="mb-4">
                 <h2 className="text-2xl font-bold mb-2">{currentHack?.name}</h2>
-                <p className="text-gray-600">{currentHack?.description}</p>
+                <p className="text-gray-600 dark:text-gray-300">{currentHack?.description}</p>
               </div>
 
               {/* Video player or content */}
@@ -358,7 +358,7 @@ export function RoutinePlayer({
                   {error ? (
                     <div className="aspect-video bg-gray-900 rounded-lg flex flex-col items-center justify-center text-white p-6 text-center">
                       <p className="font-semibold mb-4">Error loading video</p>
-                      <p className="text-sm text-gray-400 mb-4">{error}</p>
+                      <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">{error}</p>
                       <Button onClick={goToNext} variant="secondary">
                         <SkipForward className="h-4 w-4 mr-2" />
                         Skip
@@ -462,7 +462,7 @@ export function RoutinePlayer({
                           <p className="font-medium text-sm line-clamp-1">
                             {index + 1}. {hack.name}
                           </p>
-                          <p className="text-xs text-gray-600 line-clamp-1">
+                          <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-1">
                             {hack.description}
                           </p>
                           {hack.mediaType && (

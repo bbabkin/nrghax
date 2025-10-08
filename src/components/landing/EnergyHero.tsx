@@ -7,13 +7,14 @@ import { ArrowRight } from 'lucide-react';
 import '@/styles/glitch.css';
 
 const taglines = [
-  "How much of your mind is yours?",
-  "Learn to evict pestering thoughts",
+  "How much of your mind is actually yours?",
+  "Learn to evict pestering thoughts.",
   "5-minute energy recovery techniques that actually work.",
   "Stop feeding apps. Start feeding your mind.",
-  "You won't need crystals or sound baths here.",
+  "No need for crystals or sound baths here.",
   "Like coffee, but without the crash.",
-  "Maybe one day the science will catch up...",
+  "Charisma, confidence, and control.",
+  "Maybe one day the science will catch up.",
 ];
 
 export function EnergyHero() {
@@ -46,7 +47,7 @@ export function EnergyHero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-5xl md:text-7xl lg:text-8xl font-bold text-white relative group cursor-default"
+          className="text-5xl md:text-7xl lg:text-8xl font-bold text-black relative group cursor-default"
         >
           <span className="relative inline-block">
             <span className="absolute inset-0 animate-glitch-1 text-pink-500 opacity-70">
@@ -64,7 +65,7 @@ export function EnergyHero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-lg md:text-xl text-white/80 font-light"
+          className="text-lg md:text-xl text-black font-light"
         >
           Practical bio-energy methods without the mysticism.
         </motion.h2>
@@ -78,7 +79,7 @@ export function EnergyHero() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.5 }}
-              className="text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-orange-400 via-pink-400 to-purple-400 bg-clip-text text-transparent"
+              className="text-2xl md:text-3xl lg:text-4xl font-bold text-black"
             >
               {taglines[currentTaglineIndex]}
             </motion.p>
@@ -109,7 +110,7 @@ export function EnergyHero() {
         >
           <Link
             href="/hacks"
-            className="inline-flex items-center gap-3 px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-orange-500 to-pink-500 rounded-full hover:from-orange-600 hover:to-pink-600 transition-all duration-300 shadow-lg shadow-pink-500/25 glitch-cta-wrapper group"
+            className="inline-flex items-center gap-3 px-8 py-4 text-lg font-semibold text-black bg-[#fb0] hover:bg-[#fb0]/90 transition-all duration-300 shadow-lg glitch-cta-wrapper group"
             aria-label="Get Started with Energy Hacks"
           >
             <span className="glitch-cta" data-text="Jedi Time">
@@ -117,33 +118,6 @@ export function EnergyHero() {
             </span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
           </Link>
-
-          {/* <Button
-            size="lg"
-            variant="outline"
-            asChild
-            className="border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-md"
-          >
-            <Link href="/hacks" aria-label="See What Actually Works">
-              See The Techniques
-            </Link>
-          </Button> */}
-        </motion.div>
-
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center"
-          >
-            <div className="w-1 h-3 bg-white/50 rounded-full mt-2" />
-          </motion.div>
         </motion.div>
       </div>
     </section>

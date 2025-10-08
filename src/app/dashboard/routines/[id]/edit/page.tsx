@@ -83,14 +83,14 @@ export default async function EditRoutinePage({ params }: { params: Promise<{ id
       <div className="mb-6">
         <Link
           href="/dashboard/routines"
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
+          className="inline-flex items-center text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
           Back to My Routines
         </Link>
 
         <h1 className="text-3xl font-bold">Edit Routine</h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-gray-600 dark:text-gray-300 mt-2">
           Update your routine details and reorganize hacks
         </p>
       </div>
@@ -138,7 +138,7 @@ export default async function EditRoutinePage({ params }: { params: Promise<{ id
                   defaultValue={routine.image_url || ''}
                   placeholder="https://example.com/image.jpg"
                 />
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">
                   Add a cover image to make your routine more appealing
                 </p>
               </div>
@@ -181,7 +181,7 @@ export default async function EditRoutinePage({ params }: { params: Promise<{ id
                           key={rh.hack_id}
                           className="flex items-center gap-2 p-2 bg-white rounded border"
                         >
-                          <GripVertical className="h-4 w-4 text-gray-400" />
+                          <GripVertical className="h-4 w-4 text-gray-400 dark:text-gray-300" />
                           <Checkbox
                             name="hackIds"
                             value={rh.hack_id}
@@ -190,7 +190,7 @@ export default async function EditRoutinePage({ params }: { params: Promise<{ id
                           />
                           <div className="flex-1">
                             <div className="font-medium">{rh.hacks?.name}</div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 dark:text-gray-300 dark:text-gray-500">
                               {rh.hacks?.difficulty && (
                                 <Badge variant="outline" className="text-xs mr-2">
                                   {rh.hacks.difficulty}
@@ -221,7 +221,7 @@ export default async function EditRoutinePage({ params }: { params: Promise<{ id
                         </div>
                       ))
                   ) : (
-                    <p className="text-gray-500 text-center py-4">
+                    <p className="text-gray-500 dark:text-gray-300 text-center py-4">
                       No hacks selected. Add some from below.
                     </p>
                   )}
@@ -249,7 +249,7 @@ export default async function EditRoutinePage({ params }: { params: Promise<{ id
                           className="flex-1 cursor-pointer"
                         >
                           <div className="font-medium">{hack.name}</div>
-                          <div className="text-sm text-gray-500 line-clamp-1">
+                          <div className="text-sm text-gray-500 dark:text-gray-300 line-clamp-1">
                             {hack.description}
                           </div>
                         </Label>
@@ -290,7 +290,7 @@ export default async function EditRoutinePage({ params }: { params: Promise<{ id
             <CardContent>
               <div className="flex flex-wrap gap-2">
                 {tags.length === 0 ? (
-                  <p className="text-gray-500">No tags available.</p>
+                  <p className="text-gray-500 dark:text-gray-300 dark:text-gray-500">No tags available.</p>
                 ) : (
                   tags.map(tag => (
                     <div key={tag.id} className="flex items-center">

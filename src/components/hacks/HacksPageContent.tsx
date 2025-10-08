@@ -231,13 +231,13 @@ export function HacksPageContent({
       {/* Search Bar and Admin Controls */}
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
         <div className="relative w-full max-w-2xl">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white dark:text-gray-500 h-4 w-4" />
           <Input
             type="text"
             placeholder="Search hacks and routines..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 pr-4"
+            className="pl-10 pr-4 border-black placeholder:text-white dark:placeholder:text-gray-500"
           />
         </div>
         {isAdmin && activeTab === 'hacks' && (
@@ -286,7 +286,7 @@ export function HacksPageContent({
         <TabsContent value="all" className="mt-6">
           {allItems.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">
+              <p className="text-white dark:text-gray-300">
                 {searchQuery ? 'No results found for your search.' : 'No content available yet.'}
               </p>
             </div>
@@ -319,7 +319,7 @@ export function HacksPageContent({
         <TabsContent value="hacks" className="mt-6">
           {filteredHacks.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">
+              <p className="text-gray-500 dark:text-gray-300 dark:text-gray-500">
                 {searchQuery ? 'No hacks found for your search.' : 'No hacks available yet.'}
               </p>
             </div>
@@ -373,11 +373,11 @@ export function HacksPageContent({
         <TabsContent value="routines" className="mt-6">
           {filteredRoutines.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">
+              <p className="text-gray-500 dark:text-gray-300 dark:text-gray-500">
                 {searchQuery ? 'No routines found for your search.' : 'No routines available yet.'}
               </p>
               {isAuthenticated && !searchQuery && (
-                <p className="text-sm text-gray-400 mt-2">
+                <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
                   Create your own routine or wait for others to share public routines.
                 </p>
               )}
@@ -402,7 +402,7 @@ export function HacksPageContent({
           <TabsContent value="my-routines" className="mt-6">
             {myRoutines.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-500 mb-4">
+                <p className="text-gray-500 dark:text-gray-300 mb-4">
                   {searchQuery ? 'No routines found for your search.' : "You haven't created any routines yet."}
                 </p>
                 {!searchQuery && (

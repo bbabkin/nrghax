@@ -203,13 +203,13 @@ export function RoutineCard({
       <CardContent className="p-4">
         <div className="mb-2">
           <h3 className="font-semibold text-lg line-clamp-1">{routine.name}</h3>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-gray-500 dark:text-gray-300 mt-0.5">
             by {routine.creator.name || routine.creator.email}
           </p>
         </div>
-        <p className="text-sm text-gray-600 dark:text-gray-200 line-clamp-2 mb-3">{routine.description}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-3">{routine.description}</p>
 
-        <div className="flex items-center gap-3 text-sm text-gray-500">
+        <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-300 dark:text-gray-500">
           <span className="flex items-center gap-1">
             <BookOpen className="h-4 w-4" />
             {routine._count?.routineHacks || 0} hacks
@@ -225,13 +225,13 @@ export function RoutineCard({
             {routine.tags.slice(0, 3).map(tag => (
               <span
                 key={tag.id}
-                className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-full"
+                className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 dark:text-gray-200 dark:bg-gray-700 dark:text-gray-300 rounded-full"
               >
                 {tag.name}
               </span>
             ))}
             {routine.tags.length > 3 && (
-              <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-full">
+              <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 dark:text-gray-200 dark:bg-gray-700 dark:text-gray-300 rounded-full">
                 +{routine.tags.length - 3}
               </span>
             )}
@@ -250,7 +250,7 @@ export function RoutineCard({
               <Heart
                 className={cn(
                   "h-4 w-4 transition-colors",
-                  isLiked ? "fill-red-500 text-red-500" : "text-gray-500"
+                  isLiked ? "fill-red-500 text-red-500" : "text-gray-500 dark:text-gray-300 dark:text-gray-500"
                 )}
               />
               <span>{likeCount}</span>

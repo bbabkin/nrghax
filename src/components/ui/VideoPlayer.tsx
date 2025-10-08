@@ -274,7 +274,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
               <div className="absolute inset-0 flex items-center justify-center bg-gray-900 text-white p-4 text-center">
                 <div>
                   <p className="font-semibold mb-2">Error loading video</p>
-                  <p className="text-sm text-gray-400">{error}</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-300">{error}</p>
                 </div>
               </div>
             )}

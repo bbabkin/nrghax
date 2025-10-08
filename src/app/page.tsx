@@ -1,8 +1,4 @@
-import { VideoBackground } from '@/components/landing/VideoBackground'
 import { EnergyHero } from '@/components/landing/EnergyHero'
-import { HackCategories } from '@/components/landing/HackCategories'
-import { TransformationStats } from '@/components/landing/TransformationStats'
-import { GlitchCTA } from '@/components/landing/GlitchCTA'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -96,39 +92,10 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {/* Video Background covers the entire page */}
-      <VideoBackground />
-
       {/* Main Content */}
       <div className="relative">
         {/* Hero Section */}
         <EnergyHero />
-
-        {/* Stats Section */}
-        <TransformationStats />
-
-        {/* Categories Section */}
-        <HackCategories />
-
-        {/* Additional CTA Section */}
-        <section className="py-20 px-4 bg-black/60 backdrop-blur-md">
-          <div className="max-w-4xl mx-auto text-center space-y-6">
-            <h2 className="text-4xl md:text-5xl font-bold text-white">
-              Stop Being a Battery. Start Being Human.
-            </h2>
-            <p className="text-xl text-white/70">
-              The wellness industry profits from your problems. We teach independence.
-            </p>
-            <div className="pt-8">
-              <GlitchCTA
-                href="/auth"
-                text="Get Started - Actually Free"
-                showArrow={true}
-                variant="primary"
-              />
-            </div>
-          </div>
-        </section>
       </div>
     </>
   )

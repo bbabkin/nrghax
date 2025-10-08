@@ -241,12 +241,12 @@ export function RoutineForm({
                   onDragStart={(e) => handleDragStart(e, index)}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, index)}
-                  className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-move"
+                  className="flex items-center gap-2 p-3 bg-muted rounded-lg cursor-move"
                 >
-                  <GripVertical className="h-4 w-4 text-gray-400" />
+                  <GripVertical className="h-4 w-4 text-gray-400 dark:text-gray-300" />
                   <div className="flex-1">
                     <div className="font-medium">{hack.name}</div>
-                    <div className="text-sm text-gray-500 line-clamp-1">
+                    <div className="text-sm text-muted-foreground line-clamp-1">
                       {hack.description}
                     </div>
                   </div>
@@ -277,7 +277,7 @@ export function RoutineForm({
           ) : (
             <div className="space-y-2">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
                 <Input
                   placeholder="Search hacks..."
                   value={hackSearch}
@@ -295,16 +295,16 @@ export function RoutineForm({
                         setSelectedHacks([...selectedHacks, hack]);
                         setHackSearch('');
                       }}
-                      className="w-full text-left p-2 hover:bg-gray-100 rounded"
+                      className="w-full text-left p-2 hover:bg-muted rounded"
                     >
                       <div className="font-medium">{hack.name}</div>
-                      <div className="text-sm text-gray-500 line-clamp-1">
+                      <div className="text-sm text-muted-foreground line-clamp-1">
                         {hack.description}
                       </div>
                     </button>
                   ))
                 ) : (
-                  <p className="text-sm text-gray-500 text-center py-2">
+                  <p className="text-sm text-gray-500 dark:text-gray-300 text-center py-2">
                     No hacks found
                   </p>
                 )}

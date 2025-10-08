@@ -99,7 +99,7 @@ export function HackView({ hack, canAccess: serverCanAccess, user, children }: H
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <Link href="/hacks" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6">
+      <Link href="/hacks" className="inline-flex items-center text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 mb-6">
         <ArrowLeft className="h-4 w-4 mr-1" />
         Back to Hacks
       </Link>
@@ -107,9 +107,9 @@ export function HackView({ hack, canAccess: serverCanAccess, user, children }: H
       {!canAccess ? (
         <Card className="p-8">
           <div className="text-center">
-            <Lock className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <Lock className="h-16 w-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold mb-4">Prerequisites Required</h1>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
               You need to complete the following hacks before accessing this content:
             </p>
             <div className="space-y-3 max-w-md mx-auto">
@@ -127,7 +127,7 @@ export function HackView({ hack, canAccess: serverCanAccess, user, children }: H
                       </div>
                       <div className="text-left">
                         <h3 className="font-semibold">{prereq.name}</h3>
-                        <p className="text-sm text-gray-600 line-clamp-1">
+                        <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-1">
                           {prereq.description}
                         </p>
                       </div>
@@ -144,7 +144,7 @@ export function HackView({ hack, canAccess: serverCanAccess, user, children }: H
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h1 className="text-3xl font-bold mb-2">{hack.name}</h1>
-                <p className="text-gray-600">{hack.description}</p>
+                <p className="text-gray-600 dark:text-gray-300">{hack.description}</p>
               </div>
               <div className="flex items-center gap-2">
                 {isHackVisited && (
@@ -164,7 +164,7 @@ export function HackView({ hack, canAccess: serverCanAccess, user, children }: H
 
             <div className="flex items-center gap-4">
               {children}
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-500 dark:text-gray-300 dark:text-gray-500">
                 {hack.viewCount || 0} visits
               </span>
             </div>

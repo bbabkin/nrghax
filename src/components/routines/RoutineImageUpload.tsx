@@ -129,7 +129,7 @@ export function RoutineImageUpload({
 
         {previewUrl ? (
           <div className="relative group">
-            <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-gray-100">
+            <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-muted">
               <Image
                 src={previewUrl}
                 alt="Routine cover"
@@ -151,7 +151,7 @@ export function RoutineImageUpload({
         ) : (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
             <div className="text-center">
-              <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <ImageIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-300" />
               <div className="mt-4">
                 <Label
                   htmlFor="routine-image"
@@ -169,7 +169,7 @@ export function RoutineImageUpload({
                   onChange={handleFileUpload}
                   disabled={uploading}
                 />
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-300 dark:text-gray-500">
                   JPG, PNG, WebP or SVG up to 10MB
                 </p>
               </div>
@@ -180,7 +180,7 @@ export function RoutineImageUpload({
         {uploading && (
           <div className="mt-4 flex items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            <span className="ml-2 text-sm text-gray-600">Uploading...</span>
+            <span className="ml-2 text-sm text-gray-600 dark:text-gray-300">Uploading...</span>
           </div>
         )}
 

@@ -303,10 +303,10 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
               className="cursor-pointer"
             />
             {!imageFile && !imagePreview && (
-              <ImageIcon className="h-4 w-4 text-gray-500" />
+              <ImageIcon className="h-4 w-4 text-gray-500 dark:text-gray-300 dark:text-gray-500" />
             )}
           </div>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-300 dark:text-gray-500">
             {imageFile ? 
               `Selected: ${imageFile.name} (${(imageFile.size / 1024 / 1024).toFixed(2)}MB)` : 
               'Accepted formats: JPEG, PNG, GIF, WebP (max 5MB)'

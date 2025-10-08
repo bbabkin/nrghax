@@ -34,7 +34,7 @@ export default async function HistoryPage() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Learning History</h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-300">
           Track your learning journey and see all the hacks you&apos;ve completed.
         </p>
       </div>
@@ -42,9 +42,9 @@ export default async function HistoryPage() {
       {completedHacks.length === 0 ? (
         <Card className="p-8">
           <div className="text-center">
-            <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <BookOpen className="h-16 w-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">No Completed Hacks Yet</h2>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
               Start exploring our learning materials to build your knowledge!
             </p>
             <Link href="/hacks">
@@ -69,8 +69,8 @@ export default async function HistoryPage() {
             {Object.entries(groupedByDate).map(([date, hacks]) => (
               <div key={date}>
                 <div className="flex items-center gap-2 mb-4">
-                  <Calendar className="h-4 w-4 text-gray-500" />
-                  <h2 className="font-semibold text-gray-700">{date}</h2>
+                  <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-300 dark:text-gray-500" />
+                  <h2 className="font-semibold text-gray-700 dark:text-gray-300">{date}</h2>
                 </div>
                 
                 <div className="space-y-3">
@@ -93,7 +93,7 @@ export default async function HistoryPage() {
                               <div className="flex items-start justify-between">
                                 <div>
                                   <h3 className="font-semibold text-lg mb-1">{hack.name}</h3>
-                                  <p className="text-sm text-gray-600 line-clamp-2">
+                                  <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
                                     {hack.description}
                                   </p>
                                 </div>
@@ -111,7 +111,7 @@ export default async function HistoryPage() {
                                   )}
                                 </div>
                               </div>
-                              <div className="mt-2 text-xs text-gray-500">
+                              <div className="mt-2 text-xs text-gray-500 dark:text-gray-300 dark:text-gray-500">
                                 Completed at {new Date(hack.viewedAt || hack.createdAt).toLocaleTimeString('en-US', {
                                   hour: '2-digit',
                                   minute: '2-digit',

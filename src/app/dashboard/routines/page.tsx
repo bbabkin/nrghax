@@ -79,7 +79,7 @@ async function RoutineCard({ routine, canEdit }: { routine: any; canEdit: boolea
       <CardContent>
         <div className="space-y-3">
           {/* Stats */}
-          <div className="flex items-center gap-4 text-sm text-gray-600">
+          <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-300">
             <span className="flex items-center gap-1">
               <BookOpen className="h-4 w-4" />
               {routine._count?.routineHacks || 0} hacks
@@ -184,7 +184,7 @@ export default async function DashboardRoutinesPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">My Routines</h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-gray-600 dark:text-gray-300 mt-2">
               Create and manage your energy hack routines
             </p>
           </div>
@@ -211,9 +211,9 @@ export default async function DashboardRoutinesPage() {
           {ownRoutines.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
-                <BookOpen className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <BookOpen className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No routines yet</h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
                   Create your first routine to organize your energy hacks
                 </p>
                 <Link href="/dashboard/routines/new">
@@ -241,9 +241,9 @@ export default async function DashboardRoutinesPage() {
           {followedRoutines.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
-                <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <Users className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Not following any routines</h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
                   Discover public routines to follow
                 </p>
                 <Link href="/routines">

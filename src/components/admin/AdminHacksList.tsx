@@ -115,7 +115,7 @@ export function AdminHacksList({ initialHacks }: AdminHacksListProps) {
     <div className="space-y-6">
       {/* Search Bar */}
       <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
         <Input
           type="text"
           placeholder="Search hacks..."
@@ -145,7 +145,7 @@ export function AdminHacksList({ initialHacks }: AdminHacksListProps) {
           <div className="grid gap-4">
             {filteredHacks.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-500">
+                <p className="text-gray-500 dark:text-gray-300 dark:text-gray-500">
                   {searchQuery
                     ? 'No hacks found matching your search.'
                     : 'No hacks available yet.'}

@@ -69,7 +69,7 @@ export default function AdminCheckPage() {
           </CardHeader>
           <CardContent>
             <p className="text-red-600">{error}</p>
-            <p className="mt-4 text-sm text-gray-600">
+            <p className="mt-4 text-sm text-gray-600 dark:text-gray-300">
               Please make sure you are logged in to check your admin status.
             </p>
           </CardContent>

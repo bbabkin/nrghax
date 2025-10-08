@@ -243,7 +243,7 @@ export function TagAssignment({ initialTags, initialHacks }: TagAssignmentProps)
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="font-medium">{hack.name}</div>
-                    <div className="text-sm text-gray-600 mt-1">
+                    <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                       {hack.description}
                     </div>
                     <div className="flex flex-wrap gap-1 mt-2">
@@ -296,7 +296,7 @@ export function TagAssignment({ initialTags, initialHacks }: TagAssignmentProps)
           </h2>
           
           {selectedHacks.length === 0 ? (
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-500 dark:text-gray-300 text-sm">
               Select a hack to assign tags
             </p>
           ) : (

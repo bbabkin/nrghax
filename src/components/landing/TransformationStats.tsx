@@ -97,7 +97,7 @@ export function TransformationStats() {
   };
 
   return (
-    <section ref={ref} className="py-20 px-4 bg-gradient-to-b from-transparent to-black/50">
+    <section ref={ref} className="py-20 px-4 bg-black/10">
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <motion.div

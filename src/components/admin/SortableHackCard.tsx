@@ -94,17 +94,17 @@ export function SortableHackCard({ hack }: SortableHackCardProps) {
       <div
         ref={setNodeRef}
         style={style}
-        className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+        className="bg-card rounded-lg shadow-sm border border-border hover:shadow-md transition-shadow"
       >
         <div className="flex items-center gap-4 p-4">
           {/* Drag Handle */}
           <button
             {...attributes}
             {...listeners}
-            className="touch-none p-2 bg-gray-50 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing transition-colors"
+            className="touch-none p-2 bg-muted hover:bg-muted/80 rounded cursor-grab active:cursor-grabbing transition-colors"
             aria-label="Drag to reorder"
           >
-            <GripVertical className="h-5 w-5 text-gray-600" />
+            <GripVertical className="h-5 w-5 text-gray-600 dark:text-gray-300" />
           </button>
 
           {/* Image */}
@@ -123,7 +123,7 @@ export function SortableHackCard({ hack }: SortableHackCardProps) {
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-lg truncate">{hack.name}</h3>
-                <p className="text-sm text-gray-600 line-clamp-2">
+                <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
                   {hack.description}
                 </p>
 
@@ -136,13 +136,13 @@ export function SortableHackCard({ hack }: SortableHackCardProps) {
                     </Badge>
                   )}
                   {hack.difficulty && (
-                    <span className="flex items-center gap-1 text-xs text-gray-500">
+                    <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-300 dark:text-gray-500">
                       <Target className="h-3 w-3" />
                       {hack.difficulty}
                     </span>
                   )}
                   {hack.timeMinutes && (
-                    <span className="flex items-center gap-1 text-xs text-gray-500">
+                    <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-300 dark:text-gray-500">
                       <Clock className="h-3 w-3" />
                       {hack.timeMinutes} min
                     </span>

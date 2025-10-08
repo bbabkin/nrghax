@@ -29,9 +29,9 @@ export function ExternalRedirect({ hackId, externalUrl }: ExternalRedirectProps)
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="text-center">
         <h1 className="text-2xl font-bold mb-4">Opening External Resource...</h1>
-        <p className="text-gray-600 mb-4">Opening in a new tab</p>
-        <p className="text-sm text-gray-500 mb-4">{externalUrl}</p>
-        <p className="text-xs text-gray-400">Redirecting back to hacks page...</p>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">Opening in a new tab</p>
+        <p className="text-sm text-gray-500 dark:text-gray-300 mb-4">{externalUrl}</p>
+        <p className="text-xs text-gray-400 dark:text-gray-300">Redirecting back to hacks page...</p>
         <a href="/hacks" className="text-blue-500 hover:underline mt-4 inline-block">
           ← Back to Hacks
         </a>

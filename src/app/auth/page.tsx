@@ -14,7 +14,7 @@ export default async function AuthPage() {
     <div className="container mx-auto px-4 py-8 max-w-md">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-2">Welcome to NRGHax</h1>
-        <p className="text-gray-600">Sign in to track your learning progress</p>
+        <p className="text-gray-600 dark:text-gray-300">Sign in to track your learning progress</p>
       </div>
       <SupabaseAuthForm />
     </div>

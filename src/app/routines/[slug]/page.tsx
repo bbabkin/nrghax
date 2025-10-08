@@ -111,7 +111,7 @@ export default async function RoutinePage({ params }: Props) {
         <div className="flex justify-between items-start mb-4">
           <div>
             <h1 className="text-3xl font-bold mb-2">{routine.name}</h1>
-            <p className="text-gray-600 text-lg">{routine.description}</p>
+            <p className="text-gray-600 dark:text-gray-300 text-lg">{routine.description}</p>
           </div>
           {canEdit && (
             <Link href={`/dashboard/routines/${routine.id}/edit`}>
@@ -124,7 +124,7 @@ export default async function RoutinePage({ params }: Props) {
         </div>
 
         {/* Meta info */}
-        <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
+        <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-300 mb-4">
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
             {totalTime} minutes total

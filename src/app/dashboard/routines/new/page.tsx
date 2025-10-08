@@ -34,14 +34,14 @@ export default async function NewRoutinePage() {
       <div className="mb-6">
         <Link
           href="/dashboard/routines"
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
+          className="inline-flex items-center text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
           Back to My Routines
         </Link>
 
         <h1 className="text-3xl font-bold">Create New Routine</h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-gray-600 dark:text-gray-300 mt-2">
           Organize your energy hacks into a structured routine
         </p>
       </div>
@@ -88,7 +88,7 @@ export default async function NewRoutinePage() {
                   type="url"
                   placeholder="https://example.com/image.jpg"
                 />
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">
                   Add a cover image to make your routine more appealing
                 </p>
               </div>
@@ -116,7 +116,7 @@ export default async function NewRoutinePage() {
             <CardContent>
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {hacks.length === 0 ? (
-                  <p className="text-gray-500 text-center py-4">
+                  <p className="text-gray-500 dark:text-gray-300 text-center py-4">
                     No hacks available. Create some hacks first.
                   </p>
                 ) : (
@@ -135,7 +135,7 @@ export default async function NewRoutinePage() {
                         className="flex-1 cursor-pointer"
                       >
                         <div className="font-medium">{hack.name}</div>
-                        <div className="text-sm text-gray-500 line-clamp-1">
+                        <div className="text-sm text-gray-500 dark:text-gray-300 line-clamp-1">
                           {hack.description}
                         </div>
                         <div className="flex gap-2 mt-1">
@@ -176,7 +176,7 @@ export default async function NewRoutinePage() {
             <CardContent>
               <div className="flex flex-wrap gap-2">
                 {tags.length === 0 ? (
-                  <p className="text-gray-500">No tags available.</p>
+                  <p className="text-gray-500 dark:text-gray-300 dark:text-gray-500">No tags available.</p>
                 ) : (
                   tags.map(tag => (
                     <div key={tag.id} className="flex items-center">

@@ -136,11 +136,11 @@ export function ImageUpload({
           className="border-2 border-dashed rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
           onClick={() => fileInputRef.current?.click()}
         >
-          <ImageIcon className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-          <p className="text-sm text-gray-600 mb-2">
+          <ImageIcon className="h-12 w-12 mx-auto mb-4 text-gray-400 dark:text-gray-300" />
+          <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
             Click to upload or drag and drop
           </p>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-gray-300 dark:text-gray-500">
             PNG, JPG, GIF or WebP (max {maxSizeMB}MB)
           </p>
         </div>

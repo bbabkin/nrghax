@@ -90,8 +90,8 @@ export function MediaInput({
       )}
 
       {showPreview && mediaType && mediaType !== 'none' && mediaUrl && (
-        <div className="p-4 border rounded-lg bg-gray-50">
-          <p className="text-sm text-gray-600 mb-2">Preview:</p>
+        <div className="p-4 border rounded-lg bg-muted">
+          <p className="text-sm text-muted-foreground mb-2">Preview:</p>
           <MediaEmbed
             type={mediaType}
             url={mediaUrl}
@@ -101,7 +101,7 @@ export function MediaInput({
       )}
 
       {mediaType && mediaType !== 'none' && (
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-muted-foreground">
           {mediaType === 'youtube' && (
             <p>Enter a YouTube URL (e.g., https://youtube.com/watch?v=VIDEO_ID) or just the video ID</p>
           )}

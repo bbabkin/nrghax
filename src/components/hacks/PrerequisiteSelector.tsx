@@ -60,7 +60,7 @@ export function PrerequisiteSelector({
           </SelectTrigger>
           <SelectContent>
             {availableForSelection.length === 0 ? (
-              <div className="px-2 py-1 text-sm text-gray-500">
+              <div className="px-2 py-1 text-sm text-gray-500 dark:text-gray-300 dark:text-gray-500">
                 No available hacks to add
               </div>
             ) : (

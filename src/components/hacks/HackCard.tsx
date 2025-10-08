@@ -159,16 +159,16 @@ export function HackCard({
           <div>
             <h3 className="font-semibold text-lg line-clamp-1">{hack.name}</h3>
             {hack.content_type === 'link' && (
-              <p className="text-xs text-gray-500 mt-0.5">External Link</p>
+              <p className="text-xs text-gray-500 dark:text-gray-300 mt-0.5">External Link</p>
             )}
           </div>
           {hack.content_type === 'link' ? (
-            <ExternalLink className="h-4 w-4 text-gray-500 flex-shrink-0 ml-2" />
+            <ExternalLink className="h-4 w-4 text-gray-500 dark:text-gray-300 flex-shrink-0 ml-2" />
           ) : (
-            <BookOpen className="h-4 w-4 text-gray-500 flex-shrink-0 ml-2" />
+            <BookOpen className="h-4 w-4 text-gray-500 dark:text-gray-300 flex-shrink-0 ml-2" />
           )}
         </div>
-        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{hack.description}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-300 dark:text-gray-500 line-clamp-2">{hack.description}</p>
         
         {/* Display tags as pills below description */}
         {hack.tags && hack.tags.length > 0 && (
@@ -176,7 +176,7 @@ export function HackCard({
             {hack.tags.map(tag => (
               <span
                 key={tag.id}
-                className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-full"
+                className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 dark:text-gray-200 dark:bg-gray-700 dark:text-gray-300 rounded-full"
               >
                 {tag.name}
               </span>
@@ -199,7 +199,7 @@ export function HackCard({
             <Heart
               className={cn(
                 "h-4 w-4 transition-colors",
-                isLiked && isAuthenticated ? "fill-red-500 text-red-500" : "text-gray-500"
+                isLiked && isAuthenticated ? "fill-red-500 text-red-500" : "text-gray-500 dark:text-gray-300 dark:text-gray-500"
               )}
             />
             <span>{likeCount}</span>
@@ -282,16 +282,16 @@ export function HackCard({
               <div className="flex-1">
                 <h3 className="font-semibold text-lg line-clamp-1">{hack.name}</h3>
                 {hack.content_type === 'link' && (
-                  <p className="text-xs text-gray-500 mt-0.5">External Link</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-300 mt-0.5">External Link</p>
                 )}
               </div>
               {hack.content_type === 'link' ? (
-                <ExternalLink className="h-4 w-4 text-gray-500 flex-shrink-0 ml-2" />
+                <ExternalLink className="h-4 w-4 text-gray-500 dark:text-gray-300 flex-shrink-0 ml-2" />
               ) : (
-                <BookOpen className="h-4 w-4 text-gray-500 flex-shrink-0 ml-2" />
+                <BookOpen className="h-4 w-4 text-gray-500 dark:text-gray-300 flex-shrink-0 ml-2" />
               )}
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{hack.description}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 dark:text-gray-500 line-clamp-2">{hack.description}</p>
 
             {/* Display tags as pills below description */}
             {hack.tags && hack.tags.length > 0 && (
@@ -299,7 +299,7 @@ export function HackCard({
                 {hack.tags.map(tag => (
                   <span
                     key={tag.id}
-                    className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-full"
+                    className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 dark:text-gray-200 dark:bg-gray-700 dark:text-gray-300 rounded-full"
                   >
                     {tag.name}
                   </span>
@@ -322,7 +322,7 @@ export function HackCard({
                 <Heart
                   className={cn(
                     "h-4 w-4 transition-colors",
-                    isLiked && isAuthenticated ? "fill-red-500 text-red-500" : "text-gray-500"
+                    isLiked && isAuthenticated ? "fill-red-500 text-red-500" : "text-gray-500 dark:text-gray-300 dark:text-gray-500"
                   )}
                 />
                 <span>{likeCount}</span>

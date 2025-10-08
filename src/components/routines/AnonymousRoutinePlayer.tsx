@@ -305,7 +305,7 @@ export function AnonymousRoutinePlayer({ routine }: AnonymousRoutinePlayerProps)
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading routine...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading routine...</p>
         </div>
       </div>
     );
@@ -313,23 +313,23 @@ export function AnonymousRoutinePlayer({ routine }: AnonymousRoutinePlayerProps)
 
   if (isCompleted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950 dark:to-blue-950 p-4">
         <Card className="max-w-lg w-full p-8 text-center">
           <Trophy className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-2">Routine Completed!</h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             Great job! You&apos;ve completed all {totalHacks} hacks in this routine.
           </p>
 
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200 rounded-lg p-6 mb-6">
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950 dark:to-blue-950 border-2 border-purple-200 dark:border-purple-800 rounded-lg p-6 mb-6">
             <div className="flex items-center justify-center gap-2 mb-3">
-              <UserPlus className="h-5 w-5 text-purple-600" />
-              <h3 className="font-semibold text-gray-900">Create a Free Account</h3>
+              <UserPlus className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <h3 className="font-semibold">Create a Free Account</h3>
             </div>
-            <p className="text-sm text-purple-600 font-medium mb-4">
+            <p className="text-sm text-purple-600 dark:text-purple-400 font-medium mb-4">
               ✨ Always free. No credit card required.
             </p>
-            <ul className="space-y-2 text-sm text-gray-700 text-left mb-4">
+            <ul className="space-y-2 text-sm text-foreground text-left mb-4">
               <li className="flex items-start gap-2">
                 <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                 <span>Save progress across all devices</span>
@@ -400,7 +400,7 @@ export function AnonymousRoutinePlayer({ routine }: AnonymousRoutinePlayerProps)
                 <X className="h-5 w-5" />
               </Button>
             </div>
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-gray-400 dark:text-gray-300">
               Progress: {completedHacks.size} of {totalHacks} completed
             </div>
             <div className="mt-2 w-full bg-gray-700 rounded-full h-2">
@@ -436,7 +436,7 @@ export function AnonymousRoutinePlayer({ routine }: AnonymousRoutinePlayerProps)
                       </span>
                     </div>
                     {hack.timeMinutes && (
-                      <span className="text-xs text-gray-400 ml-6">
+                      <span className="text-xs text-gray-400 dark:text-gray-500 ml-6">
                         {hack.timeMinutes} min
                       </span>
                     )}
@@ -491,7 +491,7 @@ export function AnonymousRoutinePlayer({ routine }: AnonymousRoutinePlayerProps)
 
           <div className="flex-1 text-center">
             <h2 className="text-xl font-semibold">{currentHack?.name}</h2>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
               Hack {currentIndex + 1} of {totalHacks}
             </p>
           </div>
@@ -645,7 +645,7 @@ export function AnonymousRoutinePlayer({ routine }: AnonymousRoutinePlayerProps)
 
         {/* Bottom bar - keyboard shortcuts */}
         <div className="bg-gray-800 px-4 py-3 border-t border-gray-700">
-          <div className="text-center text-xs text-gray-500">
+          <div className="text-center text-xs text-gray-500 dark:text-gray-300 dark:text-gray-500">
             Keyboard: ← → Navigate | Space Play/Pause | C Complete | M Menu
           </div>
         </div>
