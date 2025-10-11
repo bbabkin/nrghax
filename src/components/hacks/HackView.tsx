@@ -5,10 +5,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Lock, CheckCircle, ExternalLink, ArrowLeft } from 'lucide-react';
+import { Lock, CheckCircle, ExternalLink, ArrowLeft, Clock } from 'lucide-react';
 import { useLocalVisits } from '@/hooks/useLocalVisits';
 import { VideoPlayer, type VideoPlayerRef } from '@/components/ui/VideoPlayer';
 import { CommentSection } from '@/components/comments/CommentSection';
+import { formatDuration } from '@/lib/youtube';
 
 interface HackViewProps {
   hack: {
@@ -27,6 +28,7 @@ interface HackViewProps {
     isLiked?: boolean;
     likeCount?: number;
     viewCount?: number;
+    durationMinutes?: number | null;
     prerequisites?: Array<{
       id: string;
       name: string;
@@ -164,6 +166,12 @@ export function HackView({ hack, canAccess: serverCanAccess, user, children }: H
 
             <div className="flex items-center gap-4">
               {children}
+              {hack.durationMinutes && (
+                <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-300">
+                  <Clock className="h-4 w-4" />
+                  <span>{formatDuration(hack.durationMinutes)}</span>
+                </div>
+              )}
               <span className="text-sm text-gray-500 dark:text-gray-300 dark:text-gray-500">
                 {hack.viewCount || 0} visits
               </span>

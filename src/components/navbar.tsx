@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { SearchBar } from '@/components/ui/search-bar'
 import '@/styles/glitch.css'
 import {
   DropdownMenu,
@@ -111,9 +112,9 @@ export function Navbar({ user }: NavbarProps) {
   ]
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 w-full bg-white dark:bg-[#fb0] transition-all duration-300 ${
+    <nav className={`fixed top-0 left-0 right-0 z-50 w-full bg-white dark:bg-[#fb0] ${
       isScrolled ? 'shadow-md' : ''
-    }`}>
+    }`} style={{ transition: 'background-color 2s ease-in-out, box-shadow 300ms' }}>
       <div className="container mx-auto px-4">
         <div className={`flex items-center justify-between transition-all duration-300 ${
           isScrolled ? 'h-12' : 'h-16'
@@ -122,7 +123,7 @@ export function Navbar({ user }: NavbarProps) {
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2 group">
               <span
-                className="text-xl font-bold text-black dark:text-black relative"
+                className="text-xl font-bold text-black dark:text-black relative transition-colors duration-500"
               >
                 NRG Hax
               </span>
@@ -130,22 +131,27 @@ export function Navbar({ user }: NavbarProps) {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex md:items-center md:space-x-6">
+          <div className="hidden md:flex md:items-center md:space-x-6 md:ml-24">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-medium text-black dark:text-black hover:text-black/70 transition-colors pb-1 ${
+                className={`text-sm font-medium text-black dark:text-black hover:text-black/70 pb-1 ${
                   isActive(link.href) ? 'border-b-4 border-black' : ''
                 }`}
+                style={{ transition: 'color 500ms ease-in-out, border-color 500ms ease-in-out' }}
               >
                 {link.label}
               </Link>
             ))}
           </div>
 
-          {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex md:items-center md:space-x-4">
+          {/* Right side: Search + Auth */}
+          <div className="hidden md:flex md:items-center md:gap-3 md:flex-1 md:justify-end">
+            {/* Search Bar - Desktop */}
+            <div className="w-full" style={{ maxWidth: '200px' }}>
+              <SearchBar placeholder="" />
+            </div>
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -256,12 +262,16 @@ export function Navbar({ user }: NavbarProps) {
             ) : (
               <>
                 <ThemeToggle />
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/auth">Login</Link>
-                </Button>
-                <Button size="sm" asChild>
-                  <Link href="/auth">Sign Up</Link>
-                </Button>
+                <Link
+                  href="/auth"
+                  className="inline-flex items-center justify-center h-8 px-6 bg-black dark:bg-white text-white dark:text-black font-medium text-sm hover:bg-black/80 dark:hover:bg-white/80 whitespace-nowrap"
+                  style={{
+                    clipPath: 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)',
+                    transition: 'background-color 500ms ease-in-out, color 500ms ease-in-out'
+                  }}
+                >
+                  Login
+                </Link>
               </>
             )}
           </div>
@@ -280,11 +290,17 @@ export function Navbar({ user }: NavbarProps) {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t">
             <div className="flex flex-col space-y-3">
+              {/* Search Bar - Mobile */}
+              <div className="px-2">
+                <SearchBar />
+              </div>
+
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="px-2 py-2 text-sm font-medium text-black dark:text-black hover:text-black/70 transition-colors"
+                  className="px-2 py-2 text-sm font-medium text-black dark:text-black hover:text-black/70"
+                  style={{ transition: 'color 500ms ease-in-out' }}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {link.label}
@@ -338,14 +354,16 @@ export function Navbar({ user }: NavbarProps) {
                     </Button>
                   </>
                 ) : (
-                  <>
-                    <Button variant="outline" size="sm" className="w-full" asChild>
-                      <Link href="/auth">Login</Link>
-                    </Button>
-                    <Button size="sm" className="w-full" asChild>
-                      <Link href="/auth">Sign Up</Link>
-                    </Button>
-                  </>
+                  <Link
+                    href="/auth"
+                    className="w-full px-6 py-2 bg-black dark:bg-white text-white dark:text-black font-medium text-sm text-center hover:bg-black/80 dark:hover:bg-white/80"
+                    style={{
+                      clipPath: 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)',
+                      transition: 'background-color 500ms ease-in-out, color 500ms ease-in-out'
+                    }}
+                  >
+                    Login
+                  </Link>
                 )}
               </div>
             </div>

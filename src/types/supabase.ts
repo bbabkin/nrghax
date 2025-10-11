@@ -262,6 +262,7 @@ export type Database = {
           created_by: string | null
           description: string
           difficulty: string | null
+          duration_minutes: number | null
           external_link: string | null
           id: string
           image_path: string | null
@@ -284,6 +285,7 @@ export type Database = {
           created_by?: string | null
           description: string
           difficulty?: string | null
+          duration_minutes?: number | null
           external_link?: string | null
           id?: string
           image_path?: string | null
@@ -306,6 +308,7 @@ export type Database = {
           created_by?: string | null
           description?: string
           difficulty?: string | null
+          duration_minutes?: number | null
           external_link?: string | null
           id?: string
           image_path?: string | null

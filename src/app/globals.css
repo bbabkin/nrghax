@@ -52,9 +52,11 @@
 @layer base {
   * {
     @apply border-border;
+    transition: border-color 500ms ease-in-out;
   }
   body {
     @apply bg-background text-foreground;
+    transition: background-color 2s ease-in-out, color 500ms ease-in-out;
   }
 
   /* Heading fonts */

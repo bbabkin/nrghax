@@ -7,11 +7,12 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Heart, Users, BookOpen, Trash2, Edit, Globe, Lock, PlayCircle, CheckCircle2 } from 'lucide-react';
+import { Heart, Users, BrainCircuit, Trash2, Edit, Globe, Lock, PlayCircle, CheckCircle2, Clock } from 'lucide-react';
 import { toggleRoutineLike, deleteRoutine, startRoutine } from '@/lib/routines/actions';
 import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/components/ui/confirmation-dialog';
 import { useToast } from '@/components/ui/use-toast';
+import { formatDuration } from '@/lib/youtube';
 
 interface RoutineCardProps {
   routine: {
@@ -38,6 +39,7 @@ interface RoutineCardProps {
     isStarted?: boolean;
     isCompleted?: boolean;
     progress?: number;
+    totalDuration?: number;
   };
   currentUserId?: string;
   isAdmin?: boolean;
@@ -163,20 +165,9 @@ export function RoutineCard({
           className="object-cover"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
-        <div className="absolute top-2 left-2 right-2 flex items-start justify-between">
-          {/* Stack count badge */}
-          <Badge className="bg-purple-600 text-white shadow-lg">
-            <BookOpen className="h-3 w-3 mr-1" />
-            {routine._count?.routineHacks || 0} hacks
-          </Badge>
-
-          <div className="flex gap-2">
-            {routine.isPublic ? (
-              <Badge className="bg-green-500">
-                <Globe className="h-3 w-3 mr-1" />
-                Public
-              </Badge>
-            ) : (
+        <div className="absolute top-0 left-2 right-0 flex items-start justify-between">
+          <div className="flex gap-2 mt-2">
+            {!routine.isPublic && (
               <Badge variant="secondary">
                 <Lock className="h-3 w-3 mr-1" />
                 Private
@@ -188,6 +179,12 @@ export function RoutineCard({
                 Completed
               </Badge>
             )}
+          </div>
+
+          {/* Stack count badge - square flush with top-right corner */}
+          <div className="bg-purple-600 text-white shadow-lg px-1.5 py-1 flex items-center gap-0.5 text-[10px] font-medium rounded-tr-lg translate-x-px -translate-y-px">
+            <BrainCircuit className="h-2.5 w-2.5" />
+            {routine._count?.routineHacks || 0} hacks
           </div>
         </div>
         {routine.progress !== undefined && routine.progress > 0 && !routine.isCompleted && (
@@ -211,9 +208,18 @@ export function RoutineCard({
 
         <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-300 dark:text-gray-500">
           <span className="flex items-center gap-1">
-            <BookOpen className="h-4 w-4" />
+            <BrainCircuit className="h-4 w-4" />
             {routine._count?.routineHacks || 0} hacks
           </span>
+          {routine.totalDuration && (
+            <>
+              <span className="text-xs text-gray-400">•</span>
+              <span className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                {formatDuration(routine.totalDuration)}
+              </span>
+            </>
+          )}
           {routine.progress !== undefined && routine.progress > 0 && (
             <span>{routine.progress}% complete</span>
           )}
@@ -312,13 +318,13 @@ export function RoutineCard({
 
   return (
     <Link href={`/routines/${routine.slug}`}>
-      <div className="relative group">
+      <div className="relative group hover:-translate-y-2 hover:[filter:drop-shadow(0_15px_20px_rgba(0,0,0,0.15))_drop-shadow(0_25px_35px_rgba(0,0,0,0.1))] transition-all duration-500" style={{ filter: 'drop-shadow(0 6px 8px rgba(0, 0, 0, 0.1)) drop-shadow(0 12px 18px rgba(0, 0, 0, 0.1))' }}>
         {/* Stack effect - bottom cards */}
-        <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg shadow-md transform translate-x-2 translate-y-2 opacity-60 transition-all duration-300 group-hover:translate-x-3 group-hover:translate-y-3" />
-        <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg shadow-md transform translate-x-1 translate-y-1 opacity-80 transition-all duration-300 group-hover:translate-x-1.5 group-hover:translate-y-1.5" />
+        <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg transform translate-x-2 translate-y-2 opacity-60 group-hover:translate-x-3 group-hover:translate-y-3 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]" style={{ clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)', transition: 'background-color 2s ease-in-out, transform 500ms' }} />
+        <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg transform translate-x-1 translate-y-1 opacity-80 group-hover:translate-x-1.5 group-hover:translate-y-1.5 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]" style={{ clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)', transition: 'background-color 2s ease-in-out, transform 500ms' }} />
 
         {/* Main card */}
-        <Card className="relative overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-1 dark:hover:shadow-[0_0_20px_rgba(255,255,255,0.25)] transition-all duration-300 bg-white dark:bg-gray-800">
+        <Card className="border-0 relative overflow-hidden cursor-pointer transition-all duration-500 bg-white dark:bg-gray-800 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]" style={{ clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)' }}>
           {cardContent}
         </Card>
       </div>

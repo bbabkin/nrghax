@@ -11,9 +11,10 @@ import { RichTextEditor } from './RichTextEditor';
 import { PrerequisiteSelector } from './PrerequisiteSelector';
 import { TagSelector } from './TagSelector';
 import { createHackWithImage, updateHackWithImage } from '@/lib/hacks/client-actions';
-import { Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
+import { Loader2, Upload, X, Image as ImageIcon, Clock } from 'lucide-react';
 import Image from 'next/image';
 import { MediaInput } from '@/components/ui/media-input';
+import { extractYouTubeVideoId, fetchYouTubeDuration, isYouTubeUrl } from '@/lib/youtube';
 
 interface HackFormProps {
   hack?: {
@@ -40,6 +41,8 @@ interface HackFormProps {
     mediaThumbnailUrl?: string | null;
     prerequisite_ids?: string[];
     prerequisiteIds?: string[];
+    duration_minutes?: number | null;
+    durationMinutes?: number | null;
   };
   availableHacks: { id: string; name: string }[];
   userId: string;
@@ -75,6 +78,10 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
   );
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [durationMinutes, setDurationMinutes] = useState<number | null>(
+    hack?.duration_minutes || hack?.durationMinutes || null
+  );
+  const [isFetchingDuration, setIsFetchingDuration] = useState(false);
 
   // Construct image URL from either imageUrl or imagePath
   const getImageUrl = () => {
@@ -138,6 +145,44 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
     }
   };
 
+  const handleFetchYouTubeDuration = async () => {
+    const externalLinkInput = document.getElementById('external_link') as HTMLInputElement;
+    const url = externalLinkInput?.value;
+
+    if (!url) {
+      setError('Please enter a YouTube URL first');
+      return;
+    }
+
+    if (!isYouTubeUrl(url)) {
+      setError('URL is not a valid YouTube link');
+      return;
+    }
+
+    const videoId = extractYouTubeVideoId(url);
+    if (!videoId) {
+      setError('Could not extract YouTube video ID from URL');
+      return;
+    }
+
+    setIsFetchingDuration(true);
+    setError(null);
+
+    try {
+      const duration = await fetchYouTubeDuration(videoId);
+      if (duration) {
+        setDurationMinutes(duration);
+      } else {
+        setError('Could not fetch video duration. YouTube API key may be missing or video ID invalid.');
+      }
+    } catch (err) {
+      setError('Failed to fetch video duration');
+      console.error('Error fetching YouTube duration:', err);
+    } finally {
+      setIsFetchingDuration(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
@@ -183,6 +228,7 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
         media_type: mediaType === 'none' ? null : (mediaType || null),
         media_url: mediaType === 'none' ? null : (mediaUrl || null),
         prerequisite_ids: prerequisites,
+        duration_minutes: durationMinutes,
       };
 
       let hackId: string;
@@ -251,6 +297,48 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
           placeholder="Enter hack description"
           rows={3}
         />
+      </div>
+
+      <div>
+        <Label htmlFor="duration_minutes">Duration (minutes)</Label>
+        <div className="flex gap-2">
+          <Input
+            id="duration_minutes"
+            name="duration_minutes"
+            type="number"
+            min="0"
+            value={durationMinutes || ''}
+            onChange={(e) => setDurationMinutes(e.target.value ? parseInt(e.target.value) : null)}
+            placeholder="Enter duration in minutes"
+            className="flex-1"
+          />
+          {contentType === 'link' && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleFetchYouTubeDuration}
+              disabled={isFetchingDuration}
+              className="flex items-center gap-2"
+            >
+              {isFetchingDuration ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Fetching...
+                </>
+              ) : (
+                <>
+                  <Clock className="h-4 w-4" />
+                  Fetch from YouTube
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+        <p className="text-sm text-gray-500 dark:text-gray-300 dark:text-gray-500 mt-1">
+          {contentType === 'link'
+            ? 'Enter duration manually or click "Fetch from YouTube" for YouTube videos'
+            : 'Enter the duration of this hack content in minutes'}
+        </p>
       </div>
 
       <div>

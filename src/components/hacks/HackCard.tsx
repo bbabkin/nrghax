@@ -7,13 +7,14 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Heart, Lock, CheckCircle, ExternalLink, BookOpen, Trash2, Eye } from 'lucide-react';
+import { Heart, Lock, CheckCircle, ExternalLink, BookOpen, Trash2, Eye, Clock } from 'lucide-react';
 import { toggleLike, deleteHack } from '@/lib/hacks/actions';
 import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/components/ui/confirmation-dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { useLocalVisits } from '@/hooks/useLocalVisits';
 import { useAuth } from '@/hooks/useAuth';
+import { formatDuration } from '@/lib/youtube';
 
 interface HackCardProps {
   hack: {
@@ -29,6 +30,7 @@ interface HackCardProps {
     view_count?: number;
     is_liked?: boolean;
     is_completed?: boolean;
+    duration_minutes?: number | null;
     tags?: Array<{ id: string; name: string; slug: string }>;
   };
   hasIncompletePrerequisites?: boolean;
@@ -158,9 +160,20 @@ export function HackCard({
         <div className="flex items-start justify-between mb-2">
           <div>
             <h3 className="font-semibold text-lg line-clamp-1">{hack.name}</h3>
-            {hack.content_type === 'link' && (
-              <p className="text-xs text-gray-500 dark:text-gray-300 mt-0.5">External Link</p>
-            )}
+            <div className="flex items-center gap-2 mt-0.5">
+              {hack.content_type === 'link' && (
+                <p className="text-xs text-gray-500 dark:text-gray-300">External Link</p>
+              )}
+              {hack.duration_minutes && (
+                <>
+                  {hack.content_type === 'link' && <span className="text-xs text-gray-400">•</span>}
+                  <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-300">
+                    <Clock className="h-3 w-3" />
+                    {formatDuration(hack.duration_minutes)}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
           {hack.content_type === 'link' ? (
             <ExternalLink className="h-4 w-4 text-gray-500 dark:text-gray-300 flex-shrink-0 ml-2" />
@@ -169,7 +182,7 @@ export function HackCard({
           )}
         </div>
         <p className="text-sm text-gray-600 dark:text-gray-300 dark:text-gray-500 line-clamp-2">{hack.description}</p>
-        
+
         {/* Display tags as pills below description */}
         {hack.tags && hack.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-3">
@@ -239,9 +252,11 @@ export function HackCard({
   if (isLocked) {
     return (
       <Link href={`/hacks/${hack.slug || hack.id}`}>
-        <Card className="overflow-hidden opacity-75 cursor-pointer hover:opacity-90 hover:shadow-lg hover:-translate-y-1 dark:hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-500">
-          {cardContent}
-        </Card>
+        <div className="opacity-75 hover:opacity-90 hover:-translate-y-2 transition-all duration-500" style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))' }}>
+          <Card className="border-0 overflow-hidden cursor-pointer transition-all duration-500 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]" style={{ clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)' }}>
+            {cardContent}
+          </Card>
+        </div>
       </Link>
     );
   }
@@ -250,116 +265,11 @@ export function HackCard({
   if (isAdmin && showActions) {
     return (
       <Link href={`/hacks/${hack.slug || hack.id}`}>
-        <Card className="overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 dark:hover:shadow-[0_0_20px_rgba(255,255,255,0.25)] transition-all duration-500">
-          <div className="relative aspect-video w-full overflow-hidden rounded-t-lg">
-            <Image
-              src={getImageSrc()}
-              alt={hack.name}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
-            {isLocked && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                <Lock className="h-12 w-12 text-white" />
-              </div>
-            )}
-            {isHackVisited && (
-              <Badge className="absolute top-2 right-2 bg-blue-500">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Visited
-              </Badge>
-            )}
-            {hack.view_count && hack.view_count > 1 && (
-              <Badge className="absolute top-2 right-20 bg-gray-700 text-white">
-                <Eye className="h-3 w-3 mr-1" />
-                x{hack.view_count}
-              </Badge>
-            )}
-          </div>
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg line-clamp-1">{hack.name}</h3>
-                {hack.content_type === 'link' && (
-                  <p className="text-xs text-gray-500 dark:text-gray-300 mt-0.5">External Link</p>
-                )}
-              </div>
-              {hack.content_type === 'link' ? (
-                <ExternalLink className="h-4 w-4 text-gray-500 dark:text-gray-300 flex-shrink-0 ml-2" />
-              ) : (
-                <BookOpen className="h-4 w-4 text-gray-500 dark:text-gray-300 flex-shrink-0 ml-2" />
-              )}
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-300 dark:text-gray-500 line-clamp-2">{hack.description}</p>
-
-            {/* Display tags as pills below description */}
-            {hack.tags && hack.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-3">
-                {hack.tags.map(tag => (
-                  <span
-                    key={tag.id}
-                    className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 dark:text-gray-200 dark:bg-gray-700 dark:text-gray-300 rounded-full"
-                  >
-                    {tag.name}
-                  </span>
-                ))}
-              </div>
-            )}
-          </CardContent>
-
-          {showActions && (
-            <CardFooter className="p-4 pt-0 flex items-center justify-between">
-              <button
-                onClick={handleLike}
-                className={cn(
-                  "flex items-center gap-1 text-sm",
-                  !isAuthenticated && "hover:opacity-70"
-                )}
-                disabled={isLiking}
-                title={!isAuthenticated ? "Sign in to like" : undefined}
-              >
-                <Heart
-                  className={cn(
-                    "h-4 w-4 transition-colors",
-                    isLiked && isAuthenticated ? "fill-red-500 text-red-500" : "text-gray-500 dark:text-gray-300 dark:text-gray-500"
-                  )}
-                />
-                <span>{likeCount}</span>
-              </button>
-
-              {isAdmin && (
-                <div className="flex gap-2" onClick={(e) => e.preventDefault()}>
-                  <Button size="sm" variant="outline" onClick={(e) => {
-                    e.preventDefault();
-                    window.location.href = `/admin/hacks/${hack.id}/edit`;
-                  }}>
-                    Edit
-                  </Button>
-                  <ConfirmDialog
-                    title="Delete Hack"
-                    description="Are you sure you want to delete this hack? This action cannot be undone."
-                    onConfirm={handleDelete}
-                  >
-                    {({ onClick }) => (
-                      <Button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          onClick();
-                        }}
-                        size="sm"
-                        variant="destructive"
-                        disabled={isDeleting}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </ConfirmDialog>
-                </div>
-              )}
-            </CardFooter>
-          )}
-        </Card>
+        <div className="hover:-translate-y-2 transition-all duration-500" style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1)) drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1))' }}>
+          <Card className="border-0 overflow-hidden cursor-pointer transition-all duration-500 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]" style={{ clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)' }}>
+            {cardContent}
+          </Card>
+        </div>
       </Link>
     );
   }
@@ -368,9 +278,11 @@ export function HackCard({
   if (hack.content_type === 'link' && hack.external_link) {
     return (
       <Link href={`/hacks/${hack.slug || hack.id}`}>
-        <Card className="overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 dark:hover:shadow-[0_0_20px_rgba(255,255,255,0.25)] transition-all duration-500">
-          {cardContent}
-        </Card>
+        <div className="hover:-translate-y-2 hover:[filter:drop-shadow(0_10px_15px_rgba(0,0,0,0.15))_drop-shadow(0_20px_25px_rgba(0,0,0,0.1))] transition-all duration-500" style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1)) drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1))' }}>
+          <Card className="border-0 overflow-hidden cursor-pointer transition-all duration-500 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]" style={{ clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)' }}>
+            {cardContent}
+          </Card>
+        </div>
       </Link>
     );
   }
@@ -378,9 +290,11 @@ export function HackCard({
   // For internal content, use Next.js Link normally
   return (
     <Link href={`/hacks/${hack.slug || hack.id}`}>
-      <Card className="overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 dark:hover:shadow-[0_0_20px_rgba(255,255,255,0.25)] transition-all duration-500">
-        {cardContent}
-      </Card>
+      <div className="hover:-translate-y-2 hover:[filter:drop-shadow(0_10px_15px_rgba(0,0,0,0.15))_drop-shadow(0_20px_25px_rgba(0,0,0,0.1))] transition-all duration-500" style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1)) drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1))' }}>
+        <Card className="border-0 overflow-hidden cursor-pointer transition-all duration-500 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]" style={{ clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)' }}>
+          {cardContent}
+        </Card>
+      </div>
     </Link>
   );
 }

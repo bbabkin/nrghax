@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 export function ThemeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [mounted, setMounted] = useState(false)
+  const [rotation, setRotation] = useState(0)
 
   useEffect(() => {
     setMounted(true)
@@ -17,6 +18,7 @@ export function ThemeToggle() {
     setTheme(currentTheme)
     if (currentTheme === 'dark') {
       document.documentElement.classList.add('dark')
+      setRotation(180)
     } else {
       document.documentElement.classList.remove('dark')
     }
@@ -26,6 +28,7 @@ export function ThemeToggle() {
     const newTheme = theme === 'light' ? 'dark' : 'light'
     setTheme(newTheme)
     localStorage.setItem('theme', newTheme)
+    setRotation(prev => prev + 180)
 
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark')
@@ -36,50 +39,54 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <div className="w-16 h-8 bg-gray-200 dark:bg-gray-700 rounded-full" />
+      <div
+        className="w-8 h-8"
+        style={{
+          backgroundColor: '#fb0',
+          clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))'
+        }}
+      />
     )
   }
 
   return (
     <button
       onClick={toggleTheme}
-      className="relative inline-flex h-8 w-16 items-center rounded-full bg-gray-200 dark:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+      className={cn(
+        "relative w-8 h-8 outline-none overflow-hidden shadow-md hover:shadow-lg"
+      )}
+      style={{
+        backgroundColor: theme === 'light' ? '#fb0' : '#000',
+        transition: 'background-color 500ms ease-in-out, box-shadow 200ms ease-in-out',
+        clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))'
+      }}
       aria-label="Toggle theme"
     >
       <span className="sr-only">Toggle theme</span>
 
-      {/* Icons container */}
-      <div className="relative w-full h-full flex items-center justify-between px-1">
-        {/* Sun icon (left) */}
-        <Sun
-          className={cn(
-            "h-5 w-5 transition-colors",
-            theme === 'light' ? 'text-yellow-500' : 'text-gray-400'
-          )}
-        />
+      {/* Icons container - watch-style rotation */}
+      {/* This is the BIG circle that rotates - button only shows the top portion */}
+      <div className="absolute left-1/2 top-0 -translate-x-1/2">
+        <div
+          className="relative transition-transform duration-500 ease-in-out"
+          style={{
+            transform: `rotate(${rotation}deg) translate(0, -4px)`,
+            transformOrigin: 'center 50px',
+            width: '32px',
+            height: '100px'
+          }}
+        >
+          {/* Sun icon - at top of the big circle (0 degrees) */}
+          <div className="absolute left-1/2 -translate-x-1/2" style={{ top: '12px' }}>
+            <Sun className="w-4 h-4 text-black" />
+          </div>
 
-        {/* Moon icon (right) */}
-        <Moon
-          className={cn(
-            "h-5 w-5 transition-colors",
-            theme === 'dark' ? 'text-blue-400' : 'text-gray-400'
-          )}
-        />
+          {/* Moon icon - at bottom of the big circle (180 degrees) */}
+          <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: '12px' }}>
+            <Moon className="w-4 h-4 text-white" style={{ transform: 'translate(0px, 8px) rotate(185deg)' }} />
+          </div>
+        </div>
       </div>
-
-      {/* Sliding circle */}
-      <span
-        className={cn(
-          "absolute top-0.5 left-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-white dark:bg-gray-900 shadow-sm transition-transform duration-200",
-          theme === 'dark' && 'translate-x-8'
-        )}
-      >
-        {theme === 'light' ? (
-          <Sun className="h-4 w-4 text-yellow-500" />
-        ) : (
-          <Moon className="h-4 w-4 text-blue-400" />
-        )}
-      </span>
     </button>
   )
 }

@@ -68,7 +68,11 @@ export function RoutinePlayer({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
+  const autoplayTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isAutoNavigationRef = useRef(false);
 
   const currentHack = routine.hacks[currentIndex];
   const totalHacks = routine.hacks.length;
@@ -110,7 +114,7 @@ export function RoutinePlayer({
   }, [currentHack, completedHacks, routine.id]);
 
   // Navigate to next hack
-  const goToNext = useCallback(async () => {
+  const goToNext = useCallback(async (isAutoNav = false) => {
     if (isLastHack) {
       setIsCompleted(true);
       await completeCurrentHack();
@@ -119,6 +123,21 @@ export function RoutinePlayer({
 
     await completeCurrentHack();
     const nextIndex = currentIndex + 1;
+
+    // Clear any existing timers
+    if (autoplayTimerRef.current) {
+      clearTimeout(autoplayTimerRef.current);
+      autoplayTimerRef.current = null;
+    }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    setCountdown(null);
+
+    // Track whether this is auto-navigation
+    isAutoNavigationRef.current = isAutoNav;
+
     setCurrentIndex(nextIndex);
     await savePosition(nextIndex);
     setError(null);
@@ -127,6 +146,20 @@ export function RoutinePlayer({
   // Navigate to previous hack
   const goToPrevious = useCallback(async () => {
     if (isFirstHack) return;
+
+    // Clear any existing timers
+    if (autoplayTimerRef.current) {
+      clearTimeout(autoplayTimerRef.current);
+      autoplayTimerRef.current = null;
+    }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    setCountdown(null);
+
+    // Manual navigation
+    isAutoNavigationRef.current = false;
 
     const prevIndex = currentIndex - 1;
     setCurrentIndex(prevIndex);
@@ -137,6 +170,21 @@ export function RoutinePlayer({
   // Jump to specific hack
   const goToHack = useCallback(async (index: number) => {
     if (index < 0 || index >= totalHacks) return;
+
+    // Clear any existing timers
+    if (autoplayTimerRef.current) {
+      clearTimeout(autoplayTimerRef.current);
+      autoplayTimerRef.current = null;
+    }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    setCountdown(null);
+
+    // Manual navigation
+    isAutoNavigationRef.current = false;
+
     setCurrentIndex(index);
     await savePosition(index);
     setIsSidebarOpen(false);
@@ -205,7 +253,7 @@ export function RoutinePlayer({
       // Small delay for smooth transition
       console.log('Auto-advancing to next hack in 500ms...');
       setTimeout(() => {
-        goToNext();
+        goToNext(true); // true = auto-navigation
       }, 500);
     }
   }, [autoplayEnabled, isLastHack, currentHack, goToNext, completeCurrentHack, completedHacks, currentIndex, routine.id, totalHacks]);
@@ -222,6 +270,85 @@ export function RoutinePlayer({
     onAutoplayChange?.(checked);
     await toggleAutoplay(routine.id, checked);
   }, [routine.id, onAutoplayChange]);
+
+  // Cancel autoplay countdown
+  const cancelAutoplay = useCallback(() => {
+    if (autoplayTimerRef.current) {
+      clearTimeout(autoplayTimerRef.current);
+      autoplayTimerRef.current = null;
+    }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    setCountdown(null);
+  }, []);
+
+  // 5-second delayed autoplay for videos with countdown (only on auto-navigation)
+  useEffect(() => {
+    // Clear any existing timers
+    if (autoplayTimerRef.current) {
+      clearTimeout(autoplayTimerRef.current);
+      autoplayTimerRef.current = null;
+    }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    setCountdown(null);
+
+    // Only autoplay if enabled and current hack has a video
+    if (autoplayEnabled && currentHack?.mediaUrl && currentHack?.mediaType) {
+      const isAutoNav = isAutoNavigationRef.current;
+      console.log('Autoplay check - isAutoNav:', isAutoNav, 'hack:', currentHack.name);
+
+      if (isAutoNav) {
+        // Auto-navigation: Show countdown and autoplay
+        console.log('Auto-navigation: Starting 5-second countdown');
+        setCountdown(5);
+
+        // Countdown timer (ticks every second)
+        let currentCount = 5;
+        countdownIntervalRef.current = setInterval(() => {
+          currentCount -= 1;
+          console.log('Countdown:', currentCount);
+          setCountdown(currentCount);
+
+          if (currentCount <= 0) {
+            if (countdownIntervalRef.current) {
+              clearInterval(countdownIntervalRef.current);
+              countdownIntervalRef.current = null;
+            }
+          }
+        }, 1000);
+
+        // Autoplay timer (fires after 5 seconds)
+        autoplayTimerRef.current = setTimeout(() => {
+          console.log('Autoplay timer fired, playing video');
+          videoPlayerRef.current?.play();
+          setCountdown(null);
+        }, 5000);
+      } else {
+        // Manual navigation: Leave video paused (no action needed)
+        console.log('Manual navigation: Video will remain paused');
+      }
+    } else {
+      console.log('No autoplay - autoplayEnabled:', autoplayEnabled, 'mediaUrl:', currentHack?.mediaUrl, 'mediaType:', currentHack?.mediaType);
+    }
+
+    // Cleanup on unmount or when hack changes
+    return () => {
+      if (autoplayTimerRef.current) {
+        clearTimeout(autoplayTimerRef.current);
+        autoplayTimerRef.current = null;
+      }
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
+      setCountdown(null);
+    };
+  }, [currentIndex, currentHack?.id, autoplayEnabled, currentHack?.mediaUrl, currentHack?.mediaType]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -247,14 +374,19 @@ export function RoutinePlayer({
           break;
         case 'Escape':
           e.preventDefault();
-          router.push(`/routines/${routine.slug}`);
+          // Cancel autoplay countdown if active
+          if (countdown !== null && countdown > 0) {
+            cancelAutoplay();
+          } else {
+            router.push(`/routines/${routine.slug}`);
+          }
           break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [goToNext, goToPrevious, routine.slug, router]);
+  }, [goToNext, goToPrevious, routine.slug, router, countdown, cancelAutoplay]);
 
   // Completion screen
   if (isCompleted) {
@@ -355,6 +487,27 @@ export function RoutinePlayer({
               {/* Video player or content */}
               {currentHack?.mediaType && currentHack?.mediaUrl ? (
                 <div className="mb-6">
+                  {/* Countdown indicator */}
+                  {countdown !== null && countdown > 0 && (
+                    <div className="mb-3 bg-blue-600 text-white rounded-lg p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-10 h-10 bg-white text-blue-600 rounded-full font-bold text-lg">
+                          {countdown}
+                        </div>
+                        <span className="text-sm">Video starting in {countdown} second{countdown !== 1 ? 's' : ''}...</span>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={cancelAutoplay}
+                        className="bg-white text-blue-600 hover:bg-gray-100"
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+
                   {error ? (
                     <div className="aspect-video bg-gray-900 rounded-lg flex flex-col items-center justify-center text-white p-6 text-center">
                       <p className="font-semibold mb-4">Error loading video</p>
@@ -369,7 +522,7 @@ export function RoutinePlayer({
                       ref={videoPlayerRef}
                       type={currentHack.mediaType}
                       url={currentHack.mediaUrl}
-                      autoplay
+                      autoplay={false}
                       onEnded={handleVideoEnd}
                       onError={handleVideoError}
                       title={currentHack.name}

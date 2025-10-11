@@ -19,6 +19,7 @@ export type HackFormData = {
   prerequisiteIds?: string[];
   difficulty?: string;
   timeMinutes?: number;
+  durationMinutes?: number | null;
 };
 
 function generateSlug(text: string): string {
@@ -73,6 +74,7 @@ export async function createHack(formData: HackFormData) {
       media_url: formData.mediaUrl || null,
       difficulty: formData.difficulty,
       time_minutes: formData.timeMinutes,
+      duration_minutes: formData.durationMinutes,
       created_by: user.id,
       position: nextPosition
     })
@@ -131,6 +133,7 @@ export async function updateHack(id: string, formData: HackFormData) {
     media_url: formData.mediaUrl || null,
     difficulty: formData.difficulty,
     time_minutes: formData.timeMinutes,
+    duration_minutes: formData.durationMinutes,
   };
 
   // If name changed, generate new slug

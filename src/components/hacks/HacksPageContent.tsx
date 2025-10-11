@@ -2,10 +2,10 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Plus, PlusCircle, Settings } from 'lucide-react';
+import { Plus, PlusCircle, Settings } from 'lucide-react';
 import { HacksList } from './HacksList';
 import { HackCard } from './HackCard';
 import { RoutineCard } from '@/components/routines/RoutineCard';
@@ -47,7 +47,8 @@ export function HacksPageContent({
   currentUserId,
   isAdmin = false
 }: HacksPageContentProps) {
-  const [searchQuery, setSearchQuery] = useState('');
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get('q') || '';
   const [activeTab, setActiveTab] = useState('all');
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [sortableHacks, setSortableHacks] = useState(hacks);
@@ -214,33 +215,18 @@ export function HacksPageContent({
     );
   });
 
-  // Combine for "All" tab
+  // Combine for "All" tab - routines first, then hacks
   const allItems = [
-    ...filteredHacks.map(hack => ({ ...hack, type: 'hack' })),
-    ...filteredRoutines.map(routine => ({ ...routine, type: 'routine' }))
-  ].sort((a, b) => {
-    // Sort by creation date, newest first
-    const dateA = new Date(a.createdAt || a.created_at || 0).getTime();
-    const dateB = new Date(b.createdAt || b.created_at || 0).getTime();
-    return dateB - dateA;
-  });
+    ...filteredRoutines.map(routine => ({ ...routine, type: 'routine' })),
+    ...filteredHacks.map(hack => ({ ...hack, type: 'hack' }))
+  ];
 
   return (
     <div className="space-y-6">
 
-      {/* Search Bar and Admin Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-        <div className="relative w-full max-w-2xl">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white dark:text-gray-500 h-4 w-4" />
-          <Input
-            type="text"
-            placeholder="Search hacks and routines..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 pr-4 border-black placeholder:text-white dark:placeholder:text-gray-500"
-          />
-        </div>
-        {isAdmin && activeTab === 'hacks' && (
+      {/* Admin Controls */}
+      {isAdmin && activeTab === 'hacks' && (
+        <div className="flex justify-center">
           <Button
             variant={isAdminMode ? "default" : "outline"}
             onClick={() => setIsAdminMode(!isAdminMode)}
@@ -250,8 +236,8 @@ export function HacksPageContent({
             <Settings className="h-4 w-4 mr-2" />
             {isAdminMode ? 'Exit Admin Mode' : 'Admin Mode'}
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Saving indicator */}
       {isSaving && (
@@ -269,11 +255,11 @@ export function HacksPageContent({
           <TabsTrigger value="all">
             All ({allItems.length})
           </TabsTrigger>
-          <TabsTrigger value="hacks">
-            Hacks ({filteredHacks.length})
-          </TabsTrigger>
           <TabsTrigger value="routines">
             Routines ({filteredRoutines.length})
+          </TabsTrigger>
+          <TabsTrigger value="hacks">
+            Hacks ({filteredHacks.length})
           </TabsTrigger>
           {isAuthenticated && (
             <TabsTrigger value="my-routines">

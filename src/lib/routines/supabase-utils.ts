@@ -28,6 +28,7 @@ export type RoutineWithDetails = {
     contentType: string;
     difficulty?: string | null;
     timeMinutes?: number | null;
+    durationMinutes?: number | null;
     position: number;
   }>;
   tags: Array<{
@@ -39,6 +40,7 @@ export type RoutineWithDetails = {
     userRoutines: number;
     routineHacks: number;
   };
+  totalDuration?: number;
   isLiked?: boolean;
   isStarted?: boolean;
   isCompleted?: boolean;
@@ -72,7 +74,8 @@ export async function getPublicRoutines() {
             image_path,
             content_type,
             difficulty,
-            time_minutes
+            time_minutes,
+            duration_minutes
           )
         ),
         routine_tags (
@@ -93,13 +96,23 @@ export async function getPublicRoutines() {
 
     // Get user interactions if logged in
     let userRoutines: any[] = [];
+    let completedHackIds: string[] = [];
     if (user) {
       const { data } = await supabase
         .from('user_routines')
-        .select('routine_id, liked, started, completed')
+        .select('routine_id, liked, started, completed, progress')
         .eq('user_id', user.id);
 
       userRoutines = data || [];
+
+      // Get all completed hacks for this user
+      const { data: completedHacks } = await supabase
+        .from('user_hacks')
+        .select('hack_id')
+        .eq('user_id', user.id)
+        .eq('viewed', true);
+
+      completedHackIds = completedHacks?.map(h => h.hack_id) || [];
     }
 
     return (routines || []).map((routine: any) => {
@@ -110,8 +123,23 @@ export async function getPublicRoutines() {
         ?.sort((a: any, b: any) => a.position - b.position)
         .map((rh: any) => ({
           ...rh.hacks,
+          durationMinutes: rh.hacks.duration_minutes,
           position: rh.position
         })) || [];
+
+      // Calculate progress based on completed hacks
+      let progress = 0;
+      if (user && sortedHacks.length > 0) {
+        const completedCount = sortedHacks.filter(hack =>
+          completedHackIds.includes(hack.id)
+        ).length;
+        progress = Math.floor((completedCount / sortedHacks.length) * 100);
+      }
+
+      // Calculate total duration
+      const totalDuration = sortedHacks.reduce((sum, hack) => {
+        return sum + (hack.durationMinutes || 0);
+      }, 0);
 
       return {
         id: routine.id,
@@ -136,10 +164,11 @@ export async function getPublicRoutines() {
           userRoutines: 0, // TODO: Add count query if needed
           routineHacks: sortedHacks.length
         },
+        totalDuration: totalDuration > 0 ? totalDuration : undefined,
         isLiked: userInteraction?.liked || false,
         isStarted: userInteraction?.started || false,
         isCompleted: userInteraction?.completed || false,
-        progress: 0 // TODO: Calculate progress if needed
+        progress
       };
     });
   } catch (error) {
@@ -174,7 +203,8 @@ export async function getRoutines(userId?: string) {
             image_path,
             content_type,
             difficulty,
-            time_minutes
+            time_minutes,
+            duration_minutes
           )
         ),
         routine_tags (
@@ -203,13 +233,23 @@ export async function getRoutines(userId?: string) {
 
     // Get user interactions if userId provided
     let userRoutines: any[] = [];
+    let completedHackIds: string[] = [];
     if (userId) {
       const { data } = await supabase
         .from('user_routines')
-        .select('routine_id, liked, started, completed')
+        .select('routine_id, liked, started, completed, progress')
         .eq('user_id', userId);
 
       userRoutines = data || [];
+
+      // Get all completed hacks for this user
+      const { data: completedHacks } = await supabase
+        .from('user_hacks')
+        .select('hack_id')
+        .eq('user_id', userId)
+        .eq('viewed', true);
+
+      completedHackIds = completedHacks?.map(h => h.hack_id) || [];
     }
 
     return (routines || []).map((routine: any) => {
@@ -220,8 +260,23 @@ export async function getRoutines(userId?: string) {
         ?.sort((a: any, b: any) => a.position - b.position)
         .map((rh: any) => ({
           ...rh.hacks,
+          durationMinutes: rh.hacks.duration_minutes,
           position: rh.position
         })) || [];
+
+      // Calculate progress based on completed hacks
+      let progress = 0;
+      if (userId && sortedHacks.length > 0) {
+        const completedCount = sortedHacks.filter(hack =>
+          completedHackIds.includes(hack.id)
+        ).length;
+        progress = Math.floor((completedCount / sortedHacks.length) * 100);
+      }
+
+      // Calculate total duration
+      const totalDuration = sortedHacks.reduce((sum, hack) => {
+        return sum + (hack.durationMinutes || 0);
+      }, 0);
 
       return {
         id: routine.id,
@@ -246,10 +301,11 @@ export async function getRoutines(userId?: string) {
           userRoutines: 0,
           routineHacks: sortedHacks.length
         },
+        totalDuration: totalDuration > 0 ? totalDuration : undefined,
         isLiked: userInteraction?.liked || false,
         isStarted: userInteraction?.started || false,
         isCompleted: userInteraction?.completed || false,
-        progress: 0
+        progress
       };
     });
   } catch (error) {
@@ -305,6 +361,15 @@ export async function getUserRoutines(userId: string) {
       return [];
     }
 
+    // Get all completed hacks for this user
+    const { data: completedHacks } = await supabase
+      .from('user_hacks')
+      .select('hack_id')
+      .eq('user_id', userId)
+      .eq('viewed', true);
+
+    const completedHackIds = completedHacks?.map(h => h.hack_id) || [];
+
     return (userRoutines || []).map((userRoutine: any) => {
       const routine = userRoutine.routines;
 
@@ -313,8 +378,23 @@ export async function getUserRoutines(userId: string) {
         ?.sort((a: any, b: any) => a.position - b.position)
         .map((rh: any) => ({
           ...rh.hacks,
+          durationMinutes: rh.hacks.duration_minutes,
           position: rh.position
         })) || [];
+
+      // Calculate progress based on completed hacks
+      let progress = 0;
+      if (sortedHacks.length > 0) {
+        const completedCount = sortedHacks.filter(hack =>
+          completedHackIds.includes(hack.id)
+        ).length;
+        progress = Math.floor((completedCount / sortedHacks.length) * 100);
+      }
+
+      // Calculate total duration
+      const totalDuration = sortedHacks.reduce((sum, hack) => {
+        return sum + (hack.durationMinutes || 0);
+      }, 0);
 
       return {
         id: routine.id,
@@ -339,10 +419,11 @@ export async function getUserRoutines(userId: string) {
           userRoutines: 0,
           routineHacks: sortedHacks.length
         },
+        totalDuration: totalDuration > 0 ? totalDuration : undefined,
         isLiked: userRoutine.liked || false,
         isStarted: userRoutine.started || false,
         isCompleted: userRoutine.completed || false,
-        progress: userRoutine.progress || 0
+        progress
       };
     });
   } catch (error) {
@@ -376,7 +457,8 @@ export async function getRoutineBySlug(slug: string, userId?: string) {
             image_path,
             content_type,
             difficulty,
-            time_minutes
+            time_minutes,
+            duration_minutes
           )
         ),
         routine_tags (
@@ -425,8 +507,14 @@ export async function getRoutineBySlug(slug: string, userId?: string) {
       ?.sort((a: any, b: any) => a.position - b.position)
       .map((rh: any) => ({
         ...rh.hacks,
+        durationMinutes: rh.hacks.duration_minutes,
         position: rh.position
       })) || [];
+
+    // Calculate total duration
+    const totalDuration = sortedHacks.reduce((sum, hack) => {
+      return sum + (hack.durationMinutes || 0);
+    }, 0);
 
     return {
       id: routine.id,
@@ -451,6 +539,7 @@ export async function getRoutineBySlug(slug: string, userId?: string) {
         userRoutines: 0,
         routineHacks: sortedHacks.length
       },
+      totalDuration: totalDuration > 0 ? totalDuration : undefined,
       isLiked: userInteraction?.liked || false,
       isStarted: userInteraction?.started || false,
       isCompleted: userInteraction?.completed || false,

@@ -5,13 +5,17 @@ import { cn } from "@/lib/utils"
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+>(({ className, style, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
       "rounded-lg border bg-card text-card-foreground shadow-sm",
       className
     )}
+    style={{
+      transition: 'background-color 2s ease-in-out, color 500ms ease-in-out, border-color 500ms ease-in-out',
+      ...style
+    }}
     {...props}
   />
 ))
@@ -32,13 +36,17 @@ CardHeader.displayName = "CardHeader"
 const CardTitle = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
+>(({ className, style, ...props }, ref) => (
   <h3
     ref={ref}
     className={cn(
       "text-2xl font-semibold leading-none tracking-tight",
       className
     )}
+    style={{
+      transition: 'color 500ms ease-in-out',
+      ...style
+    }}
     {...props}
   />
 ))
@@ -47,10 +55,14 @@ CardTitle.displayName = "CardTitle"
 const CardDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => (
+>(({ className, style, ...props }, ref) => (
   <p
     ref={ref}
     className={cn("text-sm text-muted-foreground", className)}
+    style={{
+      transition: 'color 500ms ease-in-out',
+      ...style
+    }}
     {...props}
   />
 ))
