@@ -44,7 +44,21 @@ async function seedDatabase() {
       throw adminError;
     }
 
-    const adminId = adminAuth?.user?.id || 'existing-admin-id';
+    let adminId = adminAuth?.user?.id;
+
+    // If user already exists, fetch their ID
+    if (!adminId) {
+      const { data: existingUsers } = await supabase.auth.admin.listUsers();
+      const existingAdmin = existingUsers?.users?.find((u: any) => u.email === 'admin@test.com');
+      if (existingAdmin) {
+        adminId = existingAdmin.id;
+      }
+    }
+
+    if (!adminId) {
+      throw new Error('Could not get admin user ID');
+    }
+
     console.log('✅ Admin user created:', adminAuth?.user?.email || 'Already exists');
 
     // Create regular user
@@ -61,7 +75,17 @@ async function seedDatabase() {
       throw userError;
     }
 
-    const userId = userAuth?.user?.id || 'existing-user-id';
+    let userId = userAuth?.user?.id;
+
+    // If user already exists, fetch their ID
+    if (!userId) {
+      const { data: existingUsers } = await supabase.auth.admin.listUsers();
+      const existingUser = existingUsers?.users?.find((u: any) => u.email === 'user@test.com');
+      if (existingUser) {
+        userId = existingUser.id;
+      }
+    }
+
     console.log('✅ Regular user created:', userAuth?.user?.email || 'Already exists');
 
     // Update admin profile to set is_admin flag
@@ -287,59 +311,110 @@ Time-restricted eating can significantly boost energy and mental performance.
       }
     }
 
-    // Create a public routine
-    console.log('Creating public routine...');
+    // Create multiple public routines
+    console.log('Creating public routines...');
 
-    const routineData = {
-      name: 'Ultimate Morning Energy Routine',
-      slug: 'ultimate-morning-energy-routine',
-      description: 'A comprehensive morning routine designed to maximize your energy levels throughout the day. Combines proven techniques from neuroscience and biohacking.',
-      is_public: true,
-      created_by: adminId
-    };
+    const routinesToCreate = [
+      {
+        name: 'Ultimate Morning Energy Routine',
+        slug: 'ultimate-morning-energy-routine',
+        description: 'A comprehensive morning routine designed to maximize your energy levels throughout the day. Combines proven techniques from neuroscience and biohacking.',
+        is_public: true,
+        created_by: adminId,
+        hackSlugs: ['morning-sunlight-exposure', 'box-breathing-exercise', 'cold-water-immersion']
+      },
+      {
+        name: 'Evening Wind Down',
+        slug: 'evening-wind-down-routine',
+        description: 'Calm your mind and body for restorative sleep with this relaxing evening routine.',
+        is_public: true,
+        created_by: adminId,
+        hackSlugs: ['box-breathing-exercise', 'power-napping']
+      },
+      {
+        name: 'Productivity Power Hour',
+        slug: 'productivity-power-hour',
+        description: 'Maximize your focus and get more done in less time with this productivity-focused routine.',
+        is_public: true,
+        created_by: adminId,
+        hackSlugs: ['box-breathing-exercise', 'cold-water-immersion', 'morning-sunlight-exposure']
+      },
+      {
+        name: 'Stress Buster Routine',
+        slug: 'stress-buster-routine',
+        description: 'Reduce stress and anxiety with these calming techniques backed by science.',
+        is_public: true,
+        created_by: adminId,
+        hackSlugs: ['box-breathing-exercise', 'power-napping']
+      },
+      {
+        name: 'Weekend Wellness Reset',
+        slug: 'weekend-wellness-reset',
+        description: 'Reset your body and mind on the weekends with this comprehensive wellness routine.',
+        is_public: true,
+        created_by: adminId,
+        hackSlugs: ['morning-sunlight-exposure', 'cold-water-immersion', 'intermittent-fasting', 'power-napping', 'box-breathing-exercise']
+      }
+    ];
 
-    // Check if routine already exists
-    const { data: existingRoutine } = await supabase
-      .from('routines')
-      .select('id')
-      .eq('slug', routineData.slug)
-      .single();
-
-    let routineId;
-    if (!existingRoutine) {
-      const { data: routine, error: routineError } = await supabase
+    for (const routineData of routinesToCreate) {
+      // Check if routine already exists
+      const { data: existingRoutine } = await supabase
         .from('routines')
-        .insert(routineData)
-        .select()
+        .select('id')
+        .eq('slug', routineData.slug)
         .single();
 
-      if (routineError) {
-        throw routineError;
-      }
+      if (!existingRoutine) {
+        const { hackSlugs, ...routineInsertData } = routineData;
 
-      routineId = routine.id;
-      console.log('✅ Created public routine:', routine.name);
+        const { data: routine, error: routineError } = await supabase
+          .from('routines')
+          .insert(routineInsertData)
+          .select()
+          .single();
 
-      // Add hacks to routine
-      if (createdHacks.length > 0) {
-        const routineHacks = createdHacks.map((hack, index) => ({
-          routine_id: routineId,
-          hack_id: hack.id,
-          position: index
-        }));
-
-        const { error: routineHacksError } = await supabase
-          .from('routine_hacks')
-          .insert(routineHacks);
-
-        if (routineHacksError) {
-          console.warn('Could not add hacks to routine:', routineHacksError.message);
-        } else {
-          console.log(`✅ Added ${createdHacks.length} hacks to routine`);
+        if (routineError) {
+          console.warn(`Could not create routine ${routineData.name}:`, routineError.message);
+          continue;
         }
+
+        console.log('✅ Created public routine:', routine.name);
+
+        // Add hacks to routine
+        if (hackSlugs && hackSlugs.length > 0) {
+          // Get hack IDs from slugs
+          const { data: hacksForRoutine } = await supabase
+            .from('hacks')
+            .select('id, slug')
+            .in('slug', hackSlugs);
+
+          if (hacksForRoutine && hacksForRoutine.length > 0) {
+            const routineHacks = hackSlugs.map((slug, index) => {
+              const hack = hacksForRoutine.find(h => h.slug === slug);
+              return hack ? {
+                routine_id: routine.id,
+                hack_id: hack.id,
+                position: index
+              } : null;
+            }).filter(Boolean);
+
+            if (routineHacks.length > 0) {
+              const { error: routineHacksError } = await supabase
+                .from('routine_hacks')
+                .insert(routineHacks);
+
+              if (routineHacksError) {
+                console.warn('Could not add hacks to routine:', routineHacksError.message);
+              } else {
+                console.log(`✅ Added ${routineHacks.length} hacks to routine: ${routine.name}`);
+              }
+            }
+          }
+        }
+      } else {
+        console.log('ℹ️ Public routine already exists:', routineData.name);
       }
-    } else {
-      console.log('ℹ️ Public routine already exists');
     }
 
     // Create some tags

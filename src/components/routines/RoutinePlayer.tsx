@@ -512,7 +512,7 @@ export function RoutinePlayer({
                     <div className="aspect-video bg-gray-900 rounded-lg flex flex-col items-center justify-center text-white p-6 text-center">
                       <p className="font-semibold mb-4">Error loading video</p>
                       <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">{error}</p>
-                      <Button onClick={goToNext} variant="secondary">
+                      <Button onClick={() => goToNext()} variant="secondary">
                         <SkipForward className="h-4 w-4 mr-2" />
                         Skip
                       </Button>
@@ -549,7 +549,7 @@ export function RoutinePlayer({
                   <ChevronLeft className="h-4 w-4 mr-2" />
                   Previous
                 </Button>
-                <Button onClick={goToNext} className="flex-1">
+                <Button onClick={() => goToNext()} className="flex-1">
                   {isLastHack ? (
                     <>
                       <Trophy className="h-4 w-4 mr-2" />
