@@ -17,133 +17,99 @@ export async function assignTagsFromOnboarding(
 ) {
   const supabase = createClient()
 
-  // If user skipped onboarding, assign default beginner tag
+  // If user skipped onboarding, assign default beginner trait
   if ('skipped' in answers && answers.skipped) {
-    const { data: beginnerTag } = await supabase
-      .from('tags')
-      .select('id')
-      .or('slug.eq.beginner,slug.eq.beginner-friendly,name.ilike.%beginner%')
-      .limit(1)
-      .single()
-
-    if (beginnerTag) {
-      await supabase
-        .from('user_tags')
-        .upsert({
-          user_id: userId,
-          tag_id: beginnerTag.id,
-          source: 'onboarding',
-          updated_at: new Date().toISOString()
-        })
-    }
-
-    // Mark user as onboarded even if skipped
+    // Mark user as onboarded with default beginner trait
     await supabase
       .from('profiles')
-      .update({ onboarded: true })
+      .update({
+        onboarded: true,
+        traits: ['beginner']
+      })
       .eq('id', userId)
-
-    // Mark onboarding as skipped
-    // TODO: Re-enable when onboarding_responses table is created
-    // await supabase
-    //   .from('onboarding_responses')
-    //   .insert({
-    //     user_id: userId,
-    //     question_id: 'onboarding_skipped',
-    //     answer: { skipped: true },
-    //     skipped: true,
-    //     completed_at: new Date().toISOString()
-    //   })
 
     return
   }
 
   const fullAnswers = answers as OnboardingAnswers
-  const tagAssignments: { user_id: string; tag_id: string; source: string; updated_at: string }[] = []
+  const traits: string[] = []
 
-  // First, clear any existing onboarding tags for this user
-  await supabase
-    .from('user_tags')
-    .delete()
-    .eq('user_id', userId)
-    .eq('source', 'onboarding')
-
-  // Assign experience level tag (mutually exclusive)
+  // Map experience level to trait
   if (fullAnswers.experience_level) {
-    // Map experience levels to existing tags
-    const expLevelMap: Record<string, string[]> = {
-      'beginner': ['beginner', 'beginner-friendly'],
-      'intermediate': ['energy', 'focus'],
-      'advanced': ['advanced'],
-      'expert': ['advanced']
+    const expLevelMap: Record<string, string> = {
+      'beginner': 'beginner',
+      'intermediate': 'intermediate',
+      'advanced': 'advanced',
+      'expert': 'expert'
     }
 
-    const possibleSlugs = expLevelMap[fullAnswers.experience_level] || [fullAnswers.experience_level]
-
-    const { data: expTag } = await supabase
-      .from('tags')
-      .select('id')
-      .in('slug', possibleSlugs)
-      .limit(1)
-      .single()
-
-    if (expTag) {
-      tagAssignments.push({
-        user_id: userId,
-        tag_id: expTag.id,
-        source: 'onboarding',
-        updated_at: new Date().toISOString()
-      })
-    }
+    const trait = expLevelMap[fullAnswers.experience_level] || fullAnswers.experience_level
+    traits.push(trait)
   }
 
-  // Assign interest area tags (can have multiple)
+  // Map interest areas to traits (can have multiple)
   if (fullAnswers.interest_areas && fullAnswers.interest_areas.length > 0) {
-    // Map interest areas to existing tags
     const interestMap: Record<string, string[]> = {
       'energy': ['energy', 'morning'],
-      'focus': ['focus', 'breathing'],
-      'fitness': ['exercise', 'cold-therapy'],
-      'nutrition': ['nutrition'],
-      'sleep': ['sleep'],
-      'stress': ['breathing'],
-      'productivity': ['focus', 'energy']
+      'focus': ['focus', 'productivity'],
+      'fitness': ['fitness', 'exercise'],
+      'nutrition': ['nutrition', 'wellness'],
+      'sleep': ['sleep', 'recovery'],
+      'stress': ['stress-management', 'mindfulness'],
+      'productivity': ['productivity', 'efficiency']
     }
 
-    const allSlugs: string[] = []
     fullAnswers.interest_areas.forEach(interest => {
       const mapped = interestMap[interest] || [interest]
-      allSlugs.push(...mapped)
+      traits.push(...mapped)
     })
+  }
 
-    const { data: interestTags } = await supabase
-      .from('tags')
-      .select('id, slug')
-      .in('slug', [...new Set(allSlugs)]) // Remove duplicates
+  // Map learning goals to traits
+  if (fullAnswers.learning_goals && fullAnswers.learning_goals.length > 0) {
+    fullAnswers.learning_goals.forEach(goal => {
+      // Normalize goal to trait format (lowercase, hyphenated)
+      const trait = goal.toLowerCase().replace(/\s+/g, '-')
+      traits.push(trait)
+    })
+  }
 
-    if (interestTags) {
-      interestTags.forEach(tag => {
-        tagAssignments.push({
-          user_id: userId,
-          tag_id: tag.id,
-          source: 'onboarding',
-          updated_at: new Date().toISOString()
-        })
-      })
+  // Map time commitment to trait
+  if (fullAnswers.time_commitment) {
+    const timeMap: Record<string, string> = {
+      'low': 'low-commitment',
+      'medium': 'medium-commitment',
+      'high': 'high-commitment',
+      'flexible': 'flexible-schedule'
     }
+
+    const trait = timeMap[fullAnswers.time_commitment] || fullAnswers.time_commitment
+    traits.push(trait)
   }
 
-  // Insert all tag assignments
-  if (tagAssignments.length > 0) {
-    await supabase
-      .from('user_tags')
-      .insert(tagAssignments)
+  // Map difficulty preference to trait
+  if (fullAnswers.preferred_difficulty) {
+    const difficultyMap: Record<string, string> = {
+      'easy': 'easy-mode',
+      'medium': 'balanced-challenge',
+      'hard': 'hard-mode',
+      'varied': 'varied-difficulty'
+    }
+
+    const trait = difficultyMap[fullAnswers.preferred_difficulty] || fullAnswers.preferred_difficulty
+    traits.push(trait)
   }
 
-  // Mark user as onboarded in their profile
+  // Remove duplicates and update profile
+  const uniqueTraits = [...new Set(traits)]
+
+  // Mark user as onboarded and assign traits
   await supabase
     .from('profiles')
-    .update({ onboarded: true })
+    .update({
+      onboarded: true,
+      traits: uniqueTraits
+    })
     .eq('id', userId)
 
   // Store onboarding responses
@@ -166,22 +132,8 @@ export async function assignTagsFromOnboarding(
   //     .upsert(responses)
   // }
 
-  // Log the tag assignments for sync tracking
-  // TODO: Re-enable when tag_sync_log table is created
-  // for (const assignment of tagAssignments) {
-  //   await supabase
-  //     .from('tag_sync_log')
-  //     .insert({
-  //       user_id: userId,
-  //       tag_id: assignment.tag_id,
-  //       action: 'added',
-  //       source: 'onboarding',
-  //       target: 'web',
-  //       new_value: { source: 'onboarding_completion' }
-  //     })
-  // }
-
   // Trigger Discord sync if user has Discord connected
+  // This will sync the traits as Discord roles
   // TODO: Re-enable when Discord integration is added
   // const { data: profile } = await supabase
   //   .from('profiles')
@@ -189,16 +141,15 @@ export async function assignTagsFromOnboarding(
   //   .eq('id', userId)
   //   .single()
 
-  // if (profile?.discord_id && tagAssignments.length > 0) {
+  // if (profile?.discord_id && uniqueTraits.length > 0) {
   //   // Fire and forget - don't wait for sync to complete
-  //   fetch('/api/discord/sync', {
+  //   fetch('/api/discord/sync-traits', {
   //     method: 'POST',
   //     headers: { 'Content-Type': 'application/json' },
   //     body: JSON.stringify({
-  //       changes: tagAssignments.map(ta => ({
-  //         tagId: ta.tag_id,
-  //         action: 'add'
-  //       }))
+  //       userId,
+  //       traits: uniqueTraits,
+  //       action: 'sync'
   //     })
   //   }).catch(err => console.error('Discord sync trigger failed:', err))
   // }

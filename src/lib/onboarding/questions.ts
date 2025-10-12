@@ -174,7 +174,7 @@ export const questions: Question[] = [
   }
 ]
 
-// Function to get questions from database (server-side)
+// Function to get questions from database (async for client and server)
 export async function getOnboardingQuestionsFromDB(): Promise<Question[]> {
   try {
     const response = await fetch('/api/admin/onboarding', {
@@ -196,32 +196,8 @@ export async function getOnboardingQuestionsFromDB(): Promise<Question[]> {
 }
 
 // Function to get questions (can be overridden by admin settings)
-// This is for client-side usage
+// This is for client-side usage - returns default hardcoded questions synchronously
+// For database questions, use getOnboardingQuestionsFromDB() instead
 export function getOnboardingQuestions(): Question[] {
-  // Check if admin has customized questions in localStorage (fallback)
-  if (typeof window !== 'undefined') {
-    const customQuestions = localStorage.getItem('onboarding_questions')
-    if (customQuestions) {
-      try {
-        return JSON.parse(customQuestions)
-      } catch (e) {
-        console.error('Failed to parse custom questions:', e)
-      }
-    }
-  }
   return questions
-}
-
-// Function to save custom questions (admin only)
-export function saveCustomQuestions(customQuestions: Question[]) {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('onboarding_questions', JSON.stringify(customQuestions))
-  }
-}
-
-// Function to reset to default questions
-export function resetToDefaultQuestions() {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('onboarding_questions')
-  }
 }

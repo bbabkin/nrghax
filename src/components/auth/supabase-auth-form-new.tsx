@@ -105,11 +105,36 @@ export function SupabaseAuthForm() {
           description: error.message,
           variant: 'destructive',
         })
-      } else if (data.user) {
+      } else if (data.user && data.session) {
+        // User is auto-confirmed and logged in (local dev setup)
         toast({
           title: 'Success',
-          description: 'Check your email to confirm your account.',
+          description: 'Account created! Redirecting...',
         })
+        router.push('/dashboard')
+        router.refresh()
+      } else if (data.user) {
+        // User created but no session - try to sign in immediately (local dev)
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+
+        if (signInError || !signInData.session) {
+          // Email confirmation is required (production setup)
+          toast({
+            title: 'Success',
+            description: 'Check your email to confirm your account.',
+          })
+        } else {
+          // Successfully signed in
+          toast({
+            title: 'Success',
+            description: 'Account created! Redirecting...',
+          })
+          router.push('/dashboard')
+          router.refresh()
+        }
       }
     } catch (error) {
       toast({

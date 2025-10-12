@@ -10,7 +10,7 @@ import { Progress } from '@/components/ui/progress'
 import { Checkbox } from '@/components/ui/checkbox'
 import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react'
 import { assignTagsFromOnboarding } from '@/lib/tags/assignment'
-import { getOnboardingQuestions, type Question } from '@/lib/onboarding/questions'
+import { getOnboardingQuestionsFromDB, type Question } from '@/lib/onboarding/questions'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -26,8 +26,12 @@ export default function QuestionnaireWizard({ userId }: Props) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Load questions (including any admin customizations)
-    setQuestions(getOnboardingQuestions())
+    // Load questions from database (or fallback to defaults)
+    async function loadQuestions() {
+      const questionsFromDB = await getOnboardingQuestionsFromDB()
+      setQuestions(questionsFromDB)
+    }
+    loadQuestions()
   }, [])
 
   // Return loading state if questions not loaded yet
@@ -46,14 +50,7 @@ export default function QuestionnaireWizard({ userId }: Props) {
 
   const handleSingleAnswer = (value: string) => {
     setAnswers(prev => ({ ...prev, [currentQuestion.id]: value }))
-    // Auto-advance after a short delay for single choice questions
-    setTimeout(() => {
-      if (currentStep < questions.length - 1) {
-        setCurrentStep(currentStep + 1)
-      } else {
-        handleSubmit()
-      }
-    }, 300)
+    // No auto-advance - users must click Next to proceed
   }
 
   const handleMultipleAnswer = (value: string, checked: boolean) => {
@@ -130,6 +127,9 @@ export default function QuestionnaireWizard({ userId }: Props) {
       </CardHeader>
 
       <CardContent className="space-y-4">
+        <div className="text-sm text-muted-foreground mb-4">
+          {currentQuestion.type === 'single' ? 'Select one' : 'Select multiple'}
+        </div>
         {error && (
           <div className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive rounded-md">
             <AlertCircle className="h-4 w-4" />
@@ -143,33 +143,40 @@ export default function QuestionnaireWizard({ userId }: Props) {
             onValueChange={handleSingleAnswer}
             className="space-y-3"
           >
-            {currentQuestion.options.map(option => (
-              <div key={option.value} className="relative">
-                <RadioGroupItem
-                  value={option.value}
-                  id={option.value}
-                  className="peer sr-only"
-                />
-                <Label
-                  htmlFor={option.value}
-                  className={cn(
-                    "flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all",
-                    "hover:bg-muted/50",
-                    "peer-checked:border-primary peer-checked:bg-primary/5"
-                  )}
-                >
-                  {option.icon && <span className="text-2xl">{option.icon}</span>}
-                  <div className="flex-1">
-                    <div className="font-medium">{option.label}</div>
-                    {option.description && (
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {option.description}
-                      </div>
+            {currentQuestion.options.map(option => {
+              // Check if this option is currently selected
+              const isSelected = answers[currentQuestion.id] === option.value
+              return (
+                <div key={option.value} className="relative">
+                  <RadioGroupItem
+                    value={option.value}
+                    id={option.value}
+                    className="peer sr-only"
+                  />
+                  <Label
+                    htmlFor={option.value}
+                    className={cn(
+                      "flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all",
+                      "hover:bg-muted/50",
+                      isSelected && "border-primary bg-primary/5"
                     )}
-                  </div>
-                </Label>
-              </div>
-            ))}
+                  >
+                    {option.icon && <span className="text-2xl">{option.icon}</span>}
+                    <div className="flex-1">
+                      <div className="font-medium">{option.label}</div>
+                      {option.description && (
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {option.description}
+                        </div>
+                      )}
+                    </div>
+                    {isSelected && (
+                      <CheckCircle2 className="h-5 w-5 text-primary" />
+                    )}
+                  </Label>
+                </div>
+              )
+            })}
           </RadioGroup>
         ) : (
           <div className="space-y-3">
@@ -222,29 +229,27 @@ export default function QuestionnaireWizard({ userId }: Props) {
             Previous
           </Button>
 
-          {currentQuestion.type === 'multiple' && (
-            <Button
-              onClick={handleNext}
-              disabled={!canProceed() || isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : currentStep === questions.length - 1 ? (
-                <>
-                  Complete
-                  <CheckCircle2 className="h-4 w-4 ml-2" />
-                </>
-              ) : (
-                <>
-                  Next
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </>
-              )}
-            </Button>
-          )}
+          <Button
+            onClick={handleNext}
+            disabled={!canProceed() || isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : currentStep === questions.length - 1 ? (
+              <>
+                Complete
+                <CheckCircle2 className="h-4 w-4 ml-2" />
+              </>
+            ) : (
+              <>
+                Next
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </>
+            )}
+          </Button>
         </div>
 
         <button
