@@ -221,7 +221,7 @@ export function HackCard({
           {isAdmin && (
             <div className="flex gap-2">
               <Link href={`/admin/hacks/${hack.id}/edit`}>
-                <Button size="sm" variant="outline">Edit</Button>
+                <Button size="sm" variant="clippedOutline">Edit</Button>
               </Link>
               <ConfirmDialog
                 title="Delete Hack"
@@ -235,7 +235,7 @@ export function HackCard({
                   <Button
                     onClick={onClick}
                     size="sm"
-                    variant="destructive"
+                    variant="clippedDestructive"
                     disabled={isDeleting}
                   >
                     <Trash2 className="h-4 w-4" />

@@ -433,3 +433,24 @@ export async function getUserCompletedHacks(userId: string) {
     return [];
   }
 }
+
+export async function getAllLevelsForSelect() {
+  try {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('levels')
+      .select('id, name, slug')
+      .order('position', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching levels:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching levels:', error);
+    return [];
+  }
+}

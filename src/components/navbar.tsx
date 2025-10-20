@@ -31,6 +31,7 @@ import {
   BookOpen,
   Moon,
   Sun,
+  Trophy,
 } from 'lucide-react'
 
 interface NavbarProps {
@@ -99,6 +100,7 @@ export function Navbar({ user }: NavbarProps) {
   const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/hacks', label: 'Hacks' },
+    { href: '/levels', label: 'Levels' },
     ...(user ? [
       { href: '/dashboard', label: 'Dashboard' },
       { href: '/profile/history', label: 'My History' },
@@ -188,6 +190,12 @@ export function Navbar({ user }: NavbarProps) {
                   <DropdownMenuSeparator />
 
                   {/* User Links */}
+                  <DropdownMenuItem asChild>
+                    <Link href="/levels" className="cursor-pointer">
+                      <Trophy className="mr-2 h-4 w-4" />
+                      Levels
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard" className="cursor-pointer">
                       <LayoutDashboard className="mr-2 h-4 w-4" />

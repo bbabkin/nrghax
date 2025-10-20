@@ -20,6 +20,7 @@ export type HackFormData = {
   difficulty?: string;
   timeMinutes?: number;
   durationMinutes?: number | null;
+  levelId?: string | null;
 };
 
 function generateSlug(text: string): string {
@@ -75,6 +76,7 @@ export async function createHack(formData: HackFormData) {
       difficulty: formData.difficulty,
       time_minutes: formData.timeMinutes,
       duration_minutes: formData.durationMinutes,
+      level_id: formData.levelId || null,
       created_by: user.id,
       position: nextPosition
     })
@@ -134,6 +136,7 @@ export async function updateHack(id: string, formData: HackFormData) {
     difficulty: formData.difficulty,
     time_minutes: formData.timeMinutes,
     duration_minutes: formData.durationMinutes,
+    level_id: formData.levelId || null,
   };
 
   // If name changed, generate new slug
@@ -424,4 +427,241 @@ export const toggleLike = toggleHackLike;
 // Alias for markHackAsViewed
 export async function markHackVisited(hackSlug: string) {
   return markHackAsViewed(hackSlug);
+}
+
+// Get a hack by slug with user progress data
+export async function getHackBySlug(slug: string) {
+  const supabase = await createClient();
+  const user = await getCurrentUser();
+
+  let query = supabase
+    .from('hacks')
+    .select(`
+      *,
+      tags:hack_tags(
+        tag:tags(*)
+      )
+    `)
+    .eq('slug', slug)
+    .single();
+
+  const { data: hack, error } = await query;
+
+  if (error || !hack) {
+    return null;
+  }
+
+  // Get user progress if authenticated
+  let userProgress = null;
+  if (user) {
+    const { data: progress } = await supabase
+      .from('user_hacks')
+      .select('*')
+      .eq('hack_id', hack.id)
+      .eq('user_id', user.id)
+      .single();
+
+    userProgress = progress;
+  }
+
+  // Get prerequisites
+  const { data: prereqs } = await supabase
+    .from('hack_prerequisites')
+    .select('prerequisite_hack_id')
+    .eq('hack_id', hack.id);
+
+  // Format the response
+  return {
+    ...hack,
+    tags: hack.tags?.map((ht: any) => ht.tag).filter(Boolean) || [],
+    prerequisites: prereqs?.map(p => p.prerequisite_hack_id) || [],
+    is_completed: userProgress?.completed_at != null,
+    is_liked: userProgress?.liked || false,
+    view_count: userProgress?.view_count || 0,
+  };
+}
+
+// Mark hack as completed
+export async function markHackCompleted(hackId: string, completed: boolean) {
+  const user = await requireAuth();
+  const supabase = await createClient();
+
+  if (completed) {
+    // Check if all required checks are completed
+    const canComplete = await canCompleteHack(hackId);
+    if (!canComplete) {
+      throw new Error('Cannot complete hack: required checks are not completed');
+    }
+
+    // Mark as completed
+    const { error } = await supabase
+      .from('user_hacks')
+      .upsert({
+        user_id: user.id,
+        hack_id: hackId,
+        completed_at: new Date().toISOString(),
+      }, {
+        onConflict: 'user_id,hack_id'
+      });
+
+    if (error) throw error;
+  } else {
+    // Mark as incomplete
+    const { error } = await supabase
+      .from('user_hacks')
+      .update({ completed_at: null })
+      .eq('user_id', user.id)
+      .eq('hack_id', hackId);
+
+    if (error) throw error;
+  }
+
+  revalidatePath('/levels');
+  revalidatePath('/hacks');
+}
+
+// ===== CHECKLIST ACTIONS =====
+
+export async function getHackChecks(hackId: string) {
+  const supabase = await createClient();
+
+  const { data: checks, error } = await supabase
+    .from('hack_checks')
+    .select('*')
+    .eq('hack_id', hackId)
+    .order('position', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching hack checks:', error);
+    return [];
+  }
+
+  return checks || [];
+}
+
+export async function getUserCheckProgress(hackId: string) {
+  const user = await getCurrentUser();
+  if (!user) return [];
+
+  const supabase = await createClient();
+
+  const { data: progress, error } = await supabase
+    .from('user_hack_checks')
+    .select(`
+      id,
+      hack_check_id,
+      completed_at,
+      hack_checks!inner(
+        id,
+        hack_id
+      )
+    `)
+    .eq('user_id', user.id)
+    .eq('hack_checks.hack_id', hackId);
+
+  if (error) {
+    console.error('Error fetching user check progress:', error);
+    return [];
+  }
+
+  return progress || [];
+}
+
+export async function toggleCheckItem(checkId: string, completed: boolean) {
+  const user = await getCurrentUser();
+
+  // For anonymous users, this function is a no-op
+  // The client side handles localStorage directly
+  if (!user) {
+    return;
+  }
+
+  const supabase = await createClient();
+
+  if (completed) {
+    // Mark as completed
+    const { error } = await supabase
+      .from('user_hack_checks')
+      .upsert({
+        user_id: user.id,
+        hack_check_id: checkId,
+        completed_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id,hack_check_id'
+      });
+
+    if (error) {
+      console.error('Error marking check as complete:', error);
+      throw error;
+    }
+  } else {
+    // Mark as incomplete
+    const { error } = await supabase
+      .from('user_hack_checks')
+      .update({ completed_at: null })
+      .eq('user_id', user.id)
+      .eq('hack_check_id', checkId);
+
+    if (error) {
+      console.error('Error marking check as incomplete:', error);
+      throw error;
+    }
+  }
+}
+
+export async function canCompleteHack(hackId: string): Promise<boolean> {
+  const user = await getCurrentUser();
+  if (!user) return true; // Allow anonymous users for now
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .rpc('can_complete_hack', {
+      p_hack_id: hackId,
+      p_user_id: user.id
+    });
+
+  if (error) {
+    console.error('Error checking hack completion eligibility:', error);
+    return false;
+  }
+
+  return data || false;
+}
+
+export async function getHackCheckProgress(hackId: string) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return {
+      total_checks: 0,
+      completed_checks: 0,
+      required_checks: 0,
+      completed_required_checks: 0
+    };
+  }
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .rpc('get_hack_check_progress', {
+      p_hack_id: hackId,
+      p_user_id: user.id
+    });
+
+  if (error) {
+    console.error('Error getting hack check progress:', error);
+    return {
+      total_checks: 0,
+      completed_checks: 0,
+      required_checks: 0,
+      completed_required_checks: 0
+    };
+  }
+
+  return data?.[0] || {
+    total_checks: 0,
+    completed_checks: 0,
+    required_checks: 0,
+    completed_required_checks: 0
+  };
 }

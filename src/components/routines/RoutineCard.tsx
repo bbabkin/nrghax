@@ -265,7 +265,7 @@ export function RoutineCard({
             {!routine.isStarted && !routine.isCompleted && currentUserId && (
               <Button
                 size="sm"
-                variant="outline"
+                variant="clippedOutline"
                 onClick={handleStart}
                 className="ml-2"
               >
@@ -279,7 +279,7 @@ export function RoutineCard({
             <div className="flex gap-2" onClick={(e) => e.preventDefault()}>
               <Button
                 size="sm"
-                variant="outline"
+                variant="clippedOutline"
                 onClick={(e) => {
                   e.preventDefault();
                   window.location.href = `/routines/${routine.id}/edit`;
@@ -302,7 +302,7 @@ export function RoutineCard({
                       onClick();
                     }}
                     size="sm"
-                    variant="destructive"
+                    variant="clippedDestructive"
                     disabled={isDeleting}
                   >
                     <Trash2 className="h-4 w-4" />

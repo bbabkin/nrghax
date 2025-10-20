@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { NavbarWrapper } from '@/components/navbar-wrapper'
 import { Footer } from '@/components/Footer'
 import { ThemeScript } from '@/components/theme-script'
+import { ProgressMigrationProvider } from '@/components/ProgressMigrationProvider'
 import './globals.css'
 
 const nunito = Nunito({
@@ -81,12 +82,14 @@ export default function RootLayout({
         <ThemeScript />
       </head>
       <body className={`${nunito.variable} ${montserrat.variable} font-sans min-h-screen flex flex-col`}>
-        <NavbarWrapper />
-        <main className="flex-1 pt-16">
-          {children}
-        </main>
-        <Footer />
-        <Toaster />
+        <ProgressMigrationProvider>
+          <NavbarWrapper />
+          <main className="flex-1 pt-16">
+            {children}
+          </main>
+          <Footer />
+          <Toaster />
+        </ProgressMigrationProvider>
       </body>
     </html>
   )

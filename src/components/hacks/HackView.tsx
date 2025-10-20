@@ -10,6 +10,8 @@ import { useLocalVisits } from '@/hooks/useLocalVisits';
 import { VideoPlayer, type VideoPlayerRef } from '@/components/ui/VideoPlayer';
 import { CommentSection } from '@/components/comments/CommentSection';
 import { formatDuration } from '@/lib/youtube';
+import { Checklist } from '@/components/hacks/Checklist';
+import { useAuth } from '@/hooks/useAuth';
 
 interface HackViewProps {
   hack: {
@@ -45,8 +47,10 @@ interface HackViewProps {
 
 export function HackView({ hack, canAccess: serverCanAccess, user, children }: HackViewProps) {
   const { markAsVisited, visitedHacks } = useLocalVisits();
+  const { isAuthenticated } = useAuth();
   const [canAccess, setCanAccess] = useState(serverCanAccess);
   const [hasMarkedVisit, setHasMarkedVisit] = useState(false);
+  const [checkProgress, setCheckProgress] = useState<any>(null);
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
 
   // Memoize prerequisites check
@@ -90,6 +94,10 @@ export function HackView({ hack, canAccess: serverCanAccess, user, children }: H
 
   // Check if visited from either database (authenticated) or local storage (anonymous)
   const isHackVisited = hack.isViewed || (!user && visitedHacks.has(hack.id));
+
+  const handleCheckProgressChange = useCallback((canComplete: boolean, progress: any) => {
+    setCheckProgress(progress);
+  }, []);
 
   const getImageSrc = (imagePath?: string | null, imageUrl?: string) => {
     if (imagePath) {
@@ -211,6 +219,15 @@ export function HackView({ hack, canAccess: serverCanAccess, user, children }: H
               />
             </div>
           )}
+
+          {/* Checklist */}
+          <div className="p-8 pt-0">
+            <Checklist
+              hackId={hack.id}
+              isAuthenticated={isAuthenticated}
+              onProgressChange={handleCheckProgressChange}
+            />
+          </div>
 
           {/* Comments Section */}
           <div className="mt-12 border-t pt-8">

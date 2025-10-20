@@ -18,6 +18,9 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        clipped: "bg-primary text-primary-foreground hover:bg-primary/90",
+        clippedOutline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        clippedDestructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -40,12 +43,29 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, style, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
+
+    // Apply clip-path for clipped variants
+    const isClipped = variant === "clipped" || variant === "clippedOutline" || variant === "clippedDestructive"
+    const clipStyle = isClipped
+      ? {
+          clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)',
+          ...style
+        }
+      : style
+
+    // Remove rounded-md for clipped variants
+    const finalClassName = cn(
+      buttonVariants({ variant, size, className }),
+      isClipped && "rounded-none"
+    )
+
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={finalClassName}
         ref={ref}
+        style={clipStyle}
         {...props}
       />
     )

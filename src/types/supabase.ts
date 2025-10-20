@@ -142,6 +142,61 @@ export type Database = {
           },
         ]
       }
+      hack_checks: {
+        Row: {
+          created_at: string
+          description: string | null
+          hack_id: string
+          id: string
+          is_required: boolean
+          position: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          hack_id: string
+          id?: string
+          is_required?: boolean
+          position?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          hack_id?: string
+          id?: string
+          is_required?: boolean
+          position?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hack_checks_hack_id_fkey"
+            columns: ["hack_id"]
+            isOneToOne: false
+            referencedRelation: "hack_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hack_checks_hack_id_fkey"
+            columns: ["hack_id"]
+            isOneToOne: false
+            referencedRelation: "hacks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hack_checks_hack_id_fkey"
+            columns: ["hack_id"]
+            isOneToOne: false
+            referencedRelation: "user_hack_progress"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hack_prerequisites: {
         Row: {
           created_at: string | null
@@ -264,9 +319,12 @@ export type Database = {
           difficulty: string | null
           duration_minutes: number | null
           external_link: string | null
+          icon: string | null
           id: string
           image_path: string | null
           image_url: string | null
+          is_required: boolean | null
+          level_id: string | null
           media_thumbnail_url: string | null
           media_type: string | null
           media_url: string | null
@@ -287,9 +345,12 @@ export type Database = {
           difficulty?: string | null
           duration_minutes?: number | null
           external_link?: string | null
+          icon?: string | null
           id?: string
           image_path?: string | null
           image_url?: string | null
+          is_required?: boolean | null
+          level_id?: string | null
           media_thumbnail_url?: string | null
           media_type?: string | null
           media_url?: string | null
@@ -310,9 +371,12 @@ export type Database = {
           difficulty?: string | null
           duration_minutes?: number | null
           external_link?: string | null
+          icon?: string | null
           id?: string
           image_path?: string | null
           image_url?: string | null
+          is_required?: boolean | null
+          level_id?: string | null
           media_thumbnail_url?: string | null
           media_type?: string | null
           media_url?: string | null
@@ -332,6 +396,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "hacks_level_id_fkey"
+            columns: ["level_id"]
+            isOneToOne: false
+            referencedRelation: "level_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hacks_level_id_fkey"
+            columns: ["level_id"]
+            isOneToOne: false
+            referencedRelation: "levels"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "hacks_updated_by_fkey"
             columns: ["updated_by"]
             isOneToOne: false
@@ -339,6 +417,89 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      level_prerequisites: {
+        Row: {
+          created_at: string
+          id: string
+          level_id: string
+          prerequisite_level_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          level_id: string
+          prerequisite_level_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          level_id?: string
+          prerequisite_level_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "level_prerequisites_level_id_fkey"
+            columns: ["level_id"]
+            isOneToOne: false
+            referencedRelation: "level_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "level_prerequisites_level_id_fkey"
+            columns: ["level_id"]
+            isOneToOne: false
+            referencedRelation: "levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "level_prerequisites_prerequisite_level_id_fkey"
+            columns: ["prerequisite_level_id"]
+            isOneToOne: false
+            referencedRelation: "level_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "level_prerequisites_prerequisite_level_id_fkey"
+            columns: ["prerequisite_level_id"]
+            isOneToOne: false
+            referencedRelation: "levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      levels: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          position: number | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          position?: number | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          position?: number | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       onboarding_questions: {
         Row: {
@@ -569,6 +730,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_hack_checks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          hack_check_id: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          hack_check_id: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          hack_check_id?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_hack_checks_hack_check_id_fkey"
+            columns: ["hack_check_id"]
+            isOneToOne: false
+            referencedRelation: "hack_checks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_hack_checks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_hacks: {
         Row: {
           completed_at: string | null
@@ -636,6 +839,61 @@ export type Database = {
           },
           {
             foreignKeyName: "user_hacks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_levels: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          hacks_completed: number | null
+          id: string
+          level_id: string
+          total_required_hacks: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          hacks_completed?: number | null
+          id?: string
+          level_id: string
+          total_required_hacks?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          hacks_completed?: number | null
+          id?: string
+          level_id?: string
+          total_required_hacks?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_levels_level_id_fkey"
+            columns: ["level_id"]
+            isOneToOne: false
+            referencedRelation: "level_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_levels_level_id_fkey"
+            columns: ["level_id"]
+            isOneToOne: false
+            referencedRelation: "levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_levels_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -794,6 +1052,22 @@ export type Database = {
           },
         ]
       }
+      level_details: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string | null
+          name: string | null
+          optional_hacks_count: number | null
+          position: number | null
+          required_hacks_count: number | null
+          slug: string | null
+          total_hacks_count: number | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
       routine_play_state: {
         Row: {
           autoplay_enabled: boolean | null
@@ -857,6 +1131,14 @@ export type Database = {
         Args: { email_address: string }
         Returns: undefined
       }
+      can_complete_hack: {
+        Args: { p_hack_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      check_level_prerequisites_met: {
+        Args: { p_level_id: string; p_user_id: string }
+        Returns: boolean
+      }
       get_comment_count: {
         Args: {
           p_entity_id: string
@@ -867,6 +1149,15 @@ export type Database = {
       get_comment_like_count: {
         Args: { p_comment_id: string }
         Returns: number
+      }
+      get_hack_check_progress: {
+        Args: { p_hack_id: string; p_user_id: string }
+        Returns: {
+          completed_checks: number
+          completed_required_checks: number
+          required_checks: number
+          total_checks: number
+        }[]
       }
       increment_hack_view_count: {
         Args: { p_hack_id: string; p_user_id: string }
@@ -887,6 +1178,14 @@ export type Database = {
           p_total_hacks?: number
         }
         Returns: Json
+      }
+      update_user_level_progress: {
+        Args: { p_level_id: string; p_user_id: string }
+        Returns: {
+          hacks_completed: number
+          is_completed: boolean
+          total_required_hacks: number
+        }[]
       }
     }
     Enums: {

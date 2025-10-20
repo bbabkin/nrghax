@@ -15,6 +15,13 @@ import { Loader2, Upload, X, Image as ImageIcon, Clock } from 'lucide-react';
 import Image from 'next/image';
 import { MediaInput } from '@/components/ui/media-input';
 import { extractYouTubeVideoId, fetchYouTubeDuration, isYouTubeUrl } from '@/lib/youtube';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface HackFormProps {
   hack?: {
@@ -43,12 +50,15 @@ interface HackFormProps {
     prerequisiteIds?: string[];
     duration_minutes?: number | null;
     durationMinutes?: number | null;
+    level_id?: string | null;
+    levelId?: string | null;
   };
   availableHacks: { id: string; name: string }[];
+  availableLevels: { id: string; name: string; slug: string }[];
   userId: string;
 }
 
-export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
+export function HackForm({ hack, availableHacks, availableLevels, userId }: HackFormProps) {
   const router = useRouter();
 
   console.log('[HackForm] Received hack prop:', {
@@ -82,6 +92,9 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
     hack?.duration_minutes || hack?.durationMinutes || null
   );
   const [isFetchingDuration, setIsFetchingDuration] = useState(false);
+  const [selectedLevel, setSelectedLevel] = useState<string>(
+    hack?.level_id || hack?.levelId || ''
+  );
 
   // Construct image URL from either imageUrl or imagePath
   const getImageUrl = () => {
@@ -229,6 +242,7 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
         media_url: mediaType === 'none' ? null : (mediaUrl || null),
         prerequisite_ids: prerequisites,
         duration_minutes: durationMinutes,
+        level_id: selectedLevel || null,
       };
 
       let hackId: string;
@@ -351,6 +365,27 @@ export function HackForm({ hack, availableHacks, userId }: HackFormProps) {
           pattern="[a-z0-9-]+"
           title="Only lowercase letters, numbers, and hyphens allowed"
         />
+      </div>
+
+      <div>
+        <Label htmlFor="level_id">Level (Optional)</Label>
+        <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+          <SelectTrigger>
+            <SelectValue placeholder="No level assigned" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">No level</SelectItem>
+            {availableLevels.map((level) => (
+              <SelectItem key={level.id} value={level.id}>
+                {level.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <input type="hidden" name="level_id" value={selectedLevel} />
+        <p className="text-sm text-gray-500 mt-1">
+          Assign this hack to a level for organization. You can also manage hack assignments from the level management page.
+        </p>
       </div>
 
       <div>

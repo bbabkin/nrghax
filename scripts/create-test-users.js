@@ -1,17 +1,10 @@
-#!/usr/bin/env node
-
-/**
- * Script to create test users in local Supabase
- * Run with: node scripts/create-test-users.js
- */
-
 const { createClient } = require('@supabase/supabase-js');
 
-// Local Supabase URL and service role key
-const supabaseUrl = 'http://localhost:54321';
-const supabaseKey = 'sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz'; // Local service role key
+// Use service role key for admin operations
+const supabaseUrl = 'http://127.0.0.1:54321';
+const supabaseServiceKey = 'sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz';
 
-const supabase = createClient(supabaseUrl, supabaseKey, {
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false
@@ -19,134 +12,90 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 });
 
 async function createTestUsers() {
-  console.log('Creating test users...\n');
-
-  // Test users to create
-  const testUsers = [
+  const users = [
     {
       email: 'admin@test.com',
-      password: 'admin123',
+      password: 'test123',
       name: 'Admin User',
-      username: 'admin',
-      isAdmin: true,
-      onboarded: true
+      is_admin: true
     },
     {
       email: 'user@test.com',
-      password: 'user123',
+      password: 'test123',
       name: 'Test User',
-      username: 'testuser',
-      isAdmin: false,
-      onboarded: true
-    },
-    {
-      email: 'newuser@test.com',
-      password: 'newuser123',
-      name: 'New User',
-      username: 'newuser',
-      isAdmin: false,
-      onboarded: false
+      is_admin: false
     }
   ];
 
-  for (const user of testUsers) {
+  console.log('Creating test users...\n');
+
+  for (const userData of users) {
     try {
-      // Create auth user
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: user.email,
-        password: user.password,
+      // Create user in auth.users
+      const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+        email: userData.email,
+        password: userData.password,
         email_confirm: true,
         user_metadata: {
-          name: user.name
+          name: userData.name
         }
       });
 
       if (authError) {
-        if (authError.message?.includes('already been registered')) {
-          console.log(`✓ User ${user.email} already exists`);
+        if (authError.message.includes('already been registered')) {
+          console.log(`⚠️  User ${userData.email} already exists`);
 
-          // Update the profile to ensure correct settings
-          const { data: existingUser } = await supabase.auth.admin.getUserByEmail(user.email);
-          if (existingUser?.user) {
-            await supabase
-              .from('profiles')
-              .update({
-                name: user.name,
-                is_admin: user.isAdmin,
-                onboarded: user.onboarded
-              })
-              .eq('id', existingUser.user.id);
-            console.log(`  Updated profile settings for ${user.email}`);
+          // Update the existing user's password
+          const { data: users } = await supabase.auth.admin.listUsers();
+          const existingUser = users.users.find(u => u.email === userData.email);
+
+          if (existingUser) {
+            const { error: updateError } = await supabase.auth.admin.updateUserById(
+              existingUser.id,
+              { password: userData.password }
+            );
+
+            if (updateError) {
+              console.log(`   ❌ Failed to update password: ${updateError.message}`);
+            } else {
+              console.log(`   ✅ Password updated successfully`);
+            }
           }
-        } else {
-          console.error(`✗ Error creating ${user.email}:`, authError.message);
+          continue;
         }
-        continue;
+        throw authError;
       }
 
-      if (authData?.user) {
-        // Create or update profile
+      console.log(`✅ Created user: ${userData.email}`);
+
+      // Update the profile to set admin status
+      if (userData.is_admin && authUser?.user) {
         const { error: profileError } = await supabase
           .from('profiles')
-          .upsert({
-            id: authData.user.id,
-            email: user.email,
-            name: user.name,
-            is_admin: user.isAdmin,
-            onboarded: user.onboarded
-          });
+          .update({ is_admin: true })
+          .eq('id', authUser.user.id);
 
         if (profileError) {
-          console.error(`✗ Error creating profile for ${user.email}:`, profileError.message);
+          console.log(`   ⚠️  Failed to set admin status: ${profileError.message}`);
         } else {
-          console.log(`✓ Created user ${user.email} (Password: ${user.password})`);
-        }
-
-        // Add some default tags to the regular user
-        if (user.email === 'user@test.com') {
-          // Get beginner and energy tags
-          const { data: tags } = await supabase
-            .from('tags')
-            .select('id')
-            .in('slug', ['beginner', 'energy'])
-            .limit(2);
-
-          if (tags && tags.length > 0) {
-            for (const tag of tags) {
-              await supabase
-                .from('user_tags')
-                .upsert({
-                  user_id: authData.user.id,
-                  tag_id: tag.id,
-                  source: 'default'
-                });
-            }
-            console.log(`  Added default tags to ${user.email}`);
-          }
+          console.log(`   ✅ Admin privileges granted`);
         }
       }
+
     } catch (error) {
-      console.error(`✗ Unexpected error for ${user.email}:`, error.message);
+      console.error(`❌ Error creating ${userData.email}:`, error.message);
     }
   }
 
-  console.log('\n===========================================');
-  console.log('Test Users Summary:');
-  console.log('===========================================');
-  console.log('1. Admin User');
-  console.log('   Email: admin@test.com');
-  console.log('   Password: admin123');
-  console.log('   Status: Admin, Onboarded\n');
-  console.log('2. Regular User');
-  console.log('   Email: user@test.com');
-  console.log('   Password: user123');
-  console.log('   Status: Regular user, Onboarded\n');
-  console.log('3. New User');
-  console.log('   Email: newuser@test.com');
-  console.log('   Password: newuser123');
-  console.log('   Status: New user, needs onboarding\n');
-  console.log('You can now test the different user flows!');
-  console.log('===========================================');
+  console.log('\n📋 Test User Credentials:');
+  console.log('========================');
+  users.forEach(user => {
+    console.log(`\n${user.is_admin ? '👑 Admin' : '👤 User'}:`);
+    console.log(`Email: ${user.email}`);
+    console.log(`Password: ${user.password}`);
+  });
+
+  console.log('\n✨ Setup complete! You can now sign in at http://localhost:3000/auth/signin');
 }
 
-createTestUsers().catch(console.error);
+createTestUsers();
