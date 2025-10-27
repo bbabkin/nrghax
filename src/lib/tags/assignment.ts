@@ -19,15 +19,39 @@ export async function assignTagsFromOnboarding(
 
   // If user skipped onboarding, assign default beginner trait
   if ('skipped' in answers && answers.skipped) {
-    // Mark user as onboarded with default beginner trait
-    await supabase
+    console.log('Skipping onboarding for user:', userId)
+
+    // Try with traits first, fallback to just onboarded if traits column doesn't exist
+    let { data, error: skipError } = await supabase
       .from('profiles')
       .update({
         onboarded: true,
         traits: ['beginner']
       })
       .eq('id', userId)
+      .select()
 
+    // If traits column doesn't exist, just update onboarded flag
+    if (skipError && skipError.message?.includes('column') && skipError.message?.includes('traits')) {
+      console.log('Traits column not found, updating onboarded only')
+      const fallbackResult = await supabase
+        .from('profiles')
+        .update({
+          onboarded: true
+        })
+        .eq('id', userId)
+        .select()
+
+      data = fallbackResult.data
+      skipError = fallbackResult.error
+    }
+
+    if (skipError) {
+      console.error('Error updating profile (skip):', skipError)
+      throw new Error('Failed to update profile: ' + skipError.message)
+    }
+
+    console.log('Profile updated (skip):', data)
     return
   }
 
@@ -103,14 +127,39 @@ export async function assignTagsFromOnboarding(
   // Remove duplicates and update profile
   const uniqueTraits = [...new Set(traits)]
 
-  // Mark user as onboarded and assign traits
-  await supabase
+  console.log('Updating profile for user:', userId, 'with traits:', uniqueTraits)
+
+  // Try with traits first, fallback to just onboarded if traits column doesn't exist
+  let { data, error: updateError } = await supabase
     .from('profiles')
     .update({
       onboarded: true,
       traits: uniqueTraits
     })
     .eq('id', userId)
+    .select()
+
+  // If traits column doesn't exist, just update onboarded flag
+  if (updateError && updateError.message?.includes('column') && updateError.message?.includes('traits')) {
+    console.log('Traits column not found, updating onboarded only')
+    const fallbackResult = await supabase
+      .from('profiles')
+      .update({
+        onboarded: true
+      })
+      .eq('id', userId)
+      .select()
+
+    data = fallbackResult.data
+    updateError = fallbackResult.error
+  }
+
+  if (updateError) {
+    console.error('Error updating profile:', updateError)
+    throw new Error('Failed to update profile: ' + updateError.message)
+  }
+
+  console.log('Profile updated successfully:', data)
 
   // Store onboarding responses
   const responses = []

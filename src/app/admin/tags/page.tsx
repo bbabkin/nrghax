@@ -1,31 +1,30 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { TagService } from '@/lib/tags/tagService';
-import { TagList } from './TagList';
-import { CreateTagForm } from './CreateTagForm';
+import { TagManagement } from './TagManagement';
 
 export default async function AdminTagsPage() {
   const supabase = await createClient();
-  
+
   // Check if user is admin
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     redirect('/auth/login');
   }
-  
+
   const { data: profile } = await supabase
     .from('profiles')
     .select('is_admin')
     .eq('id', user.id)
     .single();
-  
+
   if (!profile?.is_admin) {
     redirect('/');
   }
-  
+
   // Get all tags
   const tags = await TagService.getAllTags();
-  
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -35,18 +34,7 @@ export default async function AdminTagsPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <TagList initialTags={tags} />
-        </div>
-
-        <div>
-          <div className="bg-card rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Create New Tag</h2>
-            <CreateTagForm />
-          </div>
-        </div>
-      </div>
+      <TagManagement initialTags={tags} />
     </div>
   );
 }

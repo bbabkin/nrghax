@@ -284,7 +284,7 @@ export function RoutinePlayer({
     setCountdown(null);
   }, []);
 
-  // 5-second delayed autoplay for videos with countdown (only on auto-navigation)
+  // 3-second delayed autoplay for videos with countdown (only on auto-navigation)
   useEffect(() => {
     // Clear any existing timers
     if (autoplayTimerRef.current) {
@@ -304,11 +304,11 @@ export function RoutinePlayer({
 
       if (isAutoNav) {
         // Auto-navigation: Show countdown and autoplay
-        console.log('Auto-navigation: Starting 5-second countdown');
-        setCountdown(5);
+        console.log('Auto-navigation: Starting 3-second countdown');
+        setCountdown(3);
 
         // Countdown timer (ticks every second)
-        let currentCount = 5;
+        let currentCount = 3;
         countdownIntervalRef.current = setInterval(() => {
           currentCount -= 1;
           console.log('Countdown:', currentCount);
@@ -322,12 +322,12 @@ export function RoutinePlayer({
           }
         }, 1000);
 
-        // Autoplay timer (fires after 5 seconds)
+        // Autoplay timer (fires after 3 seconds)
         autoplayTimerRef.current = setTimeout(() => {
           console.log('Autoplay timer fired, playing video');
           videoPlayerRef.current?.play();
           setCountdown(null);
-        }, 5000);
+        }, 3000);
       } else {
         // Manual navigation: Leave video paused (no action needed)
         console.log('Manual navigation: Video will remain paused');
@@ -413,9 +413,9 @@ export function RoutinePlayer({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-40">
+      <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -489,22 +489,30 @@ export function RoutinePlayer({
                 <div className="mb-6">
                   {/* Countdown indicator */}
                   {countdown !== null && countdown > 0 && (
-                    <div className="mb-3 bg-blue-600 text-white rounded-lg p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center w-10 h-10 bg-white text-blue-600 rounded-full font-bold text-lg">
-                          {countdown}
+                    <div className="mb-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg p-4 shadow-lg animate-in fade-in duration-300">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-white opacity-20 rounded-full animate-ping"></div>
+                            <div className="relative flex items-center justify-center w-12 h-12 bg-white text-blue-600 rounded-full font-bold text-xl shadow-md">
+                              {countdown}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="font-medium">Video starting soon</p>
+                            <p className="text-sm opacity-90">{countdown} second{countdown !== 1 ? 's' : ''} remaining</p>
+                          </div>
                         </div>
-                        <span className="text-sm">Video starting in {countdown} second{countdown !== 1 ? 's' : ''}...</span>
+                        <Button
+                          size="default"
+                          variant="secondary"
+                          onClick={cancelAutoplay}
+                          className="bg-white/10 backdrop-blur text-white border-white/20 hover:bg-white/20"
+                        >
+                          <Pause className="h-4 w-4 mr-2" />
+                          Pause
+                        </Button>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={cancelAutoplay}
-                        className="bg-white text-blue-600 hover:bg-gray-100"
-                      >
-                        <X className="h-4 w-4 mr-1" />
-                        Cancel
-                      </Button>
                     </div>
                   )}
 
@@ -598,8 +606,8 @@ export function RoutinePlayer({
                       onClick={() => goToHack(index)}
                       className={cn(
                         "w-full text-left p-3 rounded-lg transition-all",
-                        "hover:bg-gray-100",
-                        isCurrentHack && "bg-blue-50 border-2 border-blue-500 current",
+                        "hover:bg-gray-100 dark:hover:bg-gray-700",
+                        isCurrentHack && "bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-500 current",
                         isCompleted && "completed"
                       )}
                     >

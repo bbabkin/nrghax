@@ -7,12 +7,13 @@ import { useToast } from '@/components/ui/use-toast';
 import { ConfirmDialog } from '@/components/ui/confirmation-dialog';
 
 interface TagListProps {
-  initialTags: Tag[];
+  tags: Tag[];
+  onTagUpdated?: (tag: Tag) => void;
+  onTagDeleted?: (tagId: string) => void;
 }
 
-export function TagList({ initialTags }: TagListProps) {
+export function TagList({ tags, onTagUpdated, onTagDeleted }: TagListProps) {
   const { toast } = useToast();
-  const [tags, setTags] = useState(initialTags);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -41,7 +42,10 @@ export function TagList({ initialTags }: TagListProps) {
       });
       
       if (response.ok) {
-        setTags(tags.map(t => t.id === id ? { ...t, name: editingName } : t));
+        const data = await response.json();
+        if (onTagUpdated && data) {
+          onTagUpdated(data);
+        }
         setEditingId(null);
         toast({
           title: 'Success',
@@ -75,7 +79,9 @@ export function TagList({ initialTags }: TagListProps) {
 
       if (response.ok) {
         const deletedTag = tags.find(t => t.id === id);
-        setTags(tags.filter(t => t.id !== id));
+        if (onTagDeleted) {
+          onTagDeleted(id);
+        }
         toast({
           title: 'Success',
           description: `Tag "${deletedTag?.name}" deleted successfully`

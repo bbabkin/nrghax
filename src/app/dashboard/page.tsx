@@ -12,7 +12,19 @@ export default async function DashboardPage() {
   // Check if user has completed onboarding
   const supabase = await createClient()
 
-  // First check if user has ANY tags
+  // Check profile for onboarding status
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('onboarded')
+    .eq('id', user.id)
+    .single()
+
+  // If user hasn't completed onboarding, redirect them
+  if (!profile?.onboarded) {
+    redirect('/onboarding')
+  }
+
+  // Get user tags for display
   const { data: userTags } = await supabase
     .from('user_tags')
     .select(`
@@ -20,23 +32,6 @@ export default async function DashboardPage() {
       tag:tags(*)
     `)
     .eq('user_id', user.id)
-
-  // Check if user has onboarding tags or has been marked as onboarded
-  const hasOnboardingTags = userTags && userTags.some((ut: any) => ut.source === 'onboarding')
-
-  // Also check profile for onboarding status
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('onboarded')
-    .eq('id', user.id)
-    .single()
-
-  const hasCompletedOnboarding = hasOnboardingTags || profile?.onboarded
-
-  // If user hasn't completed onboarding, redirect them
-  if (!hasCompletedOnboarding) {
-    redirect('/onboarding')
-  }
 
   // Get personalized hack recommendations
   // For now, just get recent hacks - we'll implement personalization later
@@ -120,11 +115,13 @@ export default async function DashboardPage() {
                       ))}
                     </div>
                   )}
-                  <Link href={`/hacks/${hack.slug || hack.id}`}>
-                    <Button className="w-full" size="sm">
-                      Start Challenge
-                    </Button>
-                  </Link>
+                  <div className="pr-2">
+                    <Link href={`/hacks/${hack.slug || hack.id}`}>
+                      <Button className="w-full" size="sm">
+                        Start Challenge
+                      </Button>
+                    </Link>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -150,7 +147,7 @@ export default async function DashboardPage() {
             <CardTitle>Your Profile</CardTitle>
             <CardDescription>Manage your tags and preferences</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pr-8">
             <Link href="/profile/tags">
               <Button variant="outline" className="w-full">
                 Manage Tags
@@ -164,7 +161,7 @@ export default async function DashboardPage() {
             <CardTitle>Progress</CardTitle>
             <CardDescription>Track your completed challenges</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pr-8">
             <Link href="/profile/history">
               <Button variant="outline" className="w-full">
                 View History
@@ -178,7 +175,7 @@ export default async function DashboardPage() {
             <CardTitle>Update Preferences</CardTitle>
             <CardDescription>Retake the onboarding questionnaire</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pr-8">
             <Link href="/onboarding">
               <Button variant="outline" className="w-full">
                 Update Preferences

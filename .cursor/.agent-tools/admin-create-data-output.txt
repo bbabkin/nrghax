@@ -1,0 +1,33 @@
+{
+  "success": true,
+  "results": {
+    "login": {
+      "ok": true,
+      "currentUrl": "http://localhost:3000/dashboard"
+    },
+    "tags": [
+      {
+        "tag": "Focus",
+        "status": 409
+      },
+      {
+        "tag": "Sleep",
+        "status": 409
+      },
+      {
+        "tag": "Breathwork",
+        "status": 409
+      }
+    ],
+    "hack": {
+      "onHacks": true,
+      "hackVisible": true,
+      "currentUrl": "http://localhost:3000/hacks"
+    },
+    "routine": {
+      "onRoutineDetail": true,
+      "routineVisible": false,
+      "currentUrl": "http://localhost:3000/dashboard/routines/new"
+    }
+  }
+}

@@ -94,6 +94,9 @@ export default function QuestionnaireWizard({ userId }: Props) {
     try {
       // Assign default beginner tag when skipping
       await assignTagsFromOnboarding(userId, { skipped: true })
+
+      // Refresh server data and navigate
+      router.refresh()
       router.push('/dashboard')
     } catch (err) {
       setError('Failed to skip onboarding. Please try again.')
@@ -107,6 +110,9 @@ export default function QuestionnaireWizard({ userId }: Props) {
 
     try {
       await assignTagsFromOnboarding(userId, answers)
+
+      // Refresh server data and navigate
+      router.refresh()
       router.push('/dashboard')
     } catch (err) {
       setError('Failed to save your preferences. Please try again.')

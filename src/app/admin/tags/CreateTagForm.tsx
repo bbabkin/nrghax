@@ -3,8 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
+import { Tag } from '@/lib/tags/types';
 
-export function CreateTagForm() {
+interface CreateTagFormProps {
+  onTagCreated?: (tag: Tag) => void;
+}
+
+export function CreateTagForm({ onTagCreated }: CreateTagFormProps) {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -48,8 +53,14 @@ export function CreateTagForm() {
       setName('');
       toast({
         title: 'Success',
-        description: `Tag "${name}" created successfully`
+        description: `Tag "${data.name}" created successfully`
       });
+
+      // Call the callback to update the parent component
+      if (onTagCreated && data) {
+        onTagCreated(data);
+      }
+
       router.refresh();
     } catch (error: any) {
       console.error('Failed to create tag:', error);

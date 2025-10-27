@@ -5,13 +5,14 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Plus, PlusCircle, Settings } from 'lucide-react';
+import { Plus, Settings, Zap, ListChecks } from 'lucide-react';
 import { HacksList } from './HacksList';
 import { HackCard } from './HackCard';
 import { RoutineCard } from '@/components/routines/RoutineCard';
 import { cn } from '@/lib/utils';
 import { useLocalVisits } from '@/hooks/useLocalVisits';
 import { useToast } from '@/components/ui/use-toast';
+import { BrainCircuit } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -424,10 +425,10 @@ export function HacksPageContent({
             <Link href="/routines/new">
               <Button
                 size="lg"
-                className="rounded-full shadow-lg hover:shadow-xl transition-shadow bg-blue-600 hover:bg-blue-700 text-white"
+                className="shadow-lg hover:shadow-xl transition-shadow bg-blue-600 hover:bg-blue-700 text-white"
                 title="Create New Routine"
               >
-                <Plus className="h-5 w-5 mr-2" />
+                <ListChecks className="h-5 w-5 mr-2" />
                 New Routine
               </Button>
             </Link>
@@ -436,12 +437,12 @@ export function HacksPageContent({
             <Link href="/admin/hacks/new">
               <Button
                 size="lg"
-                className="rounded-full shadow-lg hover:shadow-xl transition-shadow bg-purple-600 hover:bg-purple-700 text-white"
+                className="shadow-lg hover:shadow-xl transition-shadow bg-purple-600 hover:bg-purple-700 text-white"
                 variant="default"
                 title="Create New Hack"
               >
-                <PlusCircle className="h-5 w-5 mr-2" />
-                New Hack (Admin)
+                <Zap className="h-5 w-5 mr-2" />
+                New Hack
               </Button>
             </Link>
           )}

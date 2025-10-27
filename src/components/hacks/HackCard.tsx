@@ -7,13 +7,12 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Heart, Lock, CheckCircle, ExternalLink, BookOpen, Trash2, Eye, Clock } from 'lucide-react';
-import { toggleLike, deleteHack } from '@/lib/hacks/actions';
+import { Lock, CheckCircle, ExternalLink, BookOpen, Trash2, Eye, Clock, Pencil } from 'lucide-react';
+import { deleteHack } from '@/lib/hacks/actions';
 import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/components/ui/confirmation-dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { useLocalVisits } from '@/hooks/useLocalVisits';
-import { useAuth } from '@/hooks/useAuth';
 import { formatDuration } from '@/lib/youtube';
 
 interface HackCardProps {
@@ -47,52 +46,10 @@ export function HackCard({
   const router = useRouter();
   const { toast } = useToast();
   const { isVisited } = useLocalVisits();
-  const { isAuthenticated } = useAuth();
-  const [isLiked, setIsLiked] = useState(hack.is_liked || false);
-  const [likeCount, setLikeCount] = useState(hack.like_count || 0);
-  const [isLiking, setIsLiking] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Check if visited from either database (authenticated) or local storage (anonymous)
   const isHackVisited = hack.is_completed || isVisited(hack.id);
-
-  const handleLike = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (isLiking) return;
-
-    // Check if user is authenticated
-    if (!isAuthenticated) {
-      toast({
-        title: 'Sign in required',
-        description: 'Please sign in to like hacks',
-      });
-      // Redirect to auth page
-      router.push('/auth');
-      return;
-    }
-
-    setIsLiking(true);
-    setIsLiked(!isLiked);
-    setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
-
-    try {
-      await toggleLike(hack.id);
-    } catch (error) {
-      // Revert on error
-      setIsLiked(isLiked);
-      setLikeCount(hack.like_count || 0);
-      toast({
-        title: 'Error',
-        description: 'Failed to update like status. Please try again.',
-        variant: 'destructive',
-      });
-      console.error('Failed to toggle like:', error);
-    } finally {
-      setIsLiking(false);
-    }
-  };
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -198,52 +155,34 @@ export function HackCard({
         )}
       </CardContent>
 
-      {showActions && (
-        <CardFooter className="p-4 pt-0 flex items-center justify-between">
-          <button
-            onClick={handleLike}
-            className={cn(
-              "flex items-center gap-1 text-sm",
-              !isAuthenticated && "hover:opacity-70"
-            )}
-            disabled={isLiking}
-            title={!isAuthenticated ? "Sign in to like" : undefined}
-          >
-            <Heart
-              className={cn(
-                "h-4 w-4 transition-colors",
-                isLiked && isAuthenticated ? "fill-red-500 text-red-500" : "text-gray-500 dark:text-gray-300 dark:text-gray-500"
+      {showActions && isAdmin && (
+        <CardFooter className="p-4 pt-0 pr-6 flex items-center justify-end">
+          <div className="flex gap-2">
+            <Link href={`/admin/hacks/${hack.id}/edit`}>
+              <Button size="icon" variant="outline">
+                <Pencil className="h-4 w-4" />
+              </Button>
+            </Link>
+            <ConfirmDialog
+              title="Delete Hack"
+              description={`Are you sure you want to delete "${hack.name}"? This will also remove all user progress and cannot be undone.`}
+              confirmText="Delete"
+              cancelText="Cancel"
+              onConfirm={handleDelete}
+              variant="destructive"
+            >
+              {({ onClick }) => (
+                <Button
+                  onClick={onClick}
+                  size="icon"
+                  variant="destructive"
+                  disabled={isDeleting}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               )}
-            />
-            <span>{likeCount}</span>
-          </button>
-
-          {isAdmin && (
-            <div className="flex gap-2">
-              <Link href={`/admin/hacks/${hack.id}/edit`}>
-                <Button size="sm" variant="outline">Edit</Button>
-              </Link>
-              <ConfirmDialog
-                title="Delete Hack"
-                description={`Are you sure you want to delete "${hack.name}"? This will also remove all user progress and cannot be undone.`}
-                confirmText="Delete"
-                cancelText="Cancel"
-                onConfirm={handleDelete}
-                variant="destructive"
-              >
-                {({ onClick }) => (
-                  <Button
-                    onClick={onClick}
-                    size="sm"
-                    variant="destructive"
-                    disabled={isDeleting}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </ConfirmDialog>
-            </div>
-          )}
+            </ConfirmDialog>
+          </div>
         </CardFooter>
       )}
     </>
