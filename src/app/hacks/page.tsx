@@ -1,9 +1,8 @@
-import { HacksPageContent } from '@/components/hacks/HacksPageContent';
+import { LibraryView } from '@/components/hacks/LibraryView';
 import { getHacks, getUserCompletedHackIds, getHackPrerequisites } from '@/lib/hacks/supabase-utils';
 import { getPublicRoutines, getUserRoutines } from '@/lib/routines/supabase-utils';
 import { getCurrentUser } from '@/lib/auth/user';
 import { cookies } from 'next/headers';
-import { BrainCircuit } from 'lucide-react';
 
 export default async function HacksPage() {
   const user = await getCurrentUser();
@@ -75,6 +74,8 @@ export default async function HacksPage() {
       is_liked: hack.isLiked,
       is_completed: hack.isViewed,
       duration_minutes: hack.timeMinutes,
+      completion_count: hack.completionCount,
+      completion_percentage: hack.completionPercentage,
       tags: hack.tags,
       hasIncompletePrerequisites,
       prerequisiteIds, // Add prerequisite IDs for client-side checking
@@ -83,28 +84,13 @@ export default async function HacksPage() {
   });
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 flex items-start gap-4">
-        <div className="flex-shrink-0">
-          <BrainCircuit className="h-[57.6px] w-[57.6px] text-foreground" strokeWidth={1.5} />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Learning Resources</h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            Explore our collection of hacks and curated routines. Start your learning journey today.
-          </p>
-        </div>
-      </div>
-
-      <HacksPageContent
-        hacks={hacksWithPrerequisiteStatus}
-        routines={routines}
-        userRoutines={userRoutines}
-        isAuthenticated={!!user}
-        currentUserId={user?.id}
-        isAdmin={user?.is_admin || false}
-      />
-
-    </div>
+    <LibraryView
+      hacks={hacksWithPrerequisiteStatus}
+      routines={routines}
+      userRoutines={userRoutines}
+      isAuthenticated={!!user}
+      currentUserId={user?.id}
+      isAdmin={user?.is_admin || false}
+    />
   );
 }

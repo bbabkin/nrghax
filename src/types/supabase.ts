@@ -188,13 +188,6 @@ export type Database = {
             referencedRelation: "hacks"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "hack_checks_hack_id_fkey"
-            columns: ["hack_id"]
-            isOneToOne: false
-            referencedRelation: "user_hack_progress"
-            referencedColumns: ["id"]
-          },
         ]
       }
       hack_prerequisites: {
@@ -232,13 +225,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "hack_prerequisites_hack_id_fkey"
-            columns: ["hack_id"]
-            isOneToOne: false
-            referencedRelation: "user_hack_progress"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "hack_prerequisites_prerequisite_hack_id_fkey"
             columns: ["prerequisite_hack_id"]
             isOneToOne: false
@@ -250,13 +236,6 @@ export type Database = {
             columns: ["prerequisite_hack_id"]
             isOneToOne: false
             referencedRelation: "hacks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "hack_prerequisites_prerequisite_hack_id_fkey"
-            columns: ["prerequisite_hack_id"]
-            isOneToOne: false
-            referencedRelation: "user_hack_progress"
             referencedColumns: ["id"]
           },
         ]
@@ -290,13 +269,6 @@ export type Database = {
             columns: ["hack_id"]
             isOneToOne: false
             referencedRelation: "hacks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "hack_tags_hack_id_fkey"
-            columns: ["hack_id"]
-            isOneToOne: false
-            referencedRelation: "user_hack_progress"
             referencedColumns: ["id"]
           },
           {
@@ -596,13 +568,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "routine_hacks_hack_id_fkey"
-            columns: ["hack_id"]
-            isOneToOne: false
-            referencedRelation: "user_hack_progress"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "routine_hacks_routine_id_fkey"
             columns: ["routine_id"]
             isOneToOne: false
@@ -775,6 +740,7 @@ export type Database = {
       user_hacks: {
         Row: {
           completed_at: string | null
+          completion_count: number | null
           created_at: string | null
           hack_id: string | null
           id: string
@@ -789,6 +755,7 @@ export type Database = {
         }
         Insert: {
           completed_at?: string | null
+          completion_count?: number | null
           created_at?: string | null
           hack_id?: string | null
           id?: string
@@ -803,6 +770,7 @@ export type Database = {
         }
         Update: {
           completed_at?: string | null
+          completion_count?: number | null
           created_at?: string | null
           hack_id?: string | null
           id?: string
@@ -828,13 +796,6 @@ export type Database = {
             columns: ["hack_id"]
             isOneToOne: false
             referencedRelation: "hacks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_hacks_hack_id_fkey"
-            columns: ["hack_id"]
-            isOneToOne: false
-            referencedRelation: "user_hack_progress"
             referencedColumns: ["id"]
           },
           {
@@ -1105,17 +1066,33 @@ export type Database = {
       }
       user_hack_progress: {
         Row: {
+          color: string | null
           completed_at: string | null
-          difficulty: string | null
-          id: string | null
-          name: string | null
-          progress_status: string | null
-          slug: string | null
-          started_at: string | null
-          status: string | null
+          completion_count: number | null
+          completion_percentage: number | null
+          duration_minutes: number | null
+          hack_id: string | null
+          hack_name: string | null
+          hack_slug: string | null
           user_id: string | null
+          view_count: number | null
+          viewed_at: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "user_hacks_hack_id_fkey"
+            columns: ["hack_id"]
+            isOneToOne: false
+            referencedRelation: "hack_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_hacks_hack_id_fkey"
+            columns: ["hack_id"]
+            isOneToOne: false
+            referencedRelation: "hacks"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_hacks_user_id_fkey"
             columns: ["user_id"]
@@ -1127,10 +1104,7 @@ export type Database = {
       }
     }
     Functions: {
-      add_admin_email: {
-        Args: { email_address: string }
-        Returns: undefined
-      }
+      add_admin_email: { Args: { email_address: string }; Returns: undefined }
       can_complete_hack: {
         Args: { p_hack_id: string; p_user_id: string }
         Returns: boolean
@@ -1158,6 +1132,11 @@ export type Database = {
           required_checks: number
           total_checks: number
         }[]
+      }
+      get_hack_color: { Args: { p_completion_count: number }; Returns: string }
+      increment_hack_completion: {
+        Args: { p_hack_id: string; p_user_id: string }
+        Returns: number
       }
       increment_hack_view_count: {
         Args: { p_hack_id: string; p_user_id: string }

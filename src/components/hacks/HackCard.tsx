@@ -15,6 +15,13 @@ import { useToast } from '@/components/ui/use-toast';
 import { useLocalVisits } from '@/hooks/useLocalVisits';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDuration } from '@/lib/youtube';
+import {
+  getProgressionColor,
+  getProgressionClasses,
+  formatCompletionCount,
+  shouldShowCompletionBadge,
+  getCompletionBadgeColor
+} from '@/lib/progression';
 
 interface HackCardProps {
   hack: {
@@ -31,6 +38,8 @@ interface HackCardProps {
     is_liked?: boolean;
     is_completed?: boolean;
     duration_minutes?: number | null;
+    completion_count?: number;
+    completion_percentage?: number;
     tags?: Array<{ id: string; name: string; slug: string }>;
   };
   hasIncompletePrerequisites?: boolean;
@@ -115,7 +124,14 @@ export function HackCard({
   };
 
   const isLocked = hasIncompletePrerequisites;
-  
+
+  // Get progression color and classes
+  const progressionColor = getProgressionColor(hack.completion_count, isLocked);
+  const progressionClasses = getProgressionClasses(progressionColor);
+  const completionCountText = formatCompletionCount(hack.completion_count || 0);
+  const showPercentageBadge = hack.completion_percentage !== undefined && shouldShowCompletionBadge(hack.completion_percentage);
+
+
   // Determine the image source - prioritize image_path from storage
   const getImageSrc = () => {
     if (hack.image_path) {
@@ -142,17 +158,37 @@ export function HackCard({
             <Lock className="h-12 w-12 text-white" />
           </div>
         )}
-        {isHackVisited && (
-          <Badge className="absolute top-2 right-2 bg-blue-500">
-            <CheckCircle className="h-3 w-3 mr-1" />
-            Visited
-          </Badge>
+        {/* Completion counter in top right - more prominent styling */}
+        {hack.completion_count && hack.completion_count > 0 && (
+          <div
+            className="absolute top-2 right-2 px-3 py-1 rounded-full font-bold text-sm shadow-lg"
+            style={{
+              backgroundColor: progressionColor === 'green' ? '#10b981' :
+                              progressionColor === 'blue' ? '#3b82f6' :
+                              progressionColor === 'purple' ? '#a855f7' :
+                              progressionColor === 'orange' ? '#f97316' : '#6b7280',
+              color: 'white',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+            }}
+          >
+            {completionCountText}
+          </div>
         )}
-        {hack.view_count && hack.view_count > 1 && (
-          <Badge className="absolute top-2 right-20 bg-gray-700 text-white">
-            <Eye className="h-3 w-3 mr-1" />
-            x{hack.view_count}
-          </Badge>
+        {/* Percentage badge for partial completion */}
+        {showPercentageBadge && (
+          <div
+            className="absolute top-2 px-3 py-1 rounded-full font-semibold text-sm shadow-lg"
+            style={{
+              right: hack.completion_count && hack.completion_count > 0 ? '4.5rem' : '0.5rem',
+              backgroundColor: hack.completion_percentage! >= 75 ? '#10b981' :
+                              hack.completion_percentage! >= 50 ? '#3b82f6' :
+                              hack.completion_percentage! >= 25 ? '#a855f7' : '#f97316',
+              color: 'white',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+            }}
+          >
+            {hack.completion_percentage}%
+          </div>
         )}
       </div>
 
@@ -182,6 +218,34 @@ export function HackCard({
           )}
         </div>
         <p className="text-sm text-gray-600 dark:text-gray-300 dark:text-gray-500 line-clamp-2">{hack.description}</p>
+
+        {/* Progress dots indicator */}
+        {hack.completion_percentage !== undefined && hack.completion_percentage > 0 && hack.completion_percentage < 100 && (
+          <div className="flex items-center gap-1 mt-2">
+            {[...Array(10)].map((_, i) => {
+              const threshold = (i + 1) * 10;
+              const isFilled = hack.completion_percentage! >= threshold;
+              return (
+                <div
+                  key={i}
+                  className="h-2 w-2 rounded-full transition-all"
+                  style={{
+                    backgroundColor: isFilled ?
+                      (progressionColor === 'green' ? '#10b981' :
+                       progressionColor === 'blue' ? '#3b82f6' :
+                       progressionColor === 'purple' ? '#a855f7' :
+                       progressionColor === 'orange' ? '#f97316' : '#6b7280')
+                      : '#374151',
+                    opacity: isFilled ? 1 : 0.3
+                  }}
+                />
+              );
+            })}
+            <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+              {hack.completion_percentage}%
+            </span>
+          </div>
+        )}
 
         {/* Display tags as pills below description */}
         {hack.tags && hack.tags.length > 0 && (
@@ -252,8 +316,23 @@ export function HackCard({
   if (isLocked) {
     return (
       <Link href={`/hacks/${hack.slug || hack.id}`}>
-        <div className="opacity-75 hover:opacity-90 hover:-translate-y-2 transition-all duration-500" style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))' }}>
-          <Card className="border-0 overflow-hidden cursor-pointer transition-all duration-500 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]" style={{ clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)' }}>
+        <div className="opacity-75 hover:opacity-90 hover:-translate-y-2 transition-all duration-500"
+             style={{
+               filter: 'drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))',
+               transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
+             }}>
+          <Card className={cn(
+            "overflow-hidden cursor-pointer transition-all duration-500 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]",
+            progressionClasses.borderClass
+          )} style={{
+            clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)',
+            borderWidth: '4px',
+            borderStyle: 'solid',
+            borderColor: progressionColor === 'green' ? '#10b981' :
+                         progressionColor === 'blue' ? '#3b82f6' :
+                         progressionColor === 'purple' ? '#a855f7' :
+                         progressionColor === 'orange' ? '#f97316' : '#6b7280'
+          }}>
             {cardContent}
           </Card>
         </div>
@@ -265,8 +344,29 @@ export function HackCard({
   if (isAdmin && showActions) {
     return (
       <Link href={`/hacks/${hack.slug || hack.id}`}>
-        <div className="hover:-translate-y-2 transition-all duration-500" style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1)) drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1))' }}>
-          <Card className="border-0 overflow-hidden cursor-pointer transition-all duration-500 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]" style={{ clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)' }}>
+        <div className={cn("hover:-translate-y-2 transition-all duration-500", progressionClasses.shadowClass)}
+             style={{
+               filter: 'drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))',
+               transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
+             }}
+             onMouseEnter={(e) => {
+               e.currentTarget.style.filter = 'drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4)) drop-shadow(0 6px 12px rgba(0, 0, 0, 0.3))';
+             }}
+             onMouseLeave={(e) => {
+               e.currentTarget.style.filter = 'drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))';
+             }}>
+          <Card className={cn(
+            "overflow-hidden cursor-pointer transition-all duration-500 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]",
+            progressionClasses.borderClass
+          )} style={{
+            clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)',
+            borderWidth: '4px',
+            borderStyle: 'solid',
+            borderColor: progressionColor === 'green' ? '#10b981' :
+                         progressionColor === 'blue' ? '#3b82f6' :
+                         progressionColor === 'purple' ? '#a855f7' :
+                         progressionColor === 'orange' ? '#f97316' : '#6b7280'
+          }}>
             {cardContent}
           </Card>
         </div>
@@ -278,8 +378,29 @@ export function HackCard({
   if (hack.content_type === 'link' && hack.external_link) {
     return (
       <Link href={`/hacks/${hack.slug || hack.id}`}>
-        <div className="hover:-translate-y-2 hover:[filter:drop-shadow(0_10px_15px_rgba(0,0,0,0.15))_drop-shadow(0_20px_25px_rgba(0,0,0,0.1))] transition-all duration-500" style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1)) drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1))' }}>
-          <Card className="border-0 overflow-hidden cursor-pointer transition-all duration-500 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]" style={{ clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)' }}>
+        <div className={cn("hover:-translate-y-2 transition-all duration-500", progressionClasses.shadowClass)}
+             style={{
+               filter: 'drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))',
+               transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
+             }}
+             onMouseEnter={(e) => {
+               e.currentTarget.style.filter = 'drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4)) drop-shadow(0 6px 12px rgba(0, 0, 0, 0.3))';
+             }}
+             onMouseLeave={(e) => {
+               e.currentTarget.style.filter = 'drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))';
+             }}>
+          <Card className={cn(
+            "overflow-hidden cursor-pointer transition-all duration-500 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]",
+            progressionClasses.borderClass
+          )} style={{
+            clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)',
+            borderWidth: '4px',
+            borderStyle: 'solid',
+            borderColor: progressionColor === 'green' ? '#10b981' :
+                         progressionColor === 'blue' ? '#3b82f6' :
+                         progressionColor === 'purple' ? '#a855f7' :
+                         progressionColor === 'orange' ? '#f97316' : '#6b7280'
+          }}>
             {cardContent}
           </Card>
         </div>
@@ -290,8 +411,29 @@ export function HackCard({
   // For internal content, use Next.js Link normally
   return (
     <Link href={`/hacks/${hack.slug || hack.id}`}>
-      <div className="hover:-translate-y-2 hover:[filter:drop-shadow(0_10px_15px_rgba(0,0,0,0.15))_drop-shadow(0_20px_25px_rgba(0,0,0,0.1))] transition-all duration-500" style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1)) drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1))' }}>
-        <Card className="border-0 overflow-hidden cursor-pointer transition-all duration-500 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]" style={{ clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)' }}>
+      <div className={cn("hover:-translate-y-2 transition-all duration-500", progressionClasses.shadowClass)}
+           style={{
+             filter: 'drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))',
+             transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
+           }}
+           onMouseEnter={(e) => {
+             e.currentTarget.style.filter = 'drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4)) drop-shadow(0 6px 12px rgba(0, 0, 0, 0.3))';
+           }}
+           onMouseLeave={(e) => {
+             e.currentTarget.style.filter = 'drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))';
+           }}>
+        <Card className={cn(
+          "overflow-hidden cursor-pointer transition-all duration-500 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]",
+          progressionClasses.borderClass
+        )} style={{
+          clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)',
+          borderWidth: '4px',
+          borderStyle: 'solid',
+          borderColor: progressionColor === 'green' ? '#10b981' :
+                       progressionColor === 'blue' ? '#3b82f6' :
+                       progressionColor === 'purple' ? '#a855f7' :
+                       progressionColor === 'orange' ? '#f97316' : '#6b7280'
+        }}>
           {cardContent}
         </Card>
       </div>
