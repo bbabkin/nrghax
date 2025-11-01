@@ -17,6 +17,7 @@ export interface HackFormClientData {
   media_url?: string | null;
   prerequisite_ids?: string[];
   duration_minutes?: number | null;
+  level_id?: string | null;
 }
 
 export async function createHackWithImage(data: HackFormClientData, userId: string) {
@@ -65,6 +66,7 @@ export async function createHackWithImage(data: HackFormClientData, userId: stri
     mediaUrl: data.media_url,
     prerequisiteIds: data.prerequisite_ids,
     durationMinutes: data.duration_minutes,
+    levelId: data.level_id || null,
   };
 
   return createHack(formData);
@@ -99,6 +101,7 @@ export async function updateHackWithImage(hackId: string, data: HackFormClientDa
     mediaUrl: data.media_url,
     prerequisiteIds: data.prerequisite_ids,
     durationMinutes: data.duration_minutes,
+    levelId: data.level_id || null,
   };
 
   return updateHack(hackId, formData);

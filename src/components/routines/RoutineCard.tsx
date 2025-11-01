@@ -7,8 +7,8 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, BrainCircuit, Trash2, Pencil, Globe, Lock, PlayCircle, CheckCircle2, Clock } from 'lucide-react';
-import { deleteRoutine, startRoutine } from '@/lib/routines/actions';
+import { Heart, Users, BrainCircuit, Trash2, Edit, Globe, Lock, PlayCircle, CheckCircle2, Clock } from 'lucide-react';
+import { toggleRoutineLike, deleteRoutine, startRoutine } from '@/lib/routines/actions';
 import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/components/ui/confirmation-dialog';
 import { useToast } from '@/components/ui/use-toast';
@@ -54,10 +54,50 @@ export function RoutineCard({
 }: RoutineCardProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const [isLiked, setIsLiked] = useState(routine.isLiked || false);
+  const [likeCount, setLikeCount] = useState(routine._count?.userRoutines || 0);
+  const [isLiking, setIsLiking] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const isOwner = currentUserId === routine.createdBy;
   const canEdit = isOwner || isAdmin;
+
+  const handleLike = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!currentUserId) {
+      toast({
+        title: 'Sign in required',
+        description: 'Please sign in to like routines',
+      });
+      // Redirect to auth page
+      router.push('/auth');
+      return;
+    }
+
+    if (isLiking) return;
+
+    setIsLiking(true);
+    setIsLiked(!isLiked);
+    setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
+
+    try {
+      await toggleRoutineLike(routine.id);
+    } catch (error) {
+      // Revert on error
+      setIsLiked(isLiked);
+      setLikeCount(routine._count?.userRoutines || 0);
+      console.error('Failed to toggle like:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update like status',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLiking(false);
+    }
+  };
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -206,13 +246,28 @@ export function RoutineCard({
       </CardContent>
 
       {showActions && (
-        <CardFooter className="p-4 pt-0 pr-6 flex items-center justify-between">
+        <CardFooter className="p-4 pt-0 flex items-center justify-between">
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleLike}
+              className="flex items-center gap-1 text-sm"
+              disabled={isLiking}
+            >
+              <Heart
+                className={cn(
+                  "h-4 w-4 transition-colors",
+                  isLiked ? "fill-red-500 text-red-500" : "text-gray-500 dark:text-gray-300 dark:text-gray-500"
+                )}
+              />
+              <span>{likeCount}</span>
+            </button>
+
             {!routine.isStarted && !routine.isCompleted && currentUserId && (
               <Button
                 size="sm"
-                variant="outline"
+                variant="clippedOutline"
                 onClick={handleStart}
+                className="ml-2"
               >
                 <PlayCircle className="h-4 w-4 mr-1" />
                 Start
@@ -223,14 +278,14 @@ export function RoutineCard({
           {canEdit && (
             <div className="flex gap-2" onClick={(e) => e.preventDefault()}>
               <Button
-                size="icon"
-                variant="outline"
+                size="sm"
+                variant="clippedOutline"
                 onClick={(e) => {
                   e.preventDefault();
                   window.location.href = `/routines/${routine.id}/edit`;
                 }}
               >
-                <Pencil className="h-4 w-4" />
+                <Edit className="h-4 w-4" />
               </Button>
               <ConfirmDialog
                 title="Delete Routine"
@@ -246,8 +301,8 @@ export function RoutineCard({
                       e.preventDefault();
                       onClick();
                     }}
-                    size="icon"
-                    variant="destructive"
+                    size="sm"
+                    variant="clippedDestructive"
                     disabled={isDeleting}
                   >
                     <Trash2 className="h-4 w-4" />

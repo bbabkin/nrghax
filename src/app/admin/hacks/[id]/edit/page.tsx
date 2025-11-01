@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { HackForm } from '@/components/hacks/HackForm';
-import { getHackWithPrerequisites, getAllHacksForSelect } from '@/lib/hacks/supabase-utils';
+import { getHackWithPrerequisites, getAllHacksForSelect, getAllLevelsForSelect } from '@/lib/hacks/supabase-utils';
 
 interface EditHackPageProps {
   params: {
@@ -43,8 +43,11 @@ export default async function EditHackPage({ params }: EditHackPageProps) {
     hasImagePath: !!hack.imagePath,
   });
 
-  // Get all hacks for prerequisites (excluding current hack)
-  const allHacks = await getAllHacksForSelect();
+  // Get all hacks for prerequisites (excluding current hack) and levels for assignment
+  const [allHacks, availableLevels] = await Promise.all([
+    getAllHacksForSelect(),
+    getAllLevelsForSelect(),
+  ]);
   const availableHacks = allHacks.filter(h => h.id !== params.id);
 
   return (
@@ -53,6 +56,7 @@ export default async function EditHackPage({ params }: EditHackPageProps) {
       <HackForm
         hack={hack}
         availableHacks={availableHacks}
+        availableLevels={availableLevels}
         userId={user.id}
       />
     </div>

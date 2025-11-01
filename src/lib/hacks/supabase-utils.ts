@@ -25,6 +25,8 @@ export type Hack = {
   tags?: Array<{ id: string; name: string; slug: string }>;
   difficulty?: string;
   timeMinutes?: number;
+  completionCount?: number;
+  completionPercentage?: number;
 };
 
 export async function getHacks() {
@@ -61,12 +63,12 @@ export async function getHacks() {
 
     console.log(`Found ${hacks.length} hacks in database`);
 
-    // If user is logged in, fetch their interactions
+    // If user is logged in, fetch their interactions including completion count
     let userHacks: any[] = [];
     if (user) {
       const { data } = await supabase
         .from('user_hacks')
-        .select('hack_id, liked, viewed, view_count')
+        .select('hack_id, liked, viewed, view_count, completion_count')
         .eq('user_id', user.id);
 
       userHacks = data || [];
@@ -87,8 +89,49 @@ export async function getHacks() {
       return acc;
     }, {});
 
+    // For calculating completion percentage, we need to get hack checks if user is logged in
+    let hackChecksProgress: Record<string, { total: number; completed: number }> = {};
+    if (user) {
+      const hackIds = hacks.map(h => h.id);
+
+      // Get all hack checks for these hacks
+      const { data: hackChecks } = await supabase
+        .from('hack_checks')
+        .select('id, hack_id')
+        .in('hack_id', hackIds);
+
+      // Get user's completed checks
+      const { data: userChecks } = await supabase
+        .from('user_hack_checks')
+        .select('hack_check_id')
+        .eq('user_id', user.id)
+        .not('completed_at', 'is', null);
+
+      if (hackChecks) {
+        // Group checks by hack_id and count totals
+        hackChecks.forEach(check => {
+          if (!hackChecksProgress[check.hack_id]) {
+            hackChecksProgress[check.hack_id] = { total: 0, completed: 0 };
+          }
+          hackChecksProgress[check.hack_id].total++;
+
+          // Check if this check is completed by the user
+          if (userChecks?.some(uc => uc.hack_check_id === check.id)) {
+            hackChecksProgress[check.hack_id].completed++;
+          }
+        });
+      }
+    }
+
     return hacks.map(hack => {
       const userInteraction = userHacks.find(uh => uh.hack_id === hack.id);
+      const checkProgress = hackChecksProgress[hack.id];
+
+      // Calculate completion percentage
+      let completionPercentage = undefined;
+      if (checkProgress && checkProgress.total > 0) {
+        completionPercentage = Math.round((checkProgress.completed / checkProgress.total) * 100);
+      }
 
       return {
         id: hack.id,
@@ -112,6 +155,8 @@ export async function getHacks() {
         viewCount: userInteraction?.view_count || 0,
         isLiked: userInteraction?.liked || false,
         isViewed: userInteraction?.viewed || false,
+        completionCount: userInteraction?.completion_count || 0,
+        completionPercentage,
       };
     });
   } catch (error) {
@@ -430,6 +475,27 @@ export async function getUserCompletedHacks(userId: string) {
     })) || [];
   } catch (error) {
     console.error('Error fetching user completed hacks:', error);
+    return [];
+  }
+}
+
+export async function getAllLevelsForSelect() {
+  try {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('levels')
+      .select('id, name, slug')
+      .order('position', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching levels:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching levels:', error);
     return [];
   }
 }

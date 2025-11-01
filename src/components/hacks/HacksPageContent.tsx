@@ -223,7 +223,7 @@ export function HacksPageContent({
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-24 pb-6">
 
       {/* Admin Controls */}
       {isAdmin && activeTab === 'hacks' && (

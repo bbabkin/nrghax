@@ -1,21 +1,18 @@
 import type { Metadata } from 'next'
-import { Nunito, Montserrat } from 'next/font/google'
+import { Oxanium } from 'next/font/google'
 import { Toaster } from '@/components/ui/toaster'
 import { NavbarWrapper } from '@/components/navbar-wrapper'
 import { Footer } from '@/components/Footer'
 import { ThemeScript } from '@/components/theme-script'
+import { ProgressMigrationProvider } from '@/components/ProgressMigrationProvider'
+import { NavigationController } from '@/components/navigation/NavigationController'
 import './globals.css'
 
-const nunito = Nunito({
+const oxanium = Oxanium({
   subsets: ['latin'],
-  weight: ['200', '300', '400', '500', '600', '700', '800', '900'],
-  variable: '--font-nunito',
-})
-
-const montserrat = Montserrat({
-  subsets: ['latin'],
-  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
-  variable: '--font-montserrat',
+  weight: ['200', '300', '400', '500', '600', '700', '800'],
+  variable: '--font-oxanium',
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -80,13 +77,16 @@ export default function RootLayout({
       <head>
         <ThemeScript />
       </head>
-      <body className={`${nunito.variable} ${montserrat.variable} font-sans min-h-screen flex flex-col`}>
-        <NavbarWrapper />
-        <main className="flex-1 pt-16">
-          {children}
-        </main>
-        <Footer />
-        <Toaster />
+      <body className={`${oxanium.variable} font-sans min-h-screen flex flex-col`}>
+        <ProgressMigrationProvider>
+          <NavbarWrapper />
+          <NavigationController />
+          <main className="flex-1 pt-16">
+            {children}
+          </main>
+          <Footer />
+          <Toaster />
+        </ProgressMigrationProvider>
       </body>
     </html>
   )

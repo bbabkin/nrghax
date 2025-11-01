@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [clip-path:polygon(10px_0,100%_0,100%_calc(100%-10px),calc(100%-10px)_100%,0_100%,0_10px)]",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -17,12 +17,15 @@ const buttonVariants = cva(
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline [clip-path:none]",
+        link: "text-primary underline-offset-4 hover:underline",
+        clipped: "bg-primary text-primary-foreground hover:bg-primary/90",
+        clippedOutline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        clippedDestructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
       },
       size: {
         default: "h-10 px-4 py-2",
-        sm: "h-9 px-3",
-        lg: "h-11 px-8",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
       },
     },
@@ -40,12 +43,29 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, style, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
+
+    // Apply clip-path for clipped variants
+    const isClipped = variant === "clipped" || variant === "clippedOutline" || variant === "clippedDestructive"
+    const clipStyle = isClipped
+      ? {
+          clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)',
+          ...style
+        }
+      : style
+
+    // Remove rounded-md for clipped variants
+    const finalClassName = cn(
+      buttonVariants({ variant, size, className }),
+      isClipped && "rounded-none"
+    )
+
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={finalClassName}
         ref={ref}
+        style={clipStyle}
         {...props}
       />
     )
