@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/components/ui/confirmation-dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { formatDuration } from '@/lib/youtube';
+import { getProgressionColor, getProgressionClasses } from '@/lib/progression';
 
 interface RoutineCardProps {
   routine: {
@@ -40,6 +41,7 @@ interface RoutineCardProps {
     isCompleted?: boolean;
     progress?: number;
     totalDuration?: number;
+    completion_count?: number;
   };
   currentUserId?: string;
   isAdmin?: boolean;
@@ -61,6 +63,11 @@ export function RoutineCard({
 
   const isOwner = currentUserId === routine.createdBy;
   const canEdit = isOwner || isAdmin;
+
+  // Get progression color and classes based on completion count
+  const completionCount = routine.completion_count || 0;
+  const progressionColor = getProgressionColor(completionCount, false);
+  const progressionClasses = getProgressionClasses(progressionColor);
 
   const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -157,6 +164,21 @@ export function RoutineCard({
 
   const cardContent = (
     <>
+      {/* Enhanced diagonal line pattern background - More prominent */}
+      <div
+        className="absolute inset-0 pointer-events-none z-10"
+        style={{
+          backgroundImage: `repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(255, 255, 255, 0.1) 10px,
+            rgba(255, 255, 255, 0.1) 11px
+          )`,
+          opacity: 0.7,
+          clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)'
+        }}
+      />
       <div className="relative aspect-video w-full overflow-hidden rounded-t-lg">
         <Image
           src={getImageSrc()}
@@ -181,10 +203,16 @@ export function RoutineCard({
             )}
           </div>
 
-          {/* Stack count badge - square flush with top-right corner */}
-          <div className="bg-purple-600 text-white shadow-lg px-1.5 py-1 flex items-center gap-0.5 text-[10px] font-medium rounded-tr-lg translate-x-px -translate-y-px">
-            <BrainCircuit className="h-2.5 w-2.5" />
-            {routine._count?.routineHacks || 0} hacks
+          {/* Stack count badge - flush with top-right corner, diagonal cut */}
+          <div
+            className="absolute top-0 right-0 bg-purple-600 text-white shadow-lg px-3 py-1 flex items-center gap-1 text-xs font-bold"
+            style={{
+              clipPath: 'polygon(0 0, 100% 0, 100% 100%, 15px 100%, 0 calc(100% - 15px))',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+            }}
+          >
+            <BrainCircuit className="h-3 w-3" />
+            {routine._count?.routineHacks || 0}
           </div>
         </div>
         {routine.progress !== undefined && routine.progress > 0 && !routine.isCompleted && (
@@ -318,13 +346,52 @@ export function RoutineCard({
 
   return (
     <Link href={`/routines/${routine.slug}`}>
-      <div className="relative group hover:-translate-y-2 hover:[filter:drop-shadow(0_15px_20px_rgba(0,0,0,0.15))_drop-shadow(0_25px_35px_rgba(0,0,0,0.1))] transition-all duration-500" style={{ filter: 'drop-shadow(0 6px 8px rgba(0, 0, 0, 0.1)) drop-shadow(0 12px 18px rgba(0, 0, 0, 0.1))' }}>
-        {/* Stack effect - bottom cards */}
-        <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg transform translate-x-2 translate-y-2 opacity-60 group-hover:translate-x-3 group-hover:translate-y-3 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]" style={{ clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)', transition: 'background-color 2s ease-in-out, transform 500ms' }} />
-        <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg transform translate-x-1 translate-y-1 opacity-80 group-hover:translate-x-1.5 group-hover:translate-y-1.5 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]" style={{ clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)', transition: 'background-color 2s ease-in-out, transform 500ms' }} />
+      <div className="relative hover:-translate-y-2 transition-all duration-500">
+        {/* Stack layers behind - simulating depth with progression colors */}
+        <div
+          className={cn(
+            "absolute inset-0 transform translate-x-4 translate-y-4",
+            progressionClasses.bgClass,
+            progressionClasses.borderClass
+          )}
+          style={{
+            clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)',
+            opacity: 0.3
+          }}
+        />
+        <div
+          className={cn(
+            "absolute inset-0 transform translate-x-2 translate-y-2",
+            progressionClasses.bgClass,
+            progressionClasses.borderClass
+          )}
+          style={{
+            clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)',
+            opacity: 0.5
+          }}
+        />
 
         {/* Main card */}
-        <Card className="border-0 relative overflow-hidden cursor-pointer transition-all duration-500 bg-white dark:bg-gray-800 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]" style={{ clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)' }}>
+        <Card
+          className={cn(
+            "relative overflow-hidden cursor-pointer transition-all duration-500 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]",
+            progressionClasses.borderClass
+          )}
+          style={{
+            clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)',
+            borderWidth: '2px',
+            borderStyle: 'solid',
+            borderColor: progressionColor === 'green' ? '#10b981' :
+                         progressionColor === 'blue' ? '#3b82f6' :
+                         progressionColor === 'purple' ? '#a855f7' :
+                         progressionColor === 'orange' ? '#f97316' : '#6b7280',
+            filter: 'drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))',
+            boxShadow: `0 0 20px ${progressionColor === 'green' ? 'rgba(16, 185, 129, 0.4)' :
+                                    progressionColor === 'blue' ? 'rgba(59, 130, 246, 0.4)' :
+                                    progressionColor === 'purple' ? 'rgba(168, 85, 247, 0.4)' :
+                                    progressionColor === 'orange' ? 'rgba(249, 115, 22, 0.4)' : 'rgba(107, 114, 128, 0.4)'}`
+          }}
+        >
           {cardContent}
         </Card>
       </div>

@@ -145,6 +145,21 @@ export function HackCard({
   
   const cardContent = (
     <>
+      {/* Enhanced diagonal line pattern background - More prominent */}
+      <div
+        className="absolute inset-0 pointer-events-none z-10"
+        style={{
+          backgroundImage: `repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(255, 255, 255, 0.1) 10px,
+            rgba(255, 255, 255, 0.1) 11px
+          )`,
+          opacity: 0.7,
+          clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)'
+        }}
+      />
       <div className="relative aspect-video w-full overflow-hidden rounded-t-lg">
         <Image
           src={getImageSrc()}
@@ -158,16 +173,17 @@ export function HackCard({
             <Lock className="h-12 w-12 text-white" />
           </div>
         )}
-        {/* Completion counter in top right - more prominent styling */}
+        {/* Completion counter in top right - flush with border, diagonal cut */}
         {hack.completion_count && hack.completion_count > 0 && (
           <div
-            className="absolute top-2 right-2 px-3 py-1 rounded-full font-bold text-sm shadow-lg"
+            className="absolute top-0 right-0 px-3 py-1 font-bold text-xs shadow-lg"
             style={{
               backgroundColor: progressionColor === 'green' ? '#10b981' :
                               progressionColor === 'blue' ? '#3b82f6' :
                               progressionColor === 'purple' ? '#a855f7' :
                               progressionColor === 'orange' ? '#f97316' : '#6b7280',
               color: 'white',
+              clipPath: 'polygon(0 0, 100% 0, 100% 100%, 15px 100%, 0 calc(100% - 15px))',
               boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
             }}
           >
@@ -326,12 +342,16 @@ export function HackCard({
             progressionClasses.borderClass
           )} style={{
             clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)',
-            borderWidth: '4px',
+            borderWidth: '2px',
             borderStyle: 'solid',
             borderColor: progressionColor === 'green' ? '#10b981' :
                          progressionColor === 'blue' ? '#3b82f6' :
                          progressionColor === 'purple' ? '#a855f7' :
-                         progressionColor === 'orange' ? '#f97316' : '#6b7280'
+                         progressionColor === 'orange' ? '#f97316' : '#6b7280',
+            boxShadow: `0 0 20px ${progressionColor === 'green' ? 'rgba(16, 185, 129, 0.4)' :
+                                    progressionColor === 'blue' ? 'rgba(59, 130, 246, 0.4)' :
+                                    progressionColor === 'purple' ? 'rgba(168, 85, 247, 0.4)' :
+                                    progressionColor === 'orange' ? 'rgba(249, 115, 22, 0.4)' : 'rgba(107, 114, 128, 0.4)'}`
           }}>
             {cardContent}
           </Card>
@@ -360,12 +380,16 @@ export function HackCard({
             progressionClasses.borderClass
           )} style={{
             clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)',
-            borderWidth: '4px',
+            borderWidth: '2px',
             borderStyle: 'solid',
             borderColor: progressionColor === 'green' ? '#10b981' :
                          progressionColor === 'blue' ? '#3b82f6' :
                          progressionColor === 'purple' ? '#a855f7' :
-                         progressionColor === 'orange' ? '#f97316' : '#6b7280'
+                         progressionColor === 'orange' ? '#f97316' : '#6b7280',
+            boxShadow: `0 0 20px ${progressionColor === 'green' ? 'rgba(16, 185, 129, 0.4)' :
+                                    progressionColor === 'blue' ? 'rgba(59, 130, 246, 0.4)' :
+                                    progressionColor === 'purple' ? 'rgba(168, 85, 247, 0.4)' :
+                                    progressionColor === 'orange' ? 'rgba(249, 115, 22, 0.4)' : 'rgba(107, 114, 128, 0.4)'}`
           }}>
             {cardContent}
           </Card>
@@ -394,12 +418,16 @@ export function HackCard({
             progressionClasses.borderClass
           )} style={{
             clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)',
-            borderWidth: '4px',
+            borderWidth: '2px',
             borderStyle: 'solid',
             borderColor: progressionColor === 'green' ? '#10b981' :
                          progressionColor === 'blue' ? '#3b82f6' :
                          progressionColor === 'purple' ? '#a855f7' :
-                         progressionColor === 'orange' ? '#f97316' : '#6b7280'
+                         progressionColor === 'orange' ? '#f97316' : '#6b7280',
+            boxShadow: `0 0 20px ${progressionColor === 'green' ? 'rgba(16, 185, 129, 0.4)' :
+                                    progressionColor === 'blue' ? 'rgba(59, 130, 246, 0.4)' :
+                                    progressionColor === 'purple' ? 'rgba(168, 85, 247, 0.4)' :
+                                    progressionColor === 'orange' ? 'rgba(249, 115, 22, 0.4)' : 'rgba(107, 114, 128, 0.4)'}`
           }}>
             {cardContent}
           </Card>
@@ -427,12 +455,16 @@ export function HackCard({
           progressionClasses.borderClass
         )} style={{
           clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)',
-          borderWidth: '4px',
+          borderWidth: '2px',
           borderStyle: 'solid',
           borderColor: progressionColor === 'green' ? '#10b981' :
                        progressionColor === 'blue' ? '#3b82f6' :
                        progressionColor === 'purple' ? '#a855f7' :
-                       progressionColor === 'orange' ? '#f97316' : '#6b7280'
+                       progressionColor === 'orange' ? '#f97316' : '#6b7280',
+          boxShadow: `0 0 20px ${progressionColor === 'green' ? 'rgba(16, 185, 129, 0.4)' :
+                                  progressionColor === 'blue' ? 'rgba(59, 130, 246, 0.4)' :
+                                  progressionColor === 'purple' ? 'rgba(168, 85, 247, 0.4)' :
+                                  progressionColor === 'orange' ? 'rgba(249, 115, 22, 0.4)' : 'rgba(107, 114, 128, 0.4)'}`
         }}>
           {cardContent}
         </Card>

@@ -100,7 +100,7 @@ export function Navbar({ user }: NavbarProps) {
   const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/hacks', label: 'Hacks' },
-    { href: '/levels', label: 'Levels' },
+    { href: '/skills', label: 'Levels' },
     ...(user ? [
       { href: '/dashboard', label: 'Dashboard' },
       { href: '/profile/history', label: 'My History' },
@@ -148,12 +148,8 @@ export function Navbar({ user }: NavbarProps) {
             ))}
           </div>
 
-          {/* Right side: Search + Auth */}
+          {/* Right side: Auth */}
           <div className="hidden md:flex md:items-center md:gap-3 md:flex-1 md:justify-end">
-            {/* Search Bar - Desktop */}
-            <div className="w-full" style={{ maxWidth: '200px' }}>
-              <SearchBar placeholder="" />
-            </div>
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -191,7 +187,7 @@ export function Navbar({ user }: NavbarProps) {
 
                   {/* User Links */}
                   <DropdownMenuItem asChild>
-                    <Link href="/levels" className="cursor-pointer">
+                    <Link href="/skills" className="cursor-pointer">
                       <Trophy className="mr-2 h-4 w-4" />
                       Levels
                     </Link>
@@ -243,6 +239,13 @@ export function Navbar({ user }: NavbarProps) {
 
                   <DropdownMenuSeparator />
 
+                  {/* Search */}
+                  <div className="px-2 py-2">
+                    <SearchBar placeholder="Search..." />
+                  </div>
+
+                  <DropdownMenuSeparator />
+
                   {/* Theme Toggle */}
                   <DropdownMenuItem onClick={toggleTheme}>
                     {theme === 'dark' ? (
@@ -268,19 +271,16 @@ export function Navbar({ user }: NavbarProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <>
-                <ThemeToggle />
-                <Link
-                  href="/auth"
-                  className="inline-flex items-center justify-center h-8 px-6 bg-black dark:bg-white text-white dark:text-black font-medium text-sm hover:bg-black/80 dark:hover:bg-white/80 whitespace-nowrap"
-                  style={{
-                    clipPath: 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)',
-                    transition: 'background-color 500ms ease-in-out, color 500ms ease-in-out'
-                  }}
-                >
-                  Login
-                </Link>
-              </>
+              <Link
+                href="/auth"
+                className="inline-flex items-center justify-center h-8 px-6 bg-black dark:bg-white text-white dark:text-black font-medium text-sm hover:bg-black/80 dark:hover:bg-white/80 whitespace-nowrap"
+                style={{
+                  clipPath: 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)',
+                  transition: 'background-color 500ms ease-in-out, color 500ms ease-in-out'
+                }}
+              >
+                Login
+              </Link>
             )}
           </div>
 

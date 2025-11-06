@@ -1,4 +1,4 @@
-import { LibraryView } from '@/components/hacks/LibraryView';
+import { LibraryView } from '@/components/library/LibraryView';
 import { getHacks, getUserCompletedHackIds, getHackPrerequisites } from '@/lib/hacks/supabase-utils';
 import { getPublicRoutines, getUserRoutines } from '@/lib/routines/supabase-utils';
 import { getCurrentUser } from '@/lib/auth/user';
@@ -18,13 +18,16 @@ export default async function HacksPage() {
   const hacks = await getHacks();
 
   // Fetch public routines
-  const routines = await getPublicRoutines();
+  const publicRoutines = await getPublicRoutines();
 
   // Fetch user's own routines if authenticated
   let userRoutines: any[] = [];
   if (user) {
     userRoutines = await getUserRoutines(user.id);
   }
+
+  // Combine public and user routines
+  const routines = [...publicRoutines, ...userRoutines];
 
   // Get user's completed hacks to check prerequisites
   let completedHackIds: string[] = [];
@@ -87,7 +90,6 @@ export default async function HacksPage() {
     <LibraryView
       hacks={hacksWithPrerequisiteStatus}
       routines={routines}
-      userRoutines={userRoutines}
       isAuthenticated={!!user}
       currentUserId={user?.id}
       isAdmin={user?.is_admin || false}

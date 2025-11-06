@@ -1,0 +1,196 @@
+SET session_replication_role = replica;
+
+--
+-- PostgreSQL database dump
+--
+
+-- \restrict RarfQdr32RYdyKFDGS8p9aGMGceh2YFdWehSbeJINMCEZMXmyVlcdg7awrZbCMY
+
+-- Dumped from database version 17.6
+-- Dumped by pg_dump version 17.6
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Data for Name: admin_emails; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO "public"."admin_emails" ("email", "created_at") VALUES
+	('bbabkin@gmail.com', '2025-10-01 05:42:12.099903+00'),
+	('boris@practiceenergy.com', '2025-10-01 05:42:12.099903+00'),
+	('admin@test.com', '2025-10-01 05:42:12.099903+00');
+
+
+--
+-- Data for Name: profiles; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO "public"."profiles" ("id", "email", "name", "avatar_url", "is_admin", "created_at", "updated_at", "onboarded", "traits") VALUES
+	('db6cf889-ef23-431d-8e17-748f6ce104f1', 'boris@practiceenergy.com', 'nrghaxor#0', NULL, true, '2025-10-01 14:38:58.710668+00', '2025-10-01 14:38:58.710668+00', false, '{}'),
+	('5ce61c43-66e2-4093-8abf-4c63388a9093', 'bbabkin@gmail.com', 'Boris Babkin', NULL, true, '2025-10-01 05:56:52.715185+00', '2025-10-01 17:45:55.917801+00', true, '{}');
+
+
+--
+-- Data for Name: comments; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- Data for Name: comment_likes; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- Data for Name: levels; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO "public"."levels" ("id", "name", "slug", "description", "icon", "position", "created_at", "updated_at") VALUES
+	('c650048d-fa61-4ca3-8deb-136fa9182833', 'Foundation', 'foundation', 'Master the fundamental habits that form the basis of all self-improvement', '🏛️', 0, '2025-10-20 12:13:21.685747+00', '2025-10-20 12:13:21.685747+00'),
+	('c507b9a6-b628-4425-a7b3-68f5bba8d13e', 'Direction', 'direction', 'Learn to focus your energy and manage your time effectively', '🎯', 1, '2025-10-20 12:13:21.685747+00', '2025-10-20 12:13:21.685747+00'),
+	('3791450a-1e93-4d9f-bcca-06f5c6595a33', 'Movement', 'movement', 'Build strength, flexibility, and energy through physical practices', '💪', 2, '2025-10-20 12:13:21.685747+00', '2025-10-20 12:13:21.685747+00'),
+	('69f8b1b4-c9bd-4d01-945f-aaddea932ae4', 'Confidence', 'confidence', 'Develop social confidence and communication mastery', '🎭', 3, '2025-10-20 12:13:21.685747+00', '2025-10-20 12:13:21.685747+00'),
+	('50124ce2-ebb0-4196-b853-dcbce9c3d210', 'Mastery', 'mastery', 'Master advanced techniques for peak performance and deep relaxation', '🏆', 4, '2025-10-20 12:13:21.685747+00', '2025-10-20 12:13:21.685747+00');
+
+
+--
+-- Data for Name: hacks; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO "public"."hacks" ("id", "name", "slug", "description", "image_url", "image_path", "content_type", "content_body", "external_link", "difficulty", "time_minutes", "created_at", "updated_at", "created_by", "updated_by", "media_type", "media_url", "media_thumbnail_url", "category", "position", "duration_minutes", "level_id", "icon", "is_required") VALUES
+	('8b26b89a-ddd7-43e7-9cda-1eb975751261', 'Morning Sunlight', 'morning-sunlight', 'Get 10-30 minutes of sunlight in the first hour of waking', NULL, NULL, 'content', NULL, NULL, 'Easy', NULL, '2025-10-20 12:13:22.350613+00', '2025-10-20 12:13:22.350613+00', NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, 'c650048d-fa61-4ca3-8deb-136fa9182833', '☀️', true),
+	('f5689669-9344-44ed-8604-9b71643ed210', 'Box Breathing', 'box-breathing', 'Practice 4-4-4-4 breathing technique for stress reduction', NULL, NULL, 'content', NULL, NULL, 'Easy', NULL, '2025-10-20 12:13:22.350613+00', '2025-10-20 12:13:22.350613+00', NULL, NULL, NULL, NULL, NULL, NULL, 2, NULL, 'c650048d-fa61-4ca3-8deb-136fa9182833', '🌬️', true),
+	('c94c40bc-73bb-4113-87e9-9585728b0a40', 'Energy Boost', 'energy-boost', 'Combine movement and breathwork to energize your day', NULL, NULL, 'content', NULL, NULL, 'Medium', NULL, '2025-10-20 12:13:22.350613+00', '2025-10-20 12:13:22.350613+00', NULL, NULL, NULL, NULL, NULL, NULL, 3, NULL, 'c650048d-fa61-4ca3-8deb-136fa9182833', '⚡', true),
+	('5af9f023-bdbb-4b9a-bcaf-0be27ea7b706', 'Power Hour', 'power-hour', 'Master your morning with the complete routine', NULL, NULL, 'content', NULL, NULL, 'Hard', NULL, '2025-10-20 12:13:22.350613+00', '2025-10-20 12:13:22.350613+00', NULL, NULL, NULL, NULL, NULL, NULL, 4, NULL, 'c650048d-fa61-4ca3-8deb-136fa9182833', '💪', true);
+
+
+--
+-- Data for Name: hack_checks; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- Data for Name: hack_prerequisites; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO "public"."hack_prerequisites" ("id", "hack_id", "prerequisite_hack_id", "created_at") VALUES
+	('8c9c4a93-c115-45ab-895f-fdc87b7a3db2', 'c94c40bc-73bb-4113-87e9-9585728b0a40', '8b26b89a-ddd7-43e7-9cda-1eb975751261', '2025-10-20 12:13:22.350613+00'),
+	('aeb12419-f90e-4712-a7af-bca459d16152', '5af9f023-bdbb-4b9a-bcaf-0be27ea7b706', 'f5689669-9344-44ed-8604-9b71643ed210', '2025-10-20 12:13:22.350613+00'),
+	('ecd44b5e-3b0b-40f9-9270-ae60819263bf', '5af9f023-bdbb-4b9a-bcaf-0be27ea7b706', 'c94c40bc-73bb-4113-87e9-9585728b0a40', '2025-10-20 12:13:22.350613+00');
+
+
+--
+-- Data for Name: tags; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO "public"."tags" ("id", "name", "slug", "tag_type", "description", "category", "color", "created_at", "updated_at") VALUES
+	('334f801c-10ea-467f-8a26-39a16766969e', 'subtle body', 'subtle-body', 'user_interest', NULL, NULL, NULL, '2025-10-01 06:11:36.874572+00', '2025-10-15 12:19:56.368847+00'),
+	('78d1505c-9a62-453d-a631-1f819b1e00d2', 'defence', 'defence', 'user_interest', NULL, NULL, NULL, '2025-10-15 12:20:24.83852+00', '2025-10-15 12:20:24.83852+00'),
+	('afefd577-e5d4-4138-80e6-3a72a2e9fe94', 'Sleep', 'sleep', 'hack', 'Hacks related to improving sleep quality and sleep hygiene', NULL, NULL, '2025-10-20 12:13:21.975045+00', '2025-10-20 12:13:21.975045+00'),
+	('aa135245-bea6-4f1c-95b2-99cef05490d9', 'Nutrition', 'nutrition', 'hack', 'Hacks focused on diet, eating habits, and nutritional optimization', NULL, NULL, '2025-10-20 12:13:21.975045+00', '2025-10-20 12:13:21.975045+00'),
+	('0170ecbc-d4ca-4661-996b-8f68fa24c9c2', 'Exercise', 'exercise', 'hack', 'Physical activity and movement-based hacks', NULL, NULL, '2025-10-20 12:13:21.975045+00', '2025-10-20 12:13:21.975045+00'),
+	('a37bb5aa-4063-4504-b4de-d7c31aa92ac4', 'Mental Health', 'mental-health', 'hack', 'Hacks for improving mental wellbeing and reducing stress', NULL, NULL, '2025-10-20 12:13:21.975045+00', '2025-10-20 12:13:21.975045+00'),
+	('a8baee26-e62a-4388-bd44-b4bd04d053c4', 'Productivity', 'productivity', 'hack', 'Hacks to boost focus, efficiency, and time management', NULL, NULL, '2025-10-20 12:13:21.975045+00', '2025-10-20 12:13:21.975045+00'),
+	('4587c257-1619-4fd6-9c7e-5fe5dcf9add5', 'Recovery', 'recovery', 'hack', 'Techniques for faster recovery and reducing inflammation', NULL, NULL, '2025-10-20 12:13:21.975045+00', '2025-10-20 12:13:21.975045+00'),
+	('e3fc334d-a4b4-45c7-8f12-8131161bff86', 'Hydration', 'hydration', 'hack', 'Water intake and hydration optimization', NULL, NULL, '2025-10-20 12:13:21.975045+00', '2025-10-20 12:13:21.975045+00'),
+	('6c512994-7ea4-4b4a-a480-c54595bf3d00', 'Sunlight', 'sunlight', 'hack', 'Light exposure and circadian rhythm hacks', NULL, NULL, '2025-10-20 12:13:21.975045+00', '2025-10-20 12:13:21.975045+00'),
+	('b458e2ab-b206-45e2-9ed1-3186b0afa843', 'Cold Therapy', 'cold-therapy', 'hack', 'Cold exposure techniques for health benefits', NULL, NULL, '2025-10-20 12:13:21.975045+00', '2025-10-20 12:13:21.975045+00'),
+	('cfa399fc-aa73-4590-93a4-5cc0dd742636', 'Breathwork', 'breathwork', 'hack', 'Breathing exercises and techniques', NULL, NULL, '2025-10-20 12:13:21.975045+00', '2025-10-20 12:13:21.975045+00'),
+	('16429881-5b48-48dc-9cbf-f8204bf62724', 'Mindfulness', 'mindfulness', 'hack', 'Meditation and awareness practices', NULL, NULL, '2025-10-20 12:13:21.975045+00', '2025-10-20 12:13:21.975045+00'),
+	('3185da69-1f87-4553-9831-028b22f3dfcb', 'Supplements', 'supplements', 'hack', 'Supplement-based optimization strategies', NULL, NULL, '2025-10-20 12:13:21.975045+00', '2025-10-20 12:13:21.975045+00');
+
+
+--
+-- Data for Name: hack_tags; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- Data for Name: level_prerequisites; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO "public"."level_prerequisites" ("id", "level_id", "prerequisite_level_id", "created_at") VALUES
+	('8bd44b3e-26b9-4e77-b5c8-7193cabd9a80', 'c507b9a6-b628-4425-a7b3-68f5bba8d13e', 'c650048d-fa61-4ca3-8deb-136fa9182833', '2025-10-20 12:13:21.685747+00'),
+	('c926155d-6f8f-4116-a11f-67da5d5f1fcc', '3791450a-1e93-4d9f-bcca-06f5c6595a33', 'c650048d-fa61-4ca3-8deb-136fa9182833', '2025-10-20 12:13:21.685747+00'),
+	('0c5f977b-743d-4232-a853-4bdd3b57bcd3', '69f8b1b4-c9bd-4d01-945f-aaddea932ae4', 'c650048d-fa61-4ca3-8deb-136fa9182833', '2025-10-20 12:13:21.685747+00'),
+	('d2d9538f-ee35-4da2-9c67-99fb7abe3bb0', '50124ce2-ebb0-4196-b853-dcbce9c3d210', 'c507b9a6-b628-4425-a7b3-68f5bba8d13e', '2025-10-20 12:13:21.685747+00'),
+	('ec031010-a4f3-4945-9ee3-228f4bf13125', '50124ce2-ebb0-4196-b853-dcbce9c3d210', '3791450a-1e93-4d9f-bcca-06f5c6595a33', '2025-10-20 12:13:21.685747+00'),
+	('e1d45cc3-390c-407d-b574-e2462d441cf3', '50124ce2-ebb0-4196-b853-dcbce9c3d210', '69f8b1b4-c9bd-4d01-945f-aaddea932ae4', '2025-10-20 12:13:21.685747+00');
+
+
+--
+-- Data for Name: onboarding_questions; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- Data for Name: routines; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO "public"."routines" ("id", "name", "slug", "description", "image_url", "image_path", "is_public", "created_by", "created_at", "updated_at", "position") VALUES
+	('37d04015-9550-4f19-b64e-16c4c13caffb', 'One', 'one', 'The main routine based on part one', 'https://wwxflewbklhhpqbcnupf.supabase.co/storage/v1/object/public/routine-images/5ce61c43-66e2-4093-8abf-4c63388a9093/1759644260849.png', NULL, false, '5ce61c43-66e2-4093-8abf-4c63388a9093', '2025-10-05 06:04:30.70403+00', '2025-10-05 06:04:30.70403+00', 0);
+
+
+--
+-- Data for Name: routine_hacks; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- Data for Name: routine_tags; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- Data for Name: user_hack_checks; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- Data for Name: user_hacks; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- Data for Name: user_levels; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- Data for Name: user_routines; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- Data for Name: user_tags; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+-- \unrestrict RarfQdr32RYdyKFDGS8p9aGMGceh2YFdWehSbeJINMCEZMXmyVlcdg7awrZbCMY
+
+RESET ALL;

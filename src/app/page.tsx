@@ -1,4 +1,6 @@
 import { EnergyHero } from '@/components/landing/EnergyHero'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -30,6 +32,13 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage() {
+  // Redirect logged-in users to /library
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (user) {
+    redirect('/library')
+  }
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [

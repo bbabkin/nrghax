@@ -20,6 +20,28 @@ const taglines = [
 export function EnergyHero() {
   const [currentTaglineIndex, setCurrentTaglineIndex] = useState(0);
 
+  // Hide navbar and footer on home page
+  useEffect(() => {
+    const navbar = document.querySelector('nav');
+    const footer = document.querySelector('footer');
+
+    if (navbar) {
+      (navbar as HTMLElement).style.display = 'none';
+    }
+    if (footer) {
+      (footer as HTMLElement).style.display = 'none';
+    }
+
+    return () => {
+      if (navbar) {
+        (navbar as HTMLElement).style.display = '';
+      }
+      if (footer) {
+        (footer as HTMLElement).style.display = '';
+      }
+    };
+  }, []);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTaglineIndex((prev) => (prev + 1) % taglines.length);
@@ -113,7 +135,7 @@ export function EnergyHero() {
           className="flex flex-col sm:flex-row gap-4 justify-center pt-8"
         >
           <Link
-            href="/hacks"
+            href="/library"
             className="inline-flex items-center gap-3 px-8 py-4 text-lg font-semibold text-black bg-[#fb0] hover:bg-[#fb0]/90 transition-all duration-300 shadow-lg glitch-cta-wrapper group"
             aria-label="Get Started with Energy Hacks"
           >

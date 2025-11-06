@@ -2,8 +2,6 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
-import { Library, BookOpen } from 'lucide-react';
 
 interface LibrarySkillsNavProps {
   className?: string;
@@ -14,82 +12,96 @@ export function LibrarySkillsNav({ className }: LibrarySkillsNavProps) {
   const router = useRouter();
 
   // Determine current view based on pathname
-  const currentView = pathname.startsWith('/levels') ? 'skills' : 'library';
+  const currentView = pathname.startsWith('/skills') ? 'skills' : 'library';
 
   const handleNavigate = (view: 'library' | 'skills') => {
     if (view === 'library') {
-      router.push('/hacks');
+      router.push('/library');
     } else {
-      router.push('/levels');
+      router.push('/skills');
     }
   };
 
-  // Determine position based on current view
-  const position = currentView === 'library' ? 'top' : 'bottom';
-
   return (
-    <motion.div
-      initial={false}
-      animate={{
-        top: position === 'top' ? '0px' : 'auto',
-        bottom: position === 'bottom' ? '0px' : 'auto',
-      }}
-      transition={{
-        type: 'spring',
-        stiffness: 300,
-        damping: 30
-      }}
-      className={cn(
-        "fixed left-0 right-0 z-50 bg-black",
-        className
-      )}
-    >
-      <div
-        className="bg-gray-900 overflow-hidden"
-        style={{
-          clipPath: 'polygon(30px 0, 100% 0, 100% 100%, 0 100%, 0 30px)'
-        }}
-      >
-        <div className="flex h-20">
-          {/* Library Button */}
+    <div className={cn("fixed top-16 left-0 right-0 z-40 bg-black", className)}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex h-14 relative">
+          {/* Library Tab */}
           <button
             onClick={() => handleNavigate('library')}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-3 font-bold text-2xl transition-all duration-300 relative uppercase tracking-wider",
-              currentView === 'library'
-                ? 'bg-yellow-400 text-black shadow-[inset_0_-4px_0_rgba(0,0,0,0.2)]'
-                : 'bg-gray-800 text-gray-500 hover:bg-gray-700 hover:text-gray-300'
-            )}
-            style={{
-              clipPath: currentView === 'library'
-                ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
-                : 'polygon(0 0, calc(100% - 20px) 0, 100% 100%, 0 100%)'
-            }}
+            className="relative flex-1 h-full"
+            style={{ maxWidth: '50%' }}
           >
-            <Library className="h-7 w-7" />
-            <span>Library</span>
+            <div
+              className={cn(
+                "absolute inset-0 flex items-center justify-center font-bold text-lg uppercase tracking-wider transition-all duration-300",
+                currentView === 'library'
+                  ? "text-black z-20"
+                  : "text-white z-10"
+              )}
+            >
+              Library
+            </div>
+            {/* Active Library Background */}
+            {currentView === 'library' && (
+              <div
+                className="absolute inset-0 bg-[#FDB515]"
+                style={{
+                  clipPath: 'polygon(0 0, calc(100% + 30px) 0, 100% 100%, 0 100%)',
+                }}
+              />
+            )}
+            {/* Inactive Library Border */}
+            {currentView !== 'library' && (
+              <div
+                className="absolute inset-0 border-2 border-white"
+                style={{
+                  clipPath: 'polygon(0 0, calc(100% - 30px) 0, calc(100% - 60px) 100%, 0 100%)',
+                  background: 'transparent'
+                }}
+              />
+            )}
           </button>
 
-          {/* Skills Button */}
+          {/* Skills Tab */}
           <button
             onClick={() => handleNavigate('skills')}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-3 font-bold text-2xl transition-all duration-300 relative uppercase tracking-wider",
-              currentView === 'skills'
-                ? 'bg-yellow-400 text-black shadow-[inset_0_-4px_0_rgba(0,0,0,0.2)]'
-                : 'bg-gray-800 text-gray-500 hover:bg-gray-700 hover:text-gray-300'
-            )}
-            style={{
-              clipPath: currentView === 'skills'
-                ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
-                : 'polygon(20px 0, 100% 0, 100% 100%, 0 100%)'
-            }}
+            className="relative flex-1 h-full"
+            style={{ maxWidth: '50%' }}
           >
-            <BookOpen className="h-7 w-7" />
-            <span>Skills</span>
+            <div
+              className={cn(
+                "absolute inset-0 flex items-center justify-center font-bold text-lg uppercase tracking-wider transition-all duration-300",
+                currentView === 'skills'
+                  ? "text-black z-20"
+                  : "text-white z-10"
+              )}
+            >
+              Skills
+            </div>
+            {/* Active Skills Background */}
+            {currentView === 'skills' && (
+              <div
+                className="absolute inset-0 bg-[#FDB515]"
+                style={{
+                  clipPath: 'polygon(30px 0, 100% 0, 100% 100%, 0 100%)',
+                  marginLeft: '-30px'
+                }}
+              />
+            )}
+            {/* Inactive Skills Border */}
+            {currentView !== 'skills' && (
+              <div
+                className="absolute inset-0 border-2 border-white"
+                style={{
+                  clipPath: 'polygon(60px 0, 100% 0, 100% 100%, 30px 100%)',
+                  background: 'transparent'
+                }}
+              />
+            )}
           </button>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

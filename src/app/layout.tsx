@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 import { Oxanium } from 'next/font/google'
 import { Toaster } from '@/components/ui/toaster'
-import { NavbarWrapper } from '@/components/navbar-wrapper'
+import { FloatingNav } from '@/components/FloatingNav'
 import { Footer } from '@/components/Footer'
 import { ThemeScript } from '@/components/theme-script'
 import { ProgressMigrationProvider } from '@/components/ProgressMigrationProvider'
 import { NavigationController } from '@/components/navigation/NavigationController'
+import { getCurrentUser } from '@/lib/auth/user'
 import './globals.css'
 
 const oxanium = Oxanium({
@@ -67,11 +68,13 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const user = await getCurrentUser()
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -79,9 +82,16 @@ export default function RootLayout({
       </head>
       <body className={`${oxanium.variable} font-sans min-h-screen flex flex-col`}>
         <ProgressMigrationProvider>
-          <NavbarWrapper />
+          <FloatingNav
+            isAuthenticated={!!user}
+            user={user ? {
+              name: user.name || undefined,
+              email: user.email || undefined,
+              image: user.avatar_url || undefined,
+            } : undefined}
+          />
           <NavigationController />
-          <main className="flex-1 pt-16">
+          <main className="flex-1">
             {children}
           </main>
           <Footer />

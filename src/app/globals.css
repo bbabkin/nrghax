@@ -76,6 +76,17 @@
   html.dark {
     color-scheme: dark;
   }
+
+  /* Hide navbar and footer for canvas pages (library/skills) */
+  body.hide-nav-footer nav,
+  body.hide-nav-footer footer {
+    display: none !important;
+  }
+
+  /* Also remove padding-top from main when navbar is hidden */
+  body.hide-nav-footer main {
+    padding-top: 0 !important;
+  }
 }
 
 /* Custom Animations */
@@ -293,4 +304,90 @@ html {
 /* Fix link colors in dark mode */
 .dark .ProseMirror a {
   color: #60a5fa;
+}
+/* Cyberpunk Theme Styles */
+@layer components {
+  /* Custom scrollbar for cyberpunk theme */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #FDB515;
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #F59E0B;
+  }
+
+  /* Cyberpunk glow effects */
+  .cyber-glow {
+    box-shadow:
+      0 0 20px rgba(253, 181, 21, 0.5),
+      0 0 40px rgba(253, 181, 21, 0.3),
+      0 0 60px rgba(253, 181, 21, 0.1);
+  }
+
+  .cyber-glow-green {
+    box-shadow:
+      0 0 20px rgba(16, 185, 129, 0.5),
+      0 0 40px rgba(16, 185, 129, 0.3),
+      0 0 60px rgba(16, 185, 129, 0.1);
+  }
+
+  .cyber-glow-blue {
+    box-shadow:
+      0 0 20px rgba(59, 130, 246, 0.5),
+      0 0 40px rgba(59, 130, 246, 0.3),
+      0 0 60px rgba(59, 130, 246, 0.1);
+  }
+
+  .cyber-glow-purple {
+    box-shadow:
+      0 0 20px rgba(168, 85, 247, 0.5),
+      0 0 40px rgba(168, 85, 247, 0.3),
+      0 0 60px rgba(168, 85, 247, 0.1);
+  }
+
+  /* Clipped corner cards */
+  .clipped-card {
+    clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+  }
+
+  .clipped-card-sm {
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  }
+
+  .clipped-card-lg {
+    clip-path: polygon(30px 0, 100% 0, 100% calc(100% - 30px), calc(100% - 30px) 100%, 0 100%, 0 30px);
+  }
+
+  /* Animated background gradient */
+  .cyber-bg {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+    background-size: 200% 200%;
+    animation: cyberGradient 15s ease infinite;
+  }
+
+  @keyframes cyberGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Neon text effect */
+  .neon-text {
+    text-shadow:
+      0 0 10px #FDB515,
+      0 0 20px #FDB515,
+      0 0 30px #FDB515,
+      0 0 40px #FDB515;
+  }
 }

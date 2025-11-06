@@ -1,15 +1,15 @@
 /**
  * Color progression system for hack completion tracking
  * Based on repetition count:
- * - White outline: Locked/unavailable
- * - Gray: Available but never completed (0 completions)
+ * - Dark gray: Unavailable/locked
+ * - White: Available but never completed (0 completions)
  * - Green: Completed 1x
- * - Blue: Completed 2-10x
- * - Purple: Completed 11-50x
- * - Orange: Completed 50+ times
+ * - Blue: Completed 2-9x
+ * - Purple: Completed 10-49x
+ * - Orange (#FDB515): Completed 50+ times
  */
 
-export type ProgressionColor = 'locked' | 'gray' | 'green' | 'blue' | 'purple' | 'orange'
+export type ProgressionColor = 'locked' | 'white' | 'green' | 'blue' | 'purple' | 'orange'
 
 export interface ProgressionStyle {
   color: ProgressionColor
@@ -30,12 +30,12 @@ export function getProgressionColor(
   isLocked: boolean = false
 ): ProgressionColor {
   if (isLocked) return 'locked'
-  // Default to gray for undefined/null/0 completions
-  if (completionCount === undefined || completionCount === null || completionCount === 0) return 'gray'
+  // Default to white for undefined/null/0 completions (available but not completed)
+  if (completionCount === undefined || completionCount === null || completionCount === 0) return 'white'
   if (completionCount === 1) return 'green'
-  if (completionCount <= 10) return 'blue'
-  if (completionCount <= 50) return 'purple'
-  return 'orange'
+  if (completionCount >= 2 && completionCount <= 9) return 'blue'
+  if (completionCount >= 10 && completionCount <= 49) return 'purple'
+  return 'orange' // 50+
 }
 
 /**
@@ -47,45 +47,45 @@ export function getProgressionClasses(color: ProgressionColor): ProgressionStyle
   const styles: Record<ProgressionColor, ProgressionStyle> = {
     locked: {
       color: 'locked',
-      borderClass: '!border-4 !border-gray-600 opacity-50',
-      textClass: 'text-gray-400',
-      bgClass: 'bg-gray-900',
+      borderClass: '!border-4 !border-gray-700 opacity-60',
+      textClass: 'text-gray-500',
+      bgClass: 'bg-gray-900/50',
       shadowClass: '',
     },
-    gray: {
-      color: 'gray',
-      borderClass: '!border-4 !border-gray-500',
-      textClass: 'text-gray-400',
-      bgClass: 'bg-gray-900',
-      shadowClass: '',
+    white: {
+      color: 'white',
+      borderClass: '!border-4 !border-white',
+      textClass: 'text-white',
+      bgClass: 'bg-gray-900/80',
+      shadowClass: 'shadow-[0_0_15px_rgba(255,255,255,0.1)]',
     },
     green: {
       color: 'green',
       borderClass: '!border-4 !border-green-500',
       textClass: 'text-green-400',
-      bgClass: 'bg-green-950',
-      shadowClass: 'shadow-lg shadow-green-500/30',
+      bgClass: 'bg-gray-900/80',
+      shadowClass: 'shadow-[0_0_20px_rgba(16,185,129,0.3)]',
     },
     blue: {
       color: 'blue',
       borderClass: '!border-4 !border-blue-500',
       textClass: 'text-blue-400',
-      bgClass: 'bg-blue-950',
-      shadowClass: 'shadow-lg shadow-blue-500/30',
+      bgClass: 'bg-gray-900/80',
+      shadowClass: 'shadow-[0_0_25px_rgba(59,130,246,0.4)]',
     },
     purple: {
       color: 'purple',
       borderClass: '!border-4 !border-purple-500',
       textClass: 'text-purple-400',
-      bgClass: 'bg-purple-950',
-      shadowClass: 'shadow-lg shadow-purple-500/30',
+      bgClass: 'bg-gray-900/80',
+      shadowClass: 'shadow-[0_0_30px_rgba(168,85,247,0.5)]',
     },
     orange: {
       color: 'orange',
-      borderClass: '!border-4 !border-orange-500',
-      textClass: 'text-orange-400',
-      bgClass: 'bg-orange-950',
-      shadowClass: 'shadow-xl shadow-orange-500/40',
+      borderClass: '!border-4 !border-[#FDB515]',
+      textClass: 'text-[#FDB515]',
+      bgClass: 'bg-gray-900/80',
+      shadowClass: 'shadow-[0_0_35px_rgba(253,181,21,0.6)]',
     },
   }
 
@@ -95,13 +95,12 @@ export function getProgressionClasses(color: ProgressionColor): ProgressionStyle
 /**
  * Get a formatted display string for completion count
  * @param count The completion count
- * @returns Formatted string (e.g., "5x", "50+")
+ * @returns Formatted string (e.g., "5", "50")
  */
 export function formatCompletionCount(count: number): string {
-  if (count === 0) return ''
-  if (count === 1) return '1x'
-  if (count > 50) return '50+'
-  return `${count}x`
+  if (count === 0) return '0'
+  if (count >= 50) return '50'
+  return `${count}`
 }
 
 /**
@@ -153,4 +152,26 @@ export function isHackUnlocked(
 ): boolean {
   if (!prerequisites || prerequisites.length === 0) return true
   return prerequisites.every(prereqId => completedHackIds.includes(prereqId))
+}
+
+/**
+ * Get the progression color for a routine based on the least completed hack
+ * Routines show the color of their least completed hack
+ * @param hackCompletionCounts Array of completion counts for all hacks in the routine
+ * @param allAvailable Whether all hacks in the routine are available
+ * @returns The progression color for the routine
+ */
+export function getRoutineProgressionColor(
+  hackCompletionCounts: (number | null | undefined)[],
+  allAvailable: boolean = true
+): ProgressionColor {
+  if (!allAvailable) return 'locked'
+
+  if (hackCompletionCounts.length === 0) return 'white'
+
+  // Find the minimum completion count (treat null/undefined as 0)
+  const counts = hackCompletionCounts.map(c => c ?? 0)
+  const minCompletion = Math.min(...counts)
+
+  return getProgressionColor(minCompletion, false)
 }

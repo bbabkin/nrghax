@@ -139,8 +139,8 @@ export function SkillTreeView({
   }, [hacks, prerequisites, userProgress, setNodes, setEdges]);
 
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
-    const hack = node.data.hack;
-    if (!hack.is_locked) {
+    const hack = node.data.hack as any;
+    if (!hack?.is_locked) {
       router.push(`/hacks/${hack.slug || hack.id}`);
     }
   }, [router]);
@@ -165,13 +165,13 @@ export function SkillTreeView({
         <Controls />
         <MiniMap
           nodeColor={(node) => {
-            const hack = node.data?.hack;
+            const hack = node.data?.hack as any;
             if (!hack) return '#6b7280';
-            if (hack.is_locked) return '#4b5563';
-            if (hack.completion_count > 50) return '#f97316';
-            if (hack.completion_count > 10) return '#a855f7';
-            if (hack.completion_count > 1) return '#3b82f6';
-            if (hack.completion_count === 1) return '#10b981';
+            if (hack?.is_locked) return '#4b5563';
+            if (hack?.completion_count > 50) return '#f97316';
+            if (hack?.completion_count > 10) return '#a855f7';
+            if (hack?.completion_count > 1) return '#3b82f6';
+            if (hack?.completion_count === 1) return '#10b981';
             return '#6b7280';
           }}
           className="bg-gray-800"
