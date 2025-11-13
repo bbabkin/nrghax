@@ -19,7 +19,16 @@ interface HackFlowChartProps {
 }
 
 export function HackFlowChart({ hacks, levelSlug, levelUnlocked = true }: HackFlowChartProps) {
-  const [hackUnlockStates, setHackUnlockStates] = useState<Record<string, boolean>>({})
+  // Initialize with the correct unlock states immediately
+  const getInitialUnlockStates = () => {
+    const states: Record<string, boolean> = {}
+    hacks.forEach((hack) => {
+      states[hack.id] = isHackUnlocked(hack.id, hack.prerequisites || [], levelUnlocked)
+    })
+    return states
+  }
+
+  const [hackUnlockStates, setHackUnlockStates] = useState<Record<string, boolean>>(getInitialUnlockStates)
 
   // Check unlock states for all hacks
   useEffect(() => {
@@ -31,6 +40,7 @@ export function HackFlowChart({ hacks, levelSlug, levelUnlocked = true }: HackFl
       setHackUnlockStates(states)
     }
 
+    // Recalculate on any change
     checkUnlockStates()
 
     // Listen for progress updates

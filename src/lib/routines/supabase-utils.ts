@@ -118,9 +118,10 @@ export async function getPublicRoutines() {
     return (routines || []).map((routine: any) => {
       const userInteraction = userRoutines.find(ur => ur.routine_id === routine.id);
 
-      // Sort hacks by position
+      // Sort hacks by position and filter out null hacks
       const sortedHacks = routine.routine_hacks
         ?.sort((a: any, b: any) => a.position - b.position)
+        .filter((rh: any) => rh.hacks !== null)
         .map((rh: any) => ({
           ...rh.hacks,
           durationMinutes: rh.hacks.duration_minutes,
@@ -255,9 +256,10 @@ export async function getRoutines(userId?: string) {
     return (routines || []).map((routine: any) => {
       const userInteraction = userRoutines.find(ur => ur.routine_id === routine.id);
 
-      // Sort hacks by position
+      // Sort hacks by position and filter out null hacks
       const sortedHacks = routine.routine_hacks
         ?.sort((a: any, b: any) => a.position - b.position)
+        .filter((rh: any) => rh.hacks !== null)
         .map((rh: any) => ({
           ...rh.hacks,
           durationMinutes: rh.hacks.duration_minutes,
@@ -341,7 +343,8 @@ export async function getUserRoutines(userId: string) {
               image_path,
               content_type,
               difficulty,
-              time_minutes
+              time_minutes,
+              duration_minutes
             )
           ),
           routine_tags (
@@ -373,9 +376,10 @@ export async function getUserRoutines(userId: string) {
     return (userRoutines || []).map((userRoutine: any) => {
       const routine = userRoutine.routines;
 
-      // Sort hacks by position
+      // Sort hacks by position and filter out null hacks
       const sortedHacks = routine.routine_hacks
         ?.sort((a: any, b: any) => a.position - b.position)
+        .filter((rh: any) => rh.hacks !== null)
         .map((rh: any) => ({
           ...rh.hacks,
           durationMinutes: rh.hacks.duration_minutes,

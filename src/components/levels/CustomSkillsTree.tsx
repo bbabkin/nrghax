@@ -93,76 +93,42 @@ export function CustomSkillsTree({
     }
   }, [])
 
-  // Organize hacks into rows for tree structure
-  const organizeHacksIntoTree = (hacks: Hack[]) => {
-    const rows: Hack[][] = []
-    const sortedHacks = [...hacks].sort((a, b) => (a.position || 0) - (b.position || 0))
 
-    // Group hacks based on their prerequisites depth
-    const getDepth = (hack: Hack, depth = 0): number => {
-      if (!hack.prerequisites || hack.prerequisites.length === 0) return depth
-      const maxPrereqDepth = Math.max(
-        ...hack.prerequisites.map(prereqId => {
-          const prereqHack = hacks.find(h => h.id === prereqId)
-          return prereqHack ? getDepth(prereqHack, depth + 1) : depth
-        })
-      )
-      return maxPrereqDepth
-    }
-
-    const maxDepth = Math.max(...sortedHacks.map(h => getDepth(h)))
-
-    for (let i = 0; i <= maxDepth; i++) {
-      rows.push([])
-    }
-
-    sortedHacks.forEach(hack => {
-      const depth = getDepth(hack)
-      rows[depth].push(hack)
-    })
-
-    return rows.filter(row => row.length > 0)
-  }
-
-  const treeRows = organizeHacksIntoTree(hacks)
-  // Reverse the rows for bottom-up display
-  const reversedTreeRows = [...treeRows].reverse()
+  const sortedHacks = [...hacks].sort((a, b) => (a.position || 0) - (b.position || 0))
 
   return (
-    <div className="w-full min-h-screen bg-black p-4 md:p-8 flex flex-col-reverse">
-      {/* Skills Tree - rendered in reverse */}
-      <div className="max-w-6xl mx-auto w-full">
-        {reversedTreeRows.map((row, rowIndex) => {
-          // Calculate the actual row index in original order for connections
-          const actualRowIndex = reversedTreeRows.length - 1 - rowIndex
-          return (
-          <div key={rowIndex} className="relative mb-16">
-            {/* Row connections */}
-            {rowIndex < treeRows.length - 1 && (
-              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0.5 h-16 bg-gray-600" />
-            )}
+    <div className="w-full h-full bg-black overflow-y-auto">
+      <div className="max-w-6xl mx-auto w-full p-4 md:p-8">
+        {/* Level Header */}
+        <div className="mb-12 text-center pt-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-yellow-400 uppercase tracking-wider mb-2">
+            {levelName}
+          </h2>
+          <div className="w-32 h-1 bg-yellow-400 mx-auto" />
+        </div>
 
-            {/* Hacks in row */}
-            <div className="flex flex-wrap justify-center gap-4 md:gap-8">
-              {row.map((hack, hackIndex) => {
-                const isUnlocked = isHackUnlocked(hack)
-                const isCompleted = completedHacks.has(hack.id)
-                const badgeColor = getCompletionBadgeColor(hack.completion_count)
+        {/* Skills Tree - Linear Progression */}
+        <div className="flex flex-col items-center gap-2 pb-24">
+          {/* Render hacks from bottom to top (reverse order) */}
+          {[...sortedHacks].reverse().map((hack, index) => {
+            const isUnlocked = isHackUnlocked(hack)
+            const isCompleted = completedHacks.has(hack.id)
+            const badgeColor = getCompletionBadgeColor(hack.completion_count)
 
-                return (
-                  <motion.div
-                    key={hack.id}
-                    initial={shouldAnimate ? { opacity: 0, scale: 0.8 } : false}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={shouldAnimate ? { delay: rowIndex * 0.1 + hackIndex * 0.05 } : { duration: 0 }}
-                    className="relative"
-                  >
-                    {/* Connection lines to prerequisites */}
-                    {hack.prerequisites && hack.prerequisites.length > 0 && rowIndex > 0 && (
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0.5 h-16 bg-gray-600" />
-                    )}
+            return (
+              <div key={hack.id} className="relative">
+                {/* Connection line to next hack */}
+                {index < sortedHacks.length - 1 && (
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gray-600 z-0" />
+                )}
 
-                    <motion.button
+                <motion.div
+                  initial={shouldAnimate ? { opacity: 0, scale: 0.8 } : false}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={shouldAnimate ? { delay: index * 0.1 } : { duration: 0 }}
+                  className="relative z-10"
+                >
+                  <motion.button
                       onClick={() => handleHackClick(hack)}
                       disabled={!isUnlocked}
                       whileHover={isUnlocked ? { scale: 1.05 } : {}}
@@ -257,22 +223,12 @@ export function CustomSkillsTree({
                           background: `linear-gradient(135deg, transparent 40%, ${badgeColor}20 50%, transparent 60%)`,
                         }}
                       />
-                    </motion.button>
-                  </motion.div>
-                )
-              })}
-            </div>
-          </div>
-        )
-        })}
-      </div>
-
-      {/* Level Header - Now at bottom due to flex-col-reverse */}
-      <div className="mb-8 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-yellow-400 uppercase tracking-wider mb-2">
-          {levelName}
-        </h2>
-        <div className="w-32 h-1 bg-yellow-400 mx-auto" />
+                  </motion.button>
+                </motion.div>
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )

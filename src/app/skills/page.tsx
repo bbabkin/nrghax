@@ -1,64 +1,12 @@
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/auth/user';
-import { UnifiedCanvas } from '@/components/levels/UnifiedCanvas';
+import dynamic from 'next/dynamic';
 
-async function getHacksForLevel(levelId: string) {
-  const supabase = await createClient();
+const UnifiedCanvas = dynamic(() => import('@/components/levels/UnifiedCanvas').then(mod => mod.UnifiedCanvas), {
+  ssr: false
+});
 
-  const { data: hacks, error } = await supabase
-    .from('hacks')
-    .select(`
-      *,
-      hack_tags (
-        tags (
-          id,
-          name,
-          slug
-        )
-      )
-    `)
-    .eq('level_id', levelId)
-    .order('position');
-
-  if (error) {
-    console.error('Error fetching hacks:', error);
-    return [];
-  }
-
-  return hacks.map(hack => ({
-    id: hack.id,
-    name: hack.name,
-    slug: hack.slug,
-    description: hack.description,
-    image_url: hack.image_url || '',
-    duration_minutes: hack.duration_minutes,
-    tags: hack.hack_tags?.map((ht: any) => ht.tags).filter(Boolean) || [],
-  }));
-}
-
-async function getHackPrerequisites(levelId: string) {
-  const supabase = await createClient();
-
-  const { data: prerequisites, error } = await supabase
-    .from('hack_prerequisites')
-    .select('hack_id, prerequisite_hack_id')
-    .in('hack_id',
-      await supabase
-        .from('hacks')
-        .select('id')
-        .eq('level_id', levelId)
-        .then(res => res.data?.map(h => h.id) || [])
-    );
-
-  if (error) {
-    console.error('Error fetching prerequisites:', error);
-    return [];
-  }
-
-  return prerequisites || [];
-}
-
-async function getAllHacks() {
+async function getHacks() {
   const supabase = await createClient();
 
   const { data: hacks, error } = await supabase
@@ -123,7 +71,7 @@ async function getRoutines() {
   }));
 }
 
-async function getUserProgress(userId: string, levelId: string) {
+async function getUserProgress(userId: string) {
   const supabase = await createClient();
 
   const { data: hackProgress } = await supabase
@@ -155,7 +103,65 @@ async function getUserProgress(userId: string, levelId: string) {
   return progressMap;
 }
 
-export default async function SkillsViewPage() {
+async function getHacksForLevel(levelId: string) {
+  const supabase = await createClient();
+
+  const { data: hacks, error } = await supabase
+    .from('hacks')
+    .select(`
+      *,
+      hack_tags (
+        tags (
+          id,
+          name,
+          slug
+        )
+      )
+    `)
+    .eq('level_id', levelId)
+    .order('position');
+
+  if (error) {
+    console.error('Error fetching hacks:', error);
+    return [];
+  }
+
+  // Get hack prerequisites
+  const hackIds = hacks.map(h => h.id);
+  const { data: hackPrereqs } = await supabase
+    .from('hack_prerequisites')
+    .select('hack_id, prerequisite_hack_id')
+    .in('hack_id', hackIds);
+
+  // Build prerequisite map
+  const hackPrerequisites: Record<string, string[]> = {};
+  if (hackPrereqs) {
+    hackPrereqs.forEach((prereq) => {
+      if (!hackPrerequisites[prereq.hack_id]) {
+        hackPrerequisites[prereq.hack_id] = [];
+      }
+      hackPrerequisites[prereq.hack_id].push(prereq.prerequisite_hack_id);
+    });
+  }
+
+  return hacks.map(hack => ({
+    id: hack.id,
+    name: hack.name,
+    slug: hack.slug,
+    description: hack.description,
+    image_url: hack.image_url || '',
+    duration_minutes: hack.duration_minutes,
+    tags: hack.hack_tags?.map((ht: any) => ht.tags).filter(Boolean) || [],
+    prerequisites: hackPrerequisites[hack.id] || [],
+  }));
+}
+
+export const metadata = {
+  title: 'Skills - NRGHax',
+  description: 'Master your skills through our gamified progression system',
+}
+
+export default async function SkillsPage() {
   const user = await getCurrentUser();
 
   // Get the first level (Foundation) for skills view
@@ -171,32 +177,17 @@ export default async function SkillsViewPage() {
     return <div>No levels found</div>;
   }
 
-  // Get data for skills view
-  const levelHacks = await getHacksForLevel(firstLevel.id);
-  const prerequisites = await getHackPrerequisites(firstLevel.id);
-
-  // Get data for library view
-  const [allHacks, routines] = await Promise.all([
-    getAllHacks(),
-    getRoutines()
+  // Get all data needed for both views
+  const [allHacks, routines, levelHacks] = await Promise.all([
+    getHacks(),
+    getRoutines(),
+    getHacksForLevel(firstLevel.id)
   ]);
 
-  // Get user progress
-  const userProgress = user ? await getUserProgress(user.id, firstLevel.id) : {};
-
-  // Merge prerequisites and progress into skills hacks
-  const skillsHacksWithData = levelHacks.map(hack => ({
-    ...hack,
-    level_id: firstLevel.id,
-    prerequisites: prerequisites
-      .filter((p: any) => p.hack_id === hack.id)
-      .map((p: any) => p.prerequisite_hack_id),
-    is_completed: userProgress[`hack-${hack.id}`]?.completed || false,
-    completion_count: userProgress[`hack-${hack.id}`]?.completion_count || 0
-  }));
+  const userProgress = user ? await getUserProgress(user.id) : {};
 
   // Merge progress into library items
-  const libraryHacksWithProgress = allHacks.map(hack => ({
+  const hacksWithProgress = allHacks.map(hack => ({
     ...hack,
     is_completed: userProgress[`hack-${hack.id}`]?.completed || false,
     completion_count: userProgress[`hack-${hack.id}`]?.completion_count || 0
@@ -208,6 +199,14 @@ export default async function SkillsViewPage() {
     completion_count: userProgress[`routine-${routine.id}`]?.completion_count || 0
   }));
 
+  // Merge progress into skills hacks
+  const skillsHacksWithData = levelHacks.map(hack => ({
+    ...hack,
+    level_id: firstLevel.id,
+    is_completed: userProgress[`hack-${hack.id}`]?.completed || false,
+    completion_count: userProgress[`hack-${hack.id}`]?.completion_count || 0
+  }));
+
   return (
     <UnifiedCanvas
       skillsData={{
@@ -216,7 +215,7 @@ export default async function SkillsViewPage() {
         levelName: firstLevel.name
       }}
       libraryData={{
-        hacks: libraryHacksWithProgress,
+        hacks: hacksWithProgress,
         routines: routinesWithProgress
       }}
       isAuthenticated={!!user}
@@ -225,6 +224,7 @@ export default async function SkillsViewPage() {
         email: user.email || undefined,
         image: user.avatar_url || undefined,
       } : undefined}
+      initialView="skills"
     />
   );
 }

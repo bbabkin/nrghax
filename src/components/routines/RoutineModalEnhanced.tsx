@@ -61,7 +61,7 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
   const [hasCompletedBefore, setHasCompletedBefore] = useState(false)
 
   // Calculate total duration
-  const totalDuration = routine.hacks?.reduce((acc, hack) =>
+  const totalDuration = routine.hacks?.filter(hack => hack != null).reduce((acc, hack) =>
     acc + (hack.duration_minutes || 0), 0
   ) || 0
 
@@ -342,7 +342,7 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
                   <h3 className="font-bold text-white mb-4">Playlist ({routine.hacks?.length || 0} hacks)</h3>
 
                   <div className="space-y-2">
-                    {routine.hacks?.map((hack, index) => (
+                    {routine.hacks?.filter(hack => hack !== null).map((hack, index) => (
                       <button
                         key={hack.id}
                         onClick={() => setCurrentHackIndex(index)}

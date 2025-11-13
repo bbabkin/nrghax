@@ -308,7 +308,7 @@ function RoutineEnhancedCard({
       transition={!isModalOpen ? { delay: index * 0.05 } : { duration: 0 }}
       onClick={onClick}
       className={cn(
-        "relative overflow-hidden transition-all duration-300 hover:scale-105 text-left group block w-full z-20",
+        "relative overflow-hidden transition-all duration-300 hover:scale-105 text-left group flex flex-col w-full h-full z-20",
         progressionClasses.bgClass,
         progressionClasses.borderClass,
         progressionClasses.shadowClass
@@ -410,9 +410,9 @@ function RoutineEnhancedCard({
       )}
 
       {/* Content section */}
-      <div className="p-3">
+      <div className="p-3 flex-grow flex flex-col">
         <h3 className="font-bold text-white mb-2">{routine.name}</h3>
-        <p className="text-xs text-gray-400 line-clamp-2 mb-3">
+        <p className="text-xs text-gray-400 line-clamp-2 mb-3 flex-grow">
           {routine.description}
         </p>
 
@@ -474,7 +474,7 @@ function HackEnhancedCard({
       transition={!isModalOpen ? { delay: index * 0.05 } : { duration: 0 }}
       onClick={onClick}
       className={cn(
-        "relative overflow-hidden transition-all duration-300 hover:scale-105 text-left group",
+        "relative overflow-hidden transition-all duration-300 hover:scale-105 text-left group flex flex-col h-full",
         progressionClasses.bgClass,
         progressionClasses.borderClass,
         progressionClasses.shadowClass
@@ -576,9 +576,9 @@ function HackEnhancedCard({
       )}
 
       {/* Content section */}
-      <div className="p-3">
+      <div className="p-3 flex-grow flex flex-col">
         <h3 className="font-bold text-white mb-2">{hack.name}</h3>
-        <p className="text-xs text-gray-400 line-clamp-2 mb-3">
+        <p className="text-xs text-gray-400 line-clamp-2 mb-3 flex-grow">
           {hack.description}
         </p>
 
