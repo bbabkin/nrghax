@@ -14,7 +14,7 @@ const taglines = [
   "No need for crystals or sound baths here.",
   "Like coffee, but without the crash.",
   "Charisma, confidence, and control, step by step.",
-  "Maybe one day the science will catch up.",
+  "Maybe one day science will catch up.",
 ];
 
 export function EnergyHero() {

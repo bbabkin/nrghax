@@ -11,7 +11,8 @@ import { useScrollNavigation } from '@/hooks/useScrollNavigation'
 
 interface UnifiedCanvasProps {
   skillsData: {
-    hacks: any[]
+    levels?: any[] // Array of levels with their hacks
+    hacks?: any[] // Legacy single level hacks
     levelSlug: string
     levelName: string
   }
@@ -20,6 +21,7 @@ interface UnifiedCanvasProps {
     routines: any[]
   }
   isAuthenticated?: boolean
+  isAdmin?: boolean
   user?: {
     name?: string
     email?: string
@@ -32,16 +34,21 @@ export function UnifiedCanvas({
   skillsData,
   libraryData,
   isAuthenticated = false,
+  isAdmin = false,
   user,
   initialView = 'skills'
 }: UnifiedCanvasProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [currentView, setCurrentView] = useState<'skills' | 'library'>(initialView)
+  const [visualView, setVisualView] = useState<'skills' | 'library'>(initialView) // Visual state for navbar
   const [isAnimating, setIsAnimating] = useState(false)
   const [isAtEdge, setIsAtEdge] = useState(false) // Track if we're at an edge position - start false to prevent immediate transition
   const [shouldAnimate, setShouldAnimate] = useState(false)
   const isInitialMount = useRef(true)
+
+  // Debug logging
+  console.log('[UnifiedCanvas] isAdmin:', isAdmin, 'isAuthenticated:', isAuthenticated)
 
   // Refs for scroll detection
   const skillsSectionRef = useRef<HTMLDivElement>(null)
@@ -63,35 +70,143 @@ export function UnifiedCanvas({
         if (returnPage === 'library' || returnPage === 'skills') {
           // Don't animate when returning from modal
           setShouldAnimate(false)
+        } else {
+          // Enable animations after initial mount for normal page loads
+          // Small delay to ensure components are fully mounted
+          setTimeout(() => {
+            setShouldAnimate(true)
+          }, 100)
+        }
+      } else {
+        // Enable animations after initial mount
+        setTimeout(() => {
+          setShouldAnimate(true)
+        }, 100)
+      }
+
+      // If starting on skills view, ensure we're at the bottom
+      if (initialView === 'skills') {
+        const forceScrollToBottom = () => {
+          const skillsSection = skillsSectionRef.current
+          if (skillsSection) {
+            const maxScroll = skillsSection.scrollHeight - skillsSection.clientHeight
+            skillsSection.scrollTop = maxScroll + 1000 // Add extra to ensure we're at absolute bottom
+            console.log('Initial skills scroll:', skillsSection.scrollTop, '/', maxScroll)
+          }
+        }
+
+        // Multiple aggressive attempts to ensure it happens after content loads
+        const timers = [
+          setTimeout(forceScrollToBottom, 0),
+          setTimeout(forceScrollToBottom, 100),
+          setTimeout(forceScrollToBottom, 300),
+          setTimeout(forceScrollToBottom, 500),
+          setTimeout(forceScrollToBottom, 800),
+          setTimeout(forceScrollToBottom, 1200),
+          setTimeout(forceScrollToBottom, 2000)
+        ]
+      }
+    }
+  }, [initialView])
+
+  // Scroll to last unlocked hack when on skills view
+  useEffect(() => {
+    if (currentView === 'skills') {
+      const skillsSection = skillsSectionRef.current
+      if (!skillsSection) return
+
+      // Function to scroll to last unlocked hack
+      const scrollToLastUnlockedHack = () => {
+        // Try multiple selectors to find the skills container
+        let actualSkillsContainer = skillsSection.querySelector('.overflow-y-auto') || skillsSection
+
+        // Find all hack button elements using data attributes
+        const allButtons = actualSkillsContainer.querySelectorAll('button[data-hack-id]')
+
+        // Filter to find unlocked hacks using data-hack-unlocked attribute
+        const unlockedHacks = Array.from(allButtons).filter(button => {
+          return button.getAttribute('data-hack-unlocked') === 'true'
+        })
+
+        console.log(`[ScrollDebug] Total hack buttons found: ${allButtons.length}`)
+        console.log(`[ScrollDebug] Unlocked hacks: ${unlockedHacks.length}`)
+
+        if (allButtons.length > 0) {
+          // Log info about all hacks
+          allButtons.forEach((button, i) => {
+            const isUnlocked = button.getAttribute('data-hack-unlocked')
+            const hackName = button.getAttribute('data-hack-name')
+            console.log(`[ScrollDebug] Hack ${i}: "${hackName}" - unlocked: ${isUnlocked}`)
+          })
+        }
+
+        if (unlockedHacks.length > 0) {
+          // Since hacks are rendered in reverse order (bottom to top),
+          // we need to find the FIRST unlocked hack in DOM order
+          // which represents the last unlocked hack in the progression
+          const lastUnlockedInProgression = unlockedHacks[0] as HTMLElement
+          const hackTitle = lastUnlockedInProgression.getAttribute('data-hack-name') || 'Unknown'
+
+          // Calculate position to show it at the bottom of viewport
+          const rect = lastUnlockedInProgression.getBoundingClientRect()
+          const containerRect = actualSkillsContainer.getBoundingClientRect()
+          const relativeTop = rect.top - containerRect.top + actualSkillsContainer.scrollTop
+
+          // Position the hack at the bottom of the viewport with some padding
+          const targetScroll = relativeTop - actualSkillsContainer.clientHeight + rect.height + 100
+
+          actualSkillsContainer.scrollTop = Math.max(0, targetScroll)
+
+          console.log(`[ScrollDebug] Scrolled to last unlocked hack: "${hackTitle}"`)
+          console.log(`[ScrollDebug] Target scroll: ${targetScroll}, Actual scroll: ${actualSkillsContainer.scrollTop}`)
+          console.log(`[ScrollDebug] Container height: ${actualSkillsContainer.clientHeight}, Scroll height: ${actualSkillsContainer.scrollHeight}`)
+        } else {
+          // If no unlocked hacks, stay at top (where the first/base hacks would be)
+          console.log('[ScrollDebug] No unlocked hacks found - this might indicate all hacks have prerequisites')
+          // Since hacks are rendered bottom-to-top, the top of the container shows the earliest hacks
+          actualSkillsContainer.scrollTop = 0
         }
       }
 
-      // Removed - consolidated below
-    }
-  }, [])
-
-  // Scroll to bottom when on skills view (initial load and after transitions)
-  useEffect(() => {
-    if (currentView === 'skills') {
-      // Wait for animation to complete and content to render
-      const delay = isAnimating ? 800 : 300
-      const timer = setTimeout(() => {
-        const skillsSection = skillsSectionRef.current
-        if (skillsSection) {
-          // Scroll to bottom - skills tree grows upward
-          skillsSection.scrollTop = skillsSection.scrollHeight
-
-          // Double-check after a brief moment in case content is still loading
-          setTimeout(() => {
-            if (skillsSection.scrollTop === 0) {
-              skillsSection.scrollTop = skillsSection.scrollHeight
-            }
-          }, 100)
+      // Use MutationObserver to detect when content loads
+      let hasScrolled = false
+      const observer = new MutationObserver(() => {
+        if (!hasScrolled) {
+          scrollToLastUnlockedHack()
+          hasScrolled = true
         }
-      }, delay)
-      return () => clearTimeout(timer)
+      })
+
+      // Start observing
+      observer.observe(skillsSection, {
+        childList: true,
+        subtree: true,
+        attributes: false
+      })
+
+      // Try multiple times with increasing delays to ensure content is loaded
+      scrollToLastUnlockedHack()
+      const timers = [
+        setTimeout(scrollToLastUnlockedHack, 100),
+        setTimeout(scrollToLastUnlockedHack, 300),
+        setTimeout(scrollToLastUnlockedHack, 500),
+        setTimeout(scrollToLastUnlockedHack, 800),
+        setTimeout(scrollToLastUnlockedHack, 1200)
+      ]
+
+      // Cleanup
+      return () => {
+        observer.disconnect()
+        timers.forEach(clearTimeout)
+      }
+    } else if (currentView === 'library') {
+      // Reset library scroll to top when switching to library
+      const librarySection = librarySectionRef.current
+      if (librarySection) {
+        librarySection.scrollTop = 0
+      }
     }
-  }, [currentView, isAnimating])
+  }, [currentView])
 
   // Hide navbar and footer by adding a class to body
   useEffect(() => {
@@ -110,6 +225,10 @@ export function UnifiedCanvas({
     if (currentView !== expectedView && !isAnimating) {
       setShouldAnimate(true)
       setCurrentView(expectedView)
+      // Also sync visual view for browser navigation
+      setTimeout(() => {
+        setVisualView(expectedView)
+      }, 50)
     }
   }, [pathname, currentView, isAnimating])
 
@@ -121,7 +240,13 @@ export function UnifiedCanvas({
     setIsAnimating(true)
     setCurrentView(view)
 
-    // Update URL to match the new view
+    // Delay visual state update to sync with animation start
+    // This prevents the navbar from jumping
+    setTimeout(() => {
+      setVisualView(view)
+    }, 50) // Small delay to allow animation to start
+
+    // Update URL to match the new view (immediate for responsiveness)
     if (typeof window !== 'undefined') {
       const newPath = view === 'skills' ? '/skills' : '/library'
       if (pathname !== newPath) {
@@ -132,6 +257,8 @@ export function UnifiedCanvas({
     // Reset animation flag after animation completes
     setTimeout(() => {
       setIsAnimating(false)
+      // Ensure visual state is synced
+      setVisualView(view)
       // The scroll positioning is handled by the useEffect that watches currentView
     }, 700) // Slightly after animation completes
   }
@@ -343,17 +470,33 @@ export function UnifiedCanvas({
         transition={
           shouldAnimate
             ? {
-                type: "tween",
-                ease: "easeInOut",
-                duration: 0.6
+                type: "spring",
+                damping: 30,
+                stiffness: 200,
+                mass: 0.8
               }
             : { duration: 0 }
         }
+        onAnimationComplete={() => {
+          // Ensure proper scroll position after animation completes
+          if (currentView === 'skills') {
+            const skillsSection = skillsSectionRef.current
+            if (skillsSection) {
+              skillsSection.scrollTop = skillsSection.scrollHeight
+            }
+          } else if (currentView === 'library') {
+            const librarySection = librarySectionRef.current
+            if (librarySection) {
+              librarySection.scrollTop = 0
+            }
+          }
+        }}
       >
         {/* Skills Section (Top Half) */}
         <div ref={skillsSectionRef} className="h-screen relative overflow-y-auto">
           <CustomSkillsTree
-            hacks={skillsData.hacks}
+            levels={skillsData.levels}
+            hacks={skillsData.hacks} // Keep for backward compatibility
             levelSlug={skillsData.levelSlug}
             levelName={skillsData.levelName}
             isAuthenticated={isAuthenticated}
@@ -363,10 +506,11 @@ export function UnifiedCanvas({
         {/* Navigation Bar (Middle) - This moves with the canvas, NOT fixed */}
         <div className="absolute top-[calc(100vh-80px)] left-0 right-0 z-50">
           <LibrarySkillsNavCanvasSVG
-            currentView={currentView}
+            currentView={visualView}
             onViewChange={handleViewChange}
             disabled={isAnimating}
             isAuthenticated={isAuthenticated}
+            isAdmin={isAdmin}
             user={user}
             scrollProgress={isAtEdge && showIndicator ? progress : 0}
             scrollDirection={isAtEdge && showIndicator ? direction : null}
@@ -379,6 +523,7 @@ export function UnifiedCanvas({
             hacks={libraryData.hacks}
             routines={libraryData.routines}
             isAuthenticated={isAuthenticated}
+            isAdmin={isAdmin}
             scrollContainerRef={librarySectionRef}
           />
         </div>

@@ -3,7 +3,8 @@ import { getCurrentUser } from '@/lib/auth/user';
 import dynamic from 'next/dynamic';
 
 const UnifiedCanvas = dynamic(() => import('@/components/levels/UnifiedCanvas').then(mod => mod.UnifiedCanvas), {
-  ssr: false
+  ssr: false,
+  loading: () => <div className="fixed inset-0 bg-black flex items-center justify-center">Loading...</div>
 });
 
 async function getHacks() {
@@ -164,24 +165,32 @@ export const metadata = {
 export default async function SkillsPage() {
   const user = await getCurrentUser();
 
-  // Get the first level (Foundation) for skills view
+  // Get ALL levels ordered by position
   const supabase = await createClient();
-  const { data: firstLevel } = await supabase
+  const { data: levels } = await supabase
     .from('levels')
-    .select('id, name, slug')
-    .order('position')
-    .limit(1)
-    .single();
+    .select('id, name, slug, position')
+    .order('position', { ascending: false }); // Reverse order so foundation is at bottom
 
-  if (!firstLevel) {
+  if (!levels || levels.length === 0) {
     return <div>No levels found</div>;
   }
 
-  // Get all data needed for both views
-  const [allHacks, routines, levelHacks] = await Promise.all([
+  // Get hacks for each level
+  const levelsWithHacks = await Promise.all(
+    levels.map(async (level) => {
+      const levelHacks = await getHacksForLevel(level.id);
+      return {
+        ...level,
+        hacks: levelHacks
+      };
+    })
+  );
+
+  // Get all data needed for library view
+  const [allHacks, routines] = await Promise.all([
     getHacks(),
-    getRoutines(),
-    getHacksForLevel(firstLevel.id)
+    getRoutines()
   ]);
 
   const userProgress = user ? await getUserProgress(user.id) : {};
@@ -199,26 +208,30 @@ export default async function SkillsPage() {
     completion_count: userProgress[`routine-${routine.id}`]?.completion_count || 0
   }));
 
-  // Merge progress into skills hacks
-  const skillsHacksWithData = levelHacks.map(hack => ({
-    ...hack,
-    level_id: firstLevel.id,
-    is_completed: userProgress[`hack-${hack.id}`]?.completed || false,
-    completion_count: userProgress[`hack-${hack.id}`]?.completion_count || 0
+  // Merge progress into skills hacks for all levels
+  const levelsWithProgress = levelsWithHacks.map(level => ({
+    ...level,
+    hacks: level.hacks.map(hack => ({
+      ...hack,
+      level_id: level.id,
+      is_completed: userProgress[`hack-${hack.id}`]?.completed || false,
+      completion_count: userProgress[`hack-${hack.id}`]?.completion_count || 0
+    }))
   }));
 
   return (
     <UnifiedCanvas
       skillsData={{
-        hacks: skillsHacksWithData,
-        levelSlug: firstLevel.slug,
-        levelName: firstLevel.name
+        levels: levelsWithProgress,
+        levelSlug: levels[0].slug, // Keep first level slug for compatibility
+        levelName: levels[0].name  // Keep first level name for compatibility
       }}
       libraryData={{
         hacks: hacksWithProgress,
         routines: routinesWithProgress
       }}
       isAuthenticated={!!user}
+      isAdmin={user?.is_admin || false}
       user={user ? {
         name: user.name || undefined,
         email: user.email || undefined,

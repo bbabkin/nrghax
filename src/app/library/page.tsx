@@ -3,7 +3,8 @@ import { getCurrentUser } from '@/lib/auth/user';
 import dynamic from 'next/dynamic';
 
 const UnifiedCanvas = dynamic(() => import('@/components/levels/UnifiedCanvas').then(mod => mod.UnifiedCanvas), {
-  ssr: false
+  ssr: false,
+  loading: () => <div className="fixed inset-0 bg-black flex items-center justify-center">Loading...</div>
 });
 
 async function getHacks() {
@@ -159,6 +160,9 @@ async function getHacksForLevel(levelId: string) {
 export default async function LibraryPage() {
   const user = await getCurrentUser();
 
+  // Debug logging
+  console.log('[LibraryPage] User:', user ? { id: user.id, email: user.email, is_admin: user.is_admin } : 'Not authenticated');
+
   // Get the first level (Foundation) for skills view
   const supabase = await createClient();
   const { data: firstLevel } = await supabase
@@ -214,6 +218,7 @@ export default async function LibraryPage() {
         routines: routinesWithProgress
       }}
       isAuthenticated={!!user}
+      isAdmin={user?.is_admin || false}
       user={user ? {
         name: user.name || undefined,
         email: user.email || undefined,

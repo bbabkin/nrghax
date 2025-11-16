@@ -4,13 +4,15 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { HackCard } from '@/components/hacks/HackCard'
 import { RoutineCard } from '@/components/routines/RoutineCard'
-import { Clock, Zap, Brain, Search, X } from 'lucide-react'
+import { Clock, Zap, Brain, Search, X, Edit2, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
+import Link from 'next/link'
 import { formatDuration } from '@/lib/youtube'
 import { getProgressionColor, getProgressionClasses, formatCompletionCount } from '@/lib/progression'
 import { useAnonymousProgress } from '@/hooks/useAnonymousProgress'
+import { DeleteRoutineButton } from '@/components/admin/DeleteRoutineButton'
 
 interface Hack {
   id: string
@@ -62,8 +64,8 @@ interface LibraryViewProps {
   hacks: Hack[]
   routines: Routine[]
   isAuthenticated?: boolean
-  currentUserId?: string
   isAdmin?: boolean
+  currentUserId?: string
   scrollContainerRef?: React.RefObject<HTMLDivElement>
 }
 
@@ -71,8 +73,8 @@ export function LibraryView({
   hacks: initialHacks,
   routines: initialRoutines,
   isAuthenticated = false,
-  currentUserId,
   isAdmin = false,
+  currentUserId,
   scrollContainerRef
 }: LibraryViewProps) {
   const router = useRouter()
@@ -80,6 +82,9 @@ export function LibraryView({
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [hasAnimated, setHasAnimated] = useState(false)
+
+  // Debug logging
+  console.log('[LibraryView] isAdmin:', isAdmin, 'isAuthenticated:', isAuthenticated)
 
   // Use anonymous progress tracking for non-authenticated users
   const {
@@ -146,6 +151,13 @@ export function LibraryView({
 
   return (
     <div className="w-full min-h-screen bg-black p-4 md:p-6">
+      {/* Debug indicator - Remove this after debugging */}
+      {isAdmin && (
+        <div className="fixed top-20 left-4 z-50 bg-red-500 text-white px-4 py-2 rounded">
+          ADMIN MODE ACTIVE
+        </div>
+      )}
+
       {/* Contained max-width wrapper */}
       <div className="max-w-7xl mx-auto">
         {/* Routines Section */}
@@ -248,6 +260,7 @@ export function LibraryView({
                   onClick={() => handleCardClick(routine, 'routine')}
                   index={index}
                   isModalOpen={isModalOpen}
+                  isAdmin={isAdmin}
                 />
               </div>
             )
@@ -256,7 +269,7 @@ export function LibraryView({
       </div>
 
         {/* Hax Section */}
-        <div>
+        <div className="pb-24">
           <div className="mb-6">
             <h2 className="text-2xl md:text-3xl font-bold uppercase tracking-wider mb-2" style={{ color: '#FFBB00' }}>
               Hax
@@ -279,6 +292,7 @@ export function LibraryView({
                 onClick={() => handleCardClick(hack, 'hack')}
                 index={index}
                 isModalOpen={isModalOpen}
+                isAdmin={isAdmin}
               />
             )
           })}
@@ -296,10 +310,14 @@ function RoutineEnhancedCard({
   progressionClasses,
   onClick,
   index,
-  isModalOpen
+  isModalOpen,
+  isAdmin = false
 }: any) {
   const completionCount = routine.completion_count || 0
   const completionLabel = formatCompletionCount(completionCount)
+
+  // Debug logging for each card
+  console.log(`[RoutineCard ${routine.name}] isAdmin:`, isAdmin)
 
   return (
     <motion.button
@@ -439,6 +457,21 @@ function RoutineEnhancedCard({
         </div>
       </div>
 
+      {/* Admin Controls - Bottom Right */}
+      {isAdmin && (
+        <div className="absolute bottom-2 right-2 flex gap-2 z-30" onClick={(e) => e.stopPropagation()}>
+          <Link
+            href={`/admin/routines/${routine.id}/edit`}
+            className="p-2 bg-yellow-400/90 hover:bg-yellow-400 text-black rounded transition-colors"
+            style={{ width: '30px', height: '30px' }}
+            title="Edit routine"
+          >
+            <Edit2 className="h-3.5 w-3.5" />
+          </Link>
+          <DeleteRoutineButton routineId={routine.id} routineName={routine.name} variant="small" />
+        </div>
+      )}
+
       {/* Enhanced Hover Glow Effect */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
         <div className={cn(
@@ -462,7 +495,8 @@ function HackEnhancedCard({
   progressionClasses,
   onClick,
   index,
-  isModalOpen
+  isModalOpen,
+  isAdmin = false
 }: any) {
   const completionCount = hack.completion_count || 0
   const completionLabel = formatCompletionCount(completionCount)
@@ -604,6 +638,20 @@ function HackEnhancedCard({
           </div>
         </div>
       </div>
+
+      {/* Admin Controls - Bottom Right */}
+      {isAdmin && (
+        <div className="absolute bottom-2 right-2 flex gap-2 z-30" onClick={(e) => e.stopPropagation()}>
+          <Link
+            href={`/admin/hacks/${hack.id}/edit`}
+            className="p-2 bg-yellow-400/90 hover:bg-yellow-400 text-black rounded transition-colors"
+            style={{ width: '30px', height: '30px' }}
+            title="Edit hack"
+          >
+            <Edit2 className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      )}
 
       {/* Enhanced Hover Glow Effect */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">

@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { Checkbox } from '@/components/ui/checkbox'
 import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react'
-import { assignTagsFromOnboarding } from '@/lib/tags/assignment'
+import { completeOnboarding } from '@/server/actions/onboarding'
 import { getOnboardingQuestionsFromDB, type Question } from '@/lib/onboarding/questions'
 import { cn } from '@/lib/utils'
 
@@ -93,11 +93,10 @@ export default function QuestionnaireWizard({ userId }: Props) {
 
     try {
       // Assign default beginner tag when skipping
-      await assignTagsFromOnboarding(userId, { skipped: true })
+      await completeOnboarding(userId, { skipped: true })
 
-      // Refresh server data and navigate
-      router.refresh()
-      router.push('/dashboard')
+      // Navigate to library (no need for refresh, server action handles revalidation)
+      router.push('/library')
     } catch (err) {
       setError('Failed to skip onboarding. Please try again.')
       setIsSubmitting(false)
@@ -109,11 +108,10 @@ export default function QuestionnaireWizard({ userId }: Props) {
     setError(null)
 
     try {
-      await assignTagsFromOnboarding(userId, answers)
+      await completeOnboarding(userId, answers)
 
-      // Refresh server data and navigate
-      router.refresh()
-      router.push('/dashboard')
+      // Navigate to library (no need for refresh, server action handles revalidation)
+      router.push('/library')
     } catch (err) {
       setError('Failed to save your preferences. Please try again.')
       setIsSubmitting(false)

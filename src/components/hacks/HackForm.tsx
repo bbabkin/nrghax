@@ -369,12 +369,12 @@ export function HackForm({ hack, availableHacks, availableLevels, userId }: Hack
 
       <div>
         <Label htmlFor="level_id">Level (Optional)</Label>
-        <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+        <Select value={selectedLevel || "no-level"} onValueChange={(value) => setSelectedLevel(value === "no-level" ? "" : value)}>
           <SelectTrigger>
             <SelectValue placeholder="No level assigned" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">No level</SelectItem>
+            <SelectItem value="no-level">No level</SelectItem>
             {availableLevels.map((level) => (
               <SelectItem key={level.id} value={level.id}>
                 {level.name}

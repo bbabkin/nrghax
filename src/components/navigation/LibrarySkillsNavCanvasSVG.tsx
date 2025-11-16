@@ -4,7 +4,16 @@ import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import Image from 'next/image';
-import { User } from 'lucide-react';
+import { User, LogOut, Settings, Shield, Database, Tag, Calendar } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { signOut } from '@/server/actions/auth';
 
 interface LibrarySkillsNavCanvasSVGProps {
   className?: string;
@@ -12,6 +21,7 @@ interface LibrarySkillsNavCanvasSVGProps {
   onViewChange: (view: 'library' | 'skills') => void;
   disabled?: boolean;
   isAuthenticated?: boolean;
+  isAdmin?: boolean;
   user?: {
     name?: string;
     email?: string;
@@ -27,6 +37,7 @@ export function LibrarySkillsNavCanvasSVG({
   onViewChange,
   disabled = false,
   isAuthenticated = false,
+  isAdmin = false,
   user,
   scrollProgress = 0,
   scrollDirection = null
@@ -363,22 +374,89 @@ export function LibrarySkillsNavCanvasSVG({
         </div>
 
         {/* User Icon - Right */}
-        <Link
-          href={isAuthenticated ? '/dashboard' : '/auth'}
-          className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 border-2 border-yellow-400 flex items-center justify-center transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(253,181,21,0.5)]"
-        >
-          {user?.image ? (
-            <Image
-              src={user.image}
-              alt={user.name || 'User'}
-              width={38}
-              height={38}
-              className="rounded-full"
-            />
-          ) : (
+        {isAuthenticated ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 border-2 border-yellow-400 flex items-center justify-center transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(253,181,21,0.5)] focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 focus:ring-offset-black">
+                {user?.image ? (
+                  <Image
+                    src={user.image}
+                    alt={user.name || 'User'}
+                    width={38}
+                    height={38}
+                    className="rounded-full"
+                  />
+                ) : (
+                  <User className="h-5 w-5 text-yellow-400" />
+                )}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 bg-gray-900 border-yellow-400/20">
+              <DropdownMenuLabel className="text-yellow-400">
+                {user?.name || user?.email || 'My Account'}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-yellow-400/20" />
+              <DropdownMenuItem asChild className="cursor-pointer hover:bg-gray-800 focus:bg-gray-800 text-white">
+                <Link href="/profile" className="flex items-center">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Profile Settings</span>
+                </Link>
+              </DropdownMenuItem>
+
+              {isAdmin && (
+                <>
+                  <DropdownMenuSeparator className="bg-yellow-400/20" />
+                  <DropdownMenuLabel className="text-yellow-400 flex items-center">
+                    <Shield className="mr-2 h-4 w-4" />
+                    Admin
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-gray-800 focus:bg-gray-800 text-white">
+                    <Link href="/admin" className="flex items-center">
+                      <Database className="mr-2 h-4 w-4" />
+                      <span>Admin Dashboard</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-gray-800 focus:bg-gray-800 text-white">
+                    <Link href="/admin/hacks/new" className="flex items-center">
+                      <Database className="mr-2 h-4 w-4" />
+                      <span>Manage Hacks</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-gray-800 focus:bg-gray-800 text-white">
+                    <Link href="/admin/routines" className="flex items-center">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      <span>Manage Routines</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-gray-800 focus:bg-gray-800 text-white">
+                    <Link href="/admin/tags" className="flex items-center">
+                      <Tag className="mr-2 h-4 w-4" />
+                      <span>Manage Tags</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </>
+              )}
+
+              <DropdownMenuSeparator className="bg-yellow-400/20" />
+              <DropdownMenuItem
+                onClick={async () => {
+                  await signOut();
+                }}
+                className="cursor-pointer hover:bg-gray-800 focus:bg-gray-800 text-red-400 focus:text-red-400"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sign Out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Link
+            href="/auth"
+            className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 border-2 border-yellow-400 flex items-center justify-center transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(253,181,21,0.5)]"
+          >
             <User className="h-5 w-5 text-yellow-400" />
-          )}
-        </Link>
+          </Link>
+        )}
       </div>
     </div>
   );

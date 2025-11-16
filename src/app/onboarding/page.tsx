@@ -19,7 +19,7 @@ export default async function OnboardingPage() {
 
   if (profile?.onboarded) {
     // User has already completed onboarding
-    redirect('/dashboard')
+    redirect('/library')
   }
 
   return (

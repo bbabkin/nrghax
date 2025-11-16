@@ -70,7 +70,7 @@ export function SupabaseAuthForm() {
           title: 'Success',
           description: 'Welcome back!',
         })
-        router.push('/dashboard')
+        router.push('/library')
         router.refresh()
       }
     } catch (error) {
@@ -111,7 +111,7 @@ export function SupabaseAuthForm() {
           title: 'Success',
           description: 'Account created! Redirecting...',
         })
-        router.push('/dashboard')
+        router.push('/library')
         router.refresh()
       } else if (data.user) {
         // User created but no session - try to sign in immediately (local dev)
@@ -132,7 +132,7 @@ export function SupabaseAuthForm() {
             title: 'Success',
             description: 'Account created! Redirecting...',
           })
-          router.push('/dashboard')
+          router.push('/library')
           router.refresh()
         }
       }

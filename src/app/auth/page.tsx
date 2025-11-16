@@ -7,7 +7,7 @@ export default async function AuthPage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (user) {
-    redirect('/dashboard');
+    redirect('/library');
   }
 
   return (
