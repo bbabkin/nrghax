@@ -221,8 +221,13 @@ export function UnifiedCanvas({
 
   // Sync view with URL when using browser navigation
   useEffect(() => {
-    const expectedView = pathname === '/skills' ? 'skills' : 'library'
+    // Determine expected view from pathname
+    // Check if pathname starts with /skills to handle both /skills and /skills/[slug] routes
+    const expectedView = pathname.startsWith('/skills') ? 'skills' : 'library'
+
+    // Only update if view actually changed and we're not animating
     if (currentView !== expectedView && !isAnimating) {
+      console.log(`[UnifiedCanvas] Syncing view from pathname: ${pathname} -> ${expectedView}`)
       setShouldAnimate(true)
       setCurrentView(expectedView)
       // Also sync visual view for browser navigation
@@ -233,8 +238,14 @@ export function UnifiedCanvas({
   }, [pathname, currentView, isAnimating])
 
   const handleViewChange = (view: 'skills' | 'library') => {
-    if (view === currentView || isAnimating) return
+    console.log(`[UnifiedCanvas] handleViewChange called: ${view}, current: ${currentView}, isAnimating: ${isAnimating}`)
 
+    if (view === currentView || isAnimating) {
+      console.log(`[UnifiedCanvas] Ignoring view change - already on ${view} or animating`)
+      return
+    }
+
+    console.log(`[UnifiedCanvas] Proceeding with view change to ${view}`)
     // Enable animation for user-initiated navigation
     setShouldAnimate(true)
     setIsAnimating(true)
@@ -249,7 +260,14 @@ export function UnifiedCanvas({
     // Update URL to match the new view (immediate for responsiveness)
     if (typeof window !== 'undefined') {
       const newPath = view === 'skills' ? '/skills' : '/library'
-      if (pathname !== newPath) {
+      // Only navigate if we're not already on the correct path
+      // For skills, check if pathname starts with /skills to avoid unnecessary navigation
+      const needsNavigation = view === 'skills'
+        ? !pathname.startsWith('/skills')
+        : pathname !== '/library'
+
+      if (needsNavigation) {
+        console.log(`[UnifiedCanvas] Navigating from ${pathname} to ${newPath}`)
         router.push(newPath)
       }
     }
