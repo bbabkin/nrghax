@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import dynamic from 'next/dynamic'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { CustomSkillsTree } from './CustomSkillsTree'
 import { LibraryView } from '@/components/library/LibraryView'
 import { LibrarySkillsNavCanvasSVG } from '@/components/navigation/LibrarySkillsNavCanvasSVG'
@@ -39,13 +39,19 @@ export function UnifiedCanvas({
   initialView = 'skills'
 }: UnifiedCanvasProps) {
   const router = useRouter()
-  const pathname = usePathname()
+  const [pathname, setPathname] = useState('')
+
+  // Get pathname after mount to avoid SSR issues
+  useEffect(() => {
+    setPathname(window.location.pathname)
+  }, [])
   const [currentView, setCurrentView] = useState<'skills' | 'library'>(initialView)
   const [visualView, setVisualView] = useState<'skills' | 'library'>(initialView) // Visual state for navbar
   const [isAnimating, setIsAnimating] = useState(false)
   const [isAtEdge, setIsAtEdge] = useState(false) // Track if we're at an edge position - start false to prevent immediate transition
   const [shouldAnimate, setShouldAnimate] = useState(false)
   const isInitialMount = useRef(true)
+  const isUserNavigating = useRef(false) // Track if navigation is user-initiated
 
   // Debug logging
   console.log('[UnifiedCanvas] isAdmin:', isAdmin, 'isAuthenticated:', isAuthenticated)
@@ -82,29 +88,6 @@ export function UnifiedCanvas({
         setTimeout(() => {
           setShouldAnimate(true)
         }, 100)
-      }
-
-      // If starting on skills view, ensure we're at the bottom
-      if (initialView === 'skills') {
-        const forceScrollToBottom = () => {
-          const skillsSection = skillsSectionRef.current
-          if (skillsSection) {
-            const maxScroll = skillsSection.scrollHeight - skillsSection.clientHeight
-            skillsSection.scrollTop = maxScroll + 1000 // Add extra to ensure we're at absolute bottom
-            console.log('Initial skills scroll:', skillsSection.scrollTop, '/', maxScroll)
-          }
-        }
-
-        // Multiple aggressive attempts to ensure it happens after content loads
-        const timers = [
-          setTimeout(forceScrollToBottom, 0),
-          setTimeout(forceScrollToBottom, 100),
-          setTimeout(forceScrollToBottom, 300),
-          setTimeout(forceScrollToBottom, 500),
-          setTimeout(forceScrollToBottom, 800),
-          setTimeout(forceScrollToBottom, 1200),
-          setTimeout(forceScrollToBottom, 2000)
-        ]
       }
     }
   }, [initialView])
@@ -184,20 +167,13 @@ export function UnifiedCanvas({
         attributes: false
       })
 
-      // Try multiple times with increasing delays to ensure content is loaded
-      scrollToLastUnlockedHack()
-      const timers = [
-        setTimeout(scrollToLastUnlockedHack, 100),
-        setTimeout(scrollToLastUnlockedHack, 300),
-        setTimeout(scrollToLastUnlockedHack, 500),
-        setTimeout(scrollToLastUnlockedHack, 800),
-        setTimeout(scrollToLastUnlockedHack, 1200)
-      ]
+      // Initial attempt with a small delay for content to render
+      const timer = setTimeout(scrollToLastUnlockedHack, 250)
 
       // Cleanup
       return () => {
         observer.disconnect()
-        timers.forEach(clearTimeout)
+        clearTimeout(timer)
       }
     } else if (currentView === 'library') {
       // Reset library scroll to top when switching to library
@@ -219,21 +195,39 @@ export function UnifiedCanvas({
     }
   }, [])
 
-  // Sync view with URL when using browser navigation
+  // Handle browser back/forward navigation
   useEffect(() => {
-    const expectedView = pathname === '/skills' ? 'skills' : 'library'
-    if (currentView !== expectedView && !isAnimating) {
-      setShouldAnimate(true)
-      setCurrentView(expectedView)
-      // Also sync visual view for browser navigation
-      setTimeout(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname
+      let expectedView: 'skills' | 'library' = currentView
+
+      if (path === '/skills' || path.startsWith('/skills/')) {
+        expectedView = 'skills'
+      } else if (path === '/library' || path.startsWith('/library/')) {
+        expectedView = 'library'
+      }
+
+      if (expectedView !== currentView) {
+        setShouldAnimate(true)
+        setCurrentView(expectedView)
         setVisualView(expectedView)
-      }, 50)
+      }
     }
-  }, [pathname, currentView, isAnimating])
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [currentView])
 
   const handleViewChange = (view: 'skills' | 'library') => {
     if (view === currentView || isAnimating) return
+
+    // Mark this as user-initiated navigation
+    isUserNavigating.current = true
+
+    // Clear any session storage that might interfere
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('returnToPage')
+    }
 
     // Enable animation for user-initiated navigation
     setShouldAnimate(true)
@@ -246,17 +240,21 @@ export function UnifiedCanvas({
       setVisualView(view)
     }, 50) // Small delay to allow animation to start
 
-    // Update URL to match the new view (immediate for responsiveness)
+    // Update URL to match the new view without causing full page reload
     if (typeof window !== 'undefined') {
       const newPath = view === 'skills' ? '/skills' : '/library'
-      if (pathname !== newPath) {
-        router.push(newPath)
+      const currentPath = window.location.pathname
+      if (currentPath !== newPath) {
+        // Use window.history to update URL without triggering Next.js navigation
+        window.history.pushState({}, '', newPath)
+        setPathname(newPath) // Update local pathname state
       }
     }
 
     // Reset animation flag after animation completes
     setTimeout(() => {
       setIsAnimating(false)
+      isUserNavigating.current = false
       // Ensure visual state is synced
       setVisualView(view)
       // The scroll positioning is handled by the useEffect that watches currentView
@@ -463,7 +461,9 @@ export function UnifiedCanvas({
       {/* Giant canvas container - animates only on user navigation */}
       <motion.div
         className="relative w-full h-[200vh]"
-        initial={false}
+        initial={{
+          y: initialView === 'library' ? 'calc(-100vh + 80px)' : 0
+        }}
         animate={{
           y: currentView === 'library' ? 'calc(-100vh + 80px)' : 0
         }}
@@ -477,20 +477,6 @@ export function UnifiedCanvas({
               }
             : { duration: 0 }
         }
-        onAnimationComplete={() => {
-          // Ensure proper scroll position after animation completes
-          if (currentView === 'skills') {
-            const skillsSection = skillsSectionRef.current
-            if (skillsSection) {
-              skillsSection.scrollTop = skillsSection.scrollHeight
-            }
-          } else if (currentView === 'library') {
-            const librarySection = librarySectionRef.current
-            if (librarySection) {
-              librarySection.scrollTop = 0
-            }
-          }
-        }}
       >
         {/* Skills Section (Top Half) */}
         <div ref={skillsSectionRef} className="h-screen relative overflow-y-auto">

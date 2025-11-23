@@ -137,10 +137,20 @@ export function EnergyHero() {
           <Link
             href="/library"
             className="inline-flex items-center gap-3 px-8 py-4 text-lg font-semibold text-black bg-[#fb0] hover:bg-[#fb0]/90 transition-all duration-300 shadow-lg glitch-cta-wrapper group"
-            aria-label="Get Started with Energy Hacks"
+            aria-label="Browse Energy Hacks Library"
           >
-            <span className="glitch-cta" data-text="Jedi Time">
-              Jedi Time
+            <span className="glitch-cta" data-text="Library">
+              Library
+            </span>
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+          </Link>
+          <Link
+            href="/skills"
+            className="inline-flex items-center gap-3 px-8 py-4 text-lg font-semibold text-[#fb0] bg-black dark:text-black dark:bg-[#fb0] hover:opacity-90 transition-all duration-300 shadow-lg glitch-cta-wrapper group"
+            aria-label="View Skills Progression"
+          >
+            <span className="glitch-cta" data-text="Skills">
+              Skills
             </span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
           </Link>
