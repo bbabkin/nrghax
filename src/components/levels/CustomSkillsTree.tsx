@@ -106,18 +106,18 @@ export function CustomSkillsTree({
   const handleLevelHackClick = (hack: Hack, level: Level) => {
     if (!isHackUnlocked(hack)) return
 
-    // Store current scroll position before navigating
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('skillsScrollPosition', window.scrollY.toString())
-      sessionStorage.setItem('returnToPage', 'skills')
-    }
+    console.log(`[CLICK] Navigating to hack: ${hack.name} (${hack.slug})`)
+    // Save scroll position before navigation
+    sessionStorage.setItem('skillsScrollPosition', window.scrollY.toString())
+    sessionStorage.setItem('returnToPage', 'skills')
 
-    // Use the level slug for navigation
-    router.push(`/skills/${level.slug}/hacks/${hack.slug}?from=skills`)
+    // Navigate to the hack page using the level and hack slugs
+    router.push(`/skills/${level.slug}/hacks/${hack.slug}`)
   }
 
   return (
-    <div className="w-full h-full bg-black overflow-y-auto">
+    <>
+      <div className="w-full h-full bg-black overflow-y-auto">
       <div className="max-w-6xl mx-auto w-full p-4 md:p-8">
         {/* Main Title */}
         <div className="mb-16 text-center pt-8">
@@ -280,6 +280,7 @@ export function CustomSkillsTree({
           })}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

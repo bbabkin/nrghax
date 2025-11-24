@@ -74,7 +74,10 @@ export default async function EditRoutinePage({ params }: EditRoutinePageProps) 
           }}
         >
           <RoutineForm
-            routine={routine}
+            routine={{
+              ...routine,
+              duration_minutes: null
+            }}
             tags={tags || []}
             selectedTagIds={selectedTagIds}
           />

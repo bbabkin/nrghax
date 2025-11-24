@@ -78,7 +78,6 @@ export function LibraryView({
   scrollContainerRef
 }: LibraryViewProps) {
   const router = useRouter()
-  const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [hasAnimated, setHasAnimated] = useState(false)
@@ -105,21 +104,23 @@ export function LibraryView({
     )
   })
 
-  // Handle navigation with scroll position preservation
+  // Handle card click to navigate
   const handleCardClick = (item: Hack | Routine, type: 'hack' | 'routine') => {
-    setIsModalOpen(true)
+    console.log(`[CLICK] Navigating to ${type}: ${item.name} (${item.slug})`)
 
-    // Store current scroll position before navigating
-    if (typeof window !== 'undefined' && scrollContainerRef?.current) {
-      const scrollPos = scrollContainerRef.current.scrollTop
-      sessionStorage.setItem('libraryScrollPosition', scrollPos.toString())
+    // Save scroll position before navigation
+    if (scrollContainerRef?.current) {
+      sessionStorage.setItem('libraryScrollPosition', scrollContainerRef.current.scrollTop.toString())
       sessionStorage.setItem('returnToPage', 'library')
     }
 
+    // Navigate to the appropriate route (will be intercepted by our modal routes)
     if (type === 'routine') {
-      router.push(`/routines/${item.slug}?from=library`)
+      router.push(`/routines/${item.slug}`)
     } else {
-      router.push(`/skills/foundation/hacks/${item.slug}?from=library`)
+      // For hacks, we need to use the foundation level path
+      // This should be updated based on the actual level structure
+      router.push(`/skills/foundation/hacks/${item.slug}`)
     }
   }
 
@@ -139,8 +140,7 @@ export function LibraryView({
 
         sessionStorage.removeItem('libraryScrollPosition')
         sessionStorage.removeItem('returnToPage')
-        setIsModalOpen(false)
-        // Mark as already animated to prevent re-animation when closing modal
+        // Mark as already animated to prevent re-animation
         setHasAnimated(true)
       } else {
         // First load - allow animation
@@ -150,7 +150,8 @@ export function LibraryView({
   }, [scrollContainerRef])
 
   return (
-    <div className="w-full min-h-screen bg-black p-4 md:p-6">
+    <>
+      <div className="w-full min-h-screen bg-black p-4 md:p-6">
       {/* Debug indicator - Remove this after debugging */}
       {isAdmin && (
         <div className="fixed top-20 left-4 z-50 bg-red-500 text-white px-4 py-2 rounded">
@@ -231,7 +232,7 @@ export function LibraryView({
                 {/* Stacked cards effect - only for routines */}
                 <div
                   className={cn(
-                    "absolute top-2 left-2 right-0 bottom-0 z-10",
+                    "absolute top-2 left-2 right-0 bottom-0 z-10 pointer-events-none",
                     progressionClasses.bgClass,
                     progressionClasses.borderClass,
                     "opacity-50"
@@ -242,7 +243,7 @@ export function LibraryView({
                 />
                 <div
                   className={cn(
-                    "absolute top-4 left-4 right-0 bottom-0 z-0",
+                    "absolute top-4 left-4 right-0 bottom-0 z-0 pointer-events-none",
                     progressionClasses.bgClass,
                     progressionClasses.borderClass,
                     "opacity-30"
@@ -299,7 +300,9 @@ export function LibraryView({
           </div>
         </div>
       </div>
-    </div>
+      </div>
+
+    </>
   )
 }
 
@@ -313,6 +316,7 @@ function RoutineEnhancedCard({
   isModalOpen,
   isAdmin = false
 }: any) {
+  const router = useRouter()
   const completionCount = routine.completion_count || 0
   const completionLabel = formatCompletionCount(completionCount)
 
@@ -320,13 +324,15 @@ function RoutineEnhancedCard({
   console.log(`[RoutineCard ${routine.name}] isAdmin:`, isAdmin)
 
   return (
-    <motion.button
+    <motion.div
+      onClick={onClick}
+      data-type="routine"
+      data-name={routine.name}
       initial={!isModalOpen ? { opacity: 0, y: 20 } : false}
       animate={{ opacity: 1, y: 0 }}
       transition={!isModalOpen ? { delay: index * 0.05 } : { duration: 0 }}
-      onClick={onClick}
       className={cn(
-        "relative overflow-hidden transition-all duration-300 hover:scale-105 text-left group flex flex-col w-full h-full z-20",
+        "relative z-20 overflow-hidden transition-all duration-300 hover:scale-105 group flex flex-col w-full h-full cursor-pointer",
         progressionClasses.bgClass,
         progressionClasses.borderClass,
         progressionClasses.shadowClass
@@ -351,9 +357,10 @@ function RoutineEnhancedCard({
         }`
       }}
     >
+
       {/* Enhanced Diagonal Stripes - More prominent */}
       <div
-        className="absolute inset-0 pointer-events-none z-10"
+        className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: `repeating-linear-gradient(
             45deg,
@@ -384,7 +391,7 @@ function RoutineEnhancedCard({
 
         {/* Diagonal Clipped Completion Badge - Always visible */}
         <div
-          className="absolute top-0 right-0 px-5 py-2.5 font-bold text-base shadow-lg z-20"
+          className="absolute top-0 right-0 px-5 py-2.5 font-bold text-base shadow-lg"
           style={{
             backgroundColor: completionCount === 0 ? '#6b7280' :
                             progressionColor === 'white' ? '#ffffff' :
@@ -459,15 +466,24 @@ function RoutineEnhancedCard({
 
       {/* Admin Controls - Bottom Right */}
       {isAdmin && (
-        <div className="absolute bottom-2 right-2 flex gap-2 z-30" onClick={(e) => e.stopPropagation()}>
-          <Link
-            href={`/admin/routines/${routine.id}/edit`}
-            className="p-2 bg-yellow-400/90 hover:bg-yellow-400 text-black rounded transition-colors"
+        <div
+          className="absolute bottom-2 right-2 flex gap-2 z-50"
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              window.location.href = `/admin/routines/${routine.id}/edit`
+            }}
+            className="p-2 bg-yellow-400/90 hover:bg-yellow-400 text-black rounded transition-colors relative z-50"
             style={{ width: '30px', height: '30px' }}
             title="Edit routine"
+            type="button"
           >
             <Edit2 className="h-3.5 w-3.5" />
-          </Link>
+          </button>
           <DeleteRoutineButton routineId={routine.id} routineName={routine.name} variant="small" />
         </div>
       )}
@@ -484,7 +500,7 @@ function RoutineEnhancedCard({
           "from-gray-500/20"
         )} />
       </div>
-    </motion.button>
+    </motion.div>
   )
 }
 
@@ -498,17 +514,20 @@ function HackEnhancedCard({
   isModalOpen,
   isAdmin = false
 }: any) {
+  const router = useRouter()
   const completionCount = hack.completion_count || 0
   const completionLabel = formatCompletionCount(completionCount)
 
   return (
-    <motion.button
+    <motion.div
+      onClick={onClick}
+      data-type="hack"
+      data-name={hack.name}
       initial={!isModalOpen ? { opacity: 0, y: 20 } : false}
       animate={{ opacity: 1, y: 0 }}
       transition={!isModalOpen ? { delay: index * 0.05 } : { duration: 0 }}
-      onClick={onClick}
       className={cn(
-        "relative overflow-hidden transition-all duration-300 hover:scale-105 text-left group flex flex-col h-full",
+        "relative z-20 overflow-hidden transition-all duration-300 hover:scale-105 group flex flex-col h-full cursor-pointer",
         progressionClasses.bgClass,
         progressionClasses.borderClass,
         progressionClasses.shadowClass
@@ -533,9 +552,10 @@ function HackEnhancedCard({
         }`
       }}
     >
+
       {/* Enhanced Diagonal Stripes - More prominent */}
       <div
-        className="absolute inset-0 pointer-events-none z-10"
+        className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: `repeating-linear-gradient(
             45deg,
@@ -566,7 +586,7 @@ function HackEnhancedCard({
 
         {/* Diagonal Clipped Completion Badge - Always visible */}
         <div
-          className="absolute top-0 right-0 px-5 py-2.5 font-bold text-base shadow-lg z-20"
+          className="absolute top-0 right-0 px-5 py-2.5 font-bold text-base shadow-lg"
           style={{
             backgroundColor: completionCount === 0 ? '#6b7280' :
                             progressionColor === 'white' ? '#ffffff' :
@@ -641,15 +661,24 @@ function HackEnhancedCard({
 
       {/* Admin Controls - Bottom Right */}
       {isAdmin && (
-        <div className="absolute bottom-2 right-2 flex gap-2 z-30" onClick={(e) => e.stopPropagation()}>
-          <Link
-            href={`/admin/hacks/${hack.id}/edit`}
-            className="p-2 bg-yellow-400/90 hover:bg-yellow-400 text-black rounded transition-colors"
+        <div
+          className="absolute bottom-2 right-2 flex gap-2 z-50"
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              window.location.href = `/admin/hacks/${hack.id}/edit`
+            }}
+            className="p-2 bg-yellow-400/90 hover:bg-yellow-400 text-black rounded transition-colors relative z-50"
             style={{ width: '30px', height: '30px' }}
             title="Edit hack"
+            type="button"
           >
             <Edit2 className="h-3.5 w-3.5" />
-          </Link>
+          </button>
         </div>
       )}
 
@@ -665,6 +694,6 @@ function HackEnhancedCard({
           "from-gray-500/20"
         )} />
       </div>
-    </motion.button>
+    </motion.div>
   )
 }

@@ -319,7 +319,7 @@ export default function UltimateCanvas({
               className="text-xs underline hover:no-underline"
               aria-label="Dismiss onboarding"
             >
-              Got it, don't show again
+              Got it, don&apos;t show again
             </button>
           </motion.div>
         )}

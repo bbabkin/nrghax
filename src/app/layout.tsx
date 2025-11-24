@@ -70,8 +70,10 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
+  modal,
 }: Readonly<{
   children: React.ReactNode
+  modal: React.ReactNode
 }>) {
   const user = await getCurrentUser()
 
@@ -96,6 +98,7 @@ export default async function RootLayout({
           </main>
           <Footer />
           <Toaster />
+          {modal}
         </ProgressMigrationProvider>
       </body>
     </html>

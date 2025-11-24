@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/auth/user';
 import dynamic from 'next/dynamic';
 
-const UnifiedCanvas = dynamic(() => import('@/components/levels/UnifiedCanvas').then(mod => mod.UnifiedCanvas), {
+const CanvasLayout = dynamic(() => import('@/components/levels/CanvasLayout').then(mod => mod.CanvasLayout), {
   ssr: false,
   loading: () => <div className="fixed inset-0 bg-black flex items-center justify-center">Loading...</div>
 });
@@ -220,7 +220,7 @@ export default async function SkillsPage() {
   }));
 
   return (
-    <UnifiedCanvas
+    <CanvasLayout
       skillsData={{
         levels: levelsWithProgress,
         levelSlug: levels[0].slug, // Keep first level slug for compatibility

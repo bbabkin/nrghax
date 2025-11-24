@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { X, Play, FileText, MessageSquare, HelpCircle, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState, useEffect, useCallback } from 'react'
@@ -32,7 +32,6 @@ type SecondaryTabType = 'checklist' | 'qa' | 'notes'
 
 export function HackModalEnhanced({ hack, levelSlug, allLevelHacks = [], returnPath }: HackModalEnhancedProps) {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const { isAuthenticated } = useAuth()
   const [isCompleted, setIsCompleted] = useState(hack.is_completed || false)
   const [isMarking, setIsMarking] = useState(false)
@@ -87,20 +86,13 @@ export function HackModalEnhanced({ hack, levelSlug, allLevelHacks = [], returnP
   const handleClose = useCallback(() => {
     setIsVisible(false)
     setTimeout(() => {
-      // Check URL params first, then session storage
-      const fromParam = searchParams.get('from')
+      // Check session storage first
       const savedReturnPage = sessionStorage.getItem('returnToPage')
 
       let targetPath = '/skills' // Default
 
-      // Use URL parameter if available
-      if (fromParam === 'library') {
-        targetPath = '/library'
-      } else if (fromParam === 'skills') {
-        targetPath = '/skills'
-      }
-      // Fallback to session storage
-      else if (savedReturnPage === 'library') {
+      // Use session storage if available
+      if (savedReturnPage === 'library') {
         targetPath = '/library'
       } else if (savedReturnPage === 'skills') {
         targetPath = '/skills'
@@ -112,7 +104,7 @@ export function HackModalEnhanced({ hack, levelSlug, allLevelHacks = [], returnP
 
       router.push(targetPath)
     }, 200)
-  }, [router, levelSlug, returnPath, searchParams])
+  }, [router, levelSlug, returnPath])
 
   // Handle ESC key
   useEffect(() => {
@@ -186,30 +178,11 @@ export function HackModalEnhanced({ hack, levelSlug, allLevelHacks = [], returnP
     { id: 'notes', label: 'Notes' }
   ]
 
-  return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
-          onClick={(e) => e.target === e.currentTarget && handleClose()}
-        >
-          <motion.div
-            initial={{ scale: 0.9, y: 20 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.9, y: 20 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-5xl mx-4 h-[85vh] bg-gray-900 overflow-hidden"
-            style={{
-              clipPath: 'polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px)',
-              boxShadow: '0 0 50px rgba(253, 181, 21, 0.3)'
-            }}
-          >
-            {/* Header */}
-            <div className="absolute top-0 left-0 right-0 h-16 bg-gray-800 flex items-center px-6 border-b-2 border-yellow-400/30">
+  // Content component - shared between embedded and modal views
+  const renderModalContent = () => (
+    <>
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 h-16 bg-gray-800 flex items-center px-6 border-b-2 border-yellow-400/30">
               <div className="flex items-center gap-4 flex-1">
                 <div className="w-12 h-12 bg-gray-700 rounded overflow-hidden">
                   {hack.image_url && (
@@ -429,6 +402,33 @@ export function HackModalEnhanced({ hack, levelSlug, allLevelHacks = [], returnP
                 )}
               </Button>
             </div>
+      </>
+  )
+
+  // Always render in modal style
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
+          onClick={(e) => e.target === e.currentTarget && handleClose()}
+        >
+          <motion.div
+            initial={{ scale: 0.9, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.9, y: 20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="relative w-full max-w-5xl mx-4 h-[85vh] bg-gray-900 overflow-hidden"
+            style={{
+              clipPath: 'polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px)',
+              boxShadow: '0 0 50px rgba(253, 181, 21, 0.3)'
+            }}
+          >
+            {renderModalContent()}
           </motion.div>
         </motion.div>
       )}

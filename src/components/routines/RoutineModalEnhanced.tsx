@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { X, Play, Pause, SkipForward, SkipBack, List, Settings, CheckCircle, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -48,7 +48,6 @@ type TabType = 'playlist' | 'overview' | 'settings'
 
 export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhancedProps) {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const { isAuthenticated } = useAuth()
   const [isVisible, setIsVisible] = useState(false)
   const [activeTab, setActiveTab] = useState<TabType>('playlist')
@@ -132,7 +131,7 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
 
       router.push(targetPath)
     }, 200)
-  }, [router, returnPath, searchParams])
+  }, [router, returnPath])
 
   // Handle ESC key
   useEffect(() => {
@@ -198,35 +197,11 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
     { id: 'settings', label: 'Settings', icon: <Settings className="h-4 w-4" /> },
   ]
 
-  return (
-    <AnimatePresence>
-      {/* Backdrop */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isVisible ? 1 : 0 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
-        onClick={handleClose}
-      />
-
-      {/* Modal */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: isVisible ? 1 : 0, scale: isVisible ? 1 : 0.9 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        transition={{ duration: 0.2 }}
-        className="fixed inset-0 flex items-center justify-center p-4 z-50 pointer-events-none"
-      >
-        <div
-          className="relative w-full max-w-6xl max-h-[90vh] bg-gray-900 overflow-hidden pointer-events-auto"
-          style={{
-            clipPath: 'polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px)',
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="absolute top-0 left-0 right-0 z-10 bg-gray-900/95 backdrop-blur border-b border-gray-700 px-6 py-4">
+  // Content component - shared between embedded and modal views
+  const renderModalContent = () => (
+    <>
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 z-10 bg-gray-900/95 backdrop-blur border-b border-gray-700 px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <h2 className="text-2xl font-bold text-yellow-400">{routine.name}</h2>
@@ -535,6 +510,37 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
               </div>
             </div>
           </div>
+      </>
+  )
+
+  return (
+    <AnimatePresence>
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isVisible ? 1 : 0 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
+        onClick={handleClose}
+      />
+
+      {/* Modal */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: isVisible ? 1 : 0, scale: isVisible ? 1 : 0.9 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 flex items-center justify-center p-4 z-50 pointer-events-none"
+      >
+        <div
+          className="relative w-full max-w-6xl max-h-[90vh] bg-gray-900 overflow-hidden pointer-events-auto"
+          style={{
+            clipPath: 'polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px)',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {renderModalContent()}
         </div>
       </motion.div>
     </AnimatePresence>

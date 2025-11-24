@@ -6,7 +6,6 @@ import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { CustomSkillsTree } from './CustomSkillsTree'
 import { LibraryView } from '@/components/library/LibraryView'
-import { LibrarySkillsNavCanvasSVG } from '@/components/navigation/LibrarySkillsNavCanvasSVG'
 import { useScrollNavigation } from '@/hooks/useScrollNavigation'
 
 interface UnifiedCanvasProps {
@@ -28,6 +27,10 @@ interface UnifiedCanvasProps {
     image?: string
   }
   initialView?: 'skills' | 'library'
+  currentView?: 'skills' | 'library'
+  onViewChange?: (view: 'skills' | 'library') => void
+  isAnimating?: boolean
+  setIsAnimating?: (isAnimating: boolean) => void
 }
 
 export function UnifiedCanvas({
@@ -36,7 +39,11 @@ export function UnifiedCanvas({
   isAuthenticated = false,
   isAdmin = false,
   user,
-  initialView = 'skills'
+  initialView = 'skills',
+  currentView: currentViewProp,
+  onViewChange: onViewChangeProp,
+  isAnimating: isAnimatingProp,
+  setIsAnimating: setIsAnimatingProp
 }: UnifiedCanvasProps) {
   const router = useRouter()
   const [pathname, setPathname] = useState('')
@@ -45,9 +52,16 @@ export function UnifiedCanvas({
   useEffect(() => {
     setPathname(window.location.pathname)
   }, [])
-  const [currentView, setCurrentView] = useState<'skills' | 'library'>(initialView)
+  // Use prop values when provided (controlled mode), otherwise use internal state (uncontrolled mode)
+  const [internalCurrentView, setInternalCurrentView] = useState<'skills' | 'library'>(initialView)
+  const currentView = currentViewProp ?? internalCurrentView
+  const setCurrentView = onViewChangeProp ?? setInternalCurrentView
+
   const [visualView, setVisualView] = useState<'skills' | 'library'>(initialView) // Visual state for navbar
-  const [isAnimating, setIsAnimating] = useState(false)
+
+  const [internalIsAnimating, setInternalIsAnimating] = useState(false)
+  const isAnimating = isAnimatingProp ?? internalIsAnimating
+  const setIsAnimating = setIsAnimatingProp ?? setInternalIsAnimating
   const [isAtEdge, setIsAtEdge] = useState(false) // Track if we're at an edge position - start false to prevent immediate transition
   const [shouldAnimate, setShouldAnimate] = useState(false)
   const isInitialMount = useRef(true)
@@ -489,19 +503,6 @@ export function UnifiedCanvas({
           />
         </div>
 
-        {/* Navigation Bar (Middle) - This moves with the canvas, NOT fixed */}
-        <div className="absolute top-[calc(100vh-80px)] left-0 right-0 z-50">
-          <LibrarySkillsNavCanvasSVG
-            currentView={visualView}
-            onViewChange={handleViewChange}
-            disabled={isAnimating}
-            isAuthenticated={isAuthenticated}
-            isAdmin={isAdmin}
-            user={user}
-            scrollProgress={isAtEdge && showIndicator ? progress : 0}
-            scrollDirection={isAtEdge && showIndicator ? direction : null}
-          />
-        </div>
 
         {/* Library Section (Bottom Half) */}
         <div ref={librarySectionRef} className="h-screen relative overflow-y-auto">
