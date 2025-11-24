@@ -70,7 +70,8 @@ export function CustomSkillsTree({
       })
     })
     setCompletedHacks(completed)
-  }, [allLevels, isAuthenticated])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [levels, hacks, isAuthenticated]) // Use props directly, not computed value
 
   const isHackUnlocked = (hack: Hack) => {
     if (!hack.prerequisites || hack.prerequisites.length === 0) return true

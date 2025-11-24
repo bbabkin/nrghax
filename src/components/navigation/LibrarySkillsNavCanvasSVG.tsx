@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -13,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { signOut } from '@/server/actions/auth';
+import { createClient } from '@/lib/supabase/client';
 
 interface LibrarySkillsNavCanvasSVGProps {
   className?: string;
@@ -42,8 +43,21 @@ export function LibrarySkillsNavCanvasSVG({
   scrollProgress = 0,
   scrollDirection = null
 }: LibrarySkillsNavCanvasSVGProps) {
+  const router = useRouter();
   const [isMobile, setIsMobile] = useState(false);
   const isLibraryActive = currentView === 'library';
+
+  const handleSignOut = async () => {
+    try {
+      console.log('[LibrarySkillsNav] Signing out...');
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.push('/');
+      router.refresh();
+    } catch (error) {
+      console.error('[LibrarySkillsNav] Sign out error:', error);
+    }
+  };
 
   // Calculate fill position based on current view and scroll progress
   // fillProgress: 0 = Library filled, 100 = Skills filled
@@ -439,9 +453,7 @@ export function LibrarySkillsNavCanvasSVG({
 
               <DropdownMenuSeparator className="bg-yellow-400/20" />
               <DropdownMenuItem
-                onClick={async () => {
-                  await signOut();
-                }}
+                onClick={handleSignOut}
                 className="cursor-pointer hover:bg-gray-800 focus:bg-gray-800 text-red-400 focus:text-red-400"
               >
                 <LogOut className="mr-2 h-4 w-4" />

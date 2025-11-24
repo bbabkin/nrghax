@@ -65,7 +65,6 @@ export function UnifiedCanvas({
   const [isAtEdge, setIsAtEdge] = useState(false) // Track if we're at an edge position - start false to prevent immediate transition
   const [shouldAnimate, setShouldAnimate] = useState(false)
   const isInitialMount = useRef(true)
-  const isUserNavigating = useRef(false) // Track if navigation is user-initiated
 
   // Debug logging
   console.log('[UnifiedCanvas] isAdmin:', isAdmin, 'isAuthenticated:', isAuthenticated)
@@ -211,38 +210,31 @@ export function UnifiedCanvas({
 
   // Handle browser back/forward navigation
   useEffect(() => {
-    const handlePopState = () => {
-      const path = window.location.pathname
-      let expectedView: 'skills' | 'library' = currentView
+    // Determine expected view from pathname
+    // Check if pathname starts with /skills to handle both /skills and /skills/[slug] routes
+    const expectedView = pathname.startsWith('/skills') ? 'skills' : 'library'
 
-      if (path === '/skills' || path.startsWith('/skills/')) {
-        expectedView = 'skills'
-      } else if (path === '/library' || path.startsWith('/library/')) {
-        expectedView = 'library'
-      }
-
-      if (expectedView !== currentView) {
-        setShouldAnimate(true)
-        setCurrentView(expectedView)
+    // Only update if view actually changed and we're not animating
+    if (currentView !== expectedView && !isAnimating) {
+      console.log(`[UnifiedCanvas] Syncing view from pathname: ${pathname} -> ${expectedView}`)
+      setShouldAnimate(true)
+      setCurrentView(expectedView)
+      // Also sync visual view for browser navigation
+      setTimeout(() => {
         setVisualView(expectedView)
-      }
+      }, 50)
     }
-
-    window.addEventListener('popstate', handlePopState)
-    return () => window.removeEventListener('popstate', handlePopState)
-  }, [currentView])
+  }, [pathname, currentView, isAnimating])
 
   const handleViewChange = (view: 'skills' | 'library') => {
-    if (view === currentView || isAnimating) return
+    console.log(`[UnifiedCanvas] handleViewChange called: ${view}, current: ${currentView}, isAnimating: ${isAnimating}`)
 
-    // Mark this as user-initiated navigation
-    isUserNavigating.current = true
-
-    // Clear any session storage that might interfere
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('returnToPage')
+    if (view === currentView || isAnimating) {
+      console.log(`[UnifiedCanvas] Ignoring view change - already on ${view} or animating`)
+      return
     }
 
+    console.log(`[UnifiedCanvas] Proceeding with view change to ${view}`)
     // Enable animation for user-initiated navigation
     setShouldAnimate(true)
     setIsAnimating(true)
@@ -257,18 +249,21 @@ export function UnifiedCanvas({
     // Update URL to match the new view without causing full page reload
     if (typeof window !== 'undefined') {
       const newPath = view === 'skills' ? '/skills' : '/library'
-      const currentPath = window.location.pathname
-      if (currentPath !== newPath) {
-        // Use window.history to update URL without triggering Next.js navigation
-        window.history.pushState({}, '', newPath)
-        setPathname(newPath) // Update local pathname state
+      // Only navigate if we're not already on the correct path
+      // For skills, check if pathname starts with /skills to avoid unnecessary navigation
+      const needsNavigation = view === 'skills'
+        ? !pathname.startsWith('/skills')
+        : pathname !== '/library'
+
+      if (needsNavigation) {
+        console.log(`[UnifiedCanvas] Navigating from ${pathname} to ${newPath}`)
+        router.push(newPath)
       }
     }
 
     // Reset animation flag after animation completes
     setTimeout(() => {
       setIsAnimating(false)
-      isUserNavigating.current = false
       // Ensure visual state is synced
       setVisualView(view)
       // The scroll positioning is handled by the useEffect that watches currentView
