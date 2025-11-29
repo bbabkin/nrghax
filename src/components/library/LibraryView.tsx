@@ -2,13 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { HackCard } from '@/components/hacks/HackCard'
-import { RoutineCard } from '@/components/routines/RoutineCard'
-import { Clock, Zap, Brain, Search, X, Edit2, Trash2 } from 'lucide-react'
+import { Clock, Zap, Brain, Search, X, Edit2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
-import Link from 'next/link'
 import { formatDuration } from '@/lib/youtube'
 import { getProgressionColor, getProgressionClasses, formatCompletionCount } from '@/lib/progression'
 import { useAnonymousProgress } from '@/hooks/useAnonymousProgress'
@@ -81,6 +77,7 @@ export function LibraryView({
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [hasAnimated, setHasAnimated] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   // Debug logging
   console.log('[LibraryView] isAdmin:', isAdmin, 'isAuthenticated:', isAuthenticated)
@@ -108,56 +105,18 @@ export function LibraryView({
   const handleCardClick = (item: Hack | Routine, type: 'hack' | 'routine') => {
     console.log(`[CLICK] Navigating to ${type}: ${item.name} (${item.slug})`)
 
-    // Save scroll position before navigation
-    if (scrollContainerRef?.current) {
-      sessionStorage.setItem('libraryScrollPosition', scrollContainerRef.current.scrollTop.toString())
-      sessionStorage.setItem('returnToPage', 'library')
-    }
-
-    // Navigate to the appropriate route (will be intercepted by our modal routes)
+    // Navigate to the detail page (pseudo-modal in (detail) route group)
     if (type === 'routine') {
       router.push(`/routines/${item.slug}`)
     } else {
-      // For hacks, we need to use the foundation level path
-      // This should be updated based on the actual level structure
-      router.push(`/skills/foundation/hacks/${item.slug}`)
+      // Navigate to simplified hack URL
+      router.push(`/hacks/${item.slug}`)
     }
   }
 
-  // Restore scroll position when returning from modal
-  useEffect(() => {
-    if (typeof window !== 'undefined' && scrollContainerRef?.current) {
-      const savedPosition = sessionStorage.getItem('libraryScrollPosition')
-      const returnPage = sessionStorage.getItem('returnToPage')
-
-      if (savedPosition && returnPage === 'library') {
-        // Use setTimeout to ensure DOM is ready
-        setTimeout(() => {
-          if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollTop = parseInt(savedPosition)
-          }
-        }, 100)
-
-        sessionStorage.removeItem('libraryScrollPosition')
-        sessionStorage.removeItem('returnToPage')
-        // Mark as already animated to prevent re-animation
-        setHasAnimated(true)
-      } else {
-        // First load - allow animation
-        setHasAnimated(false)
-      }
-    }
-  }, [scrollContainerRef])
-
   return (
     <>
-      <div className="w-full min-h-screen bg-black p-4 md:p-6">
-      {/* Debug indicator - Remove this after debugging */}
-      {isAdmin && (
-        <div className="fixed top-20 left-4 z-50 bg-red-500 text-white px-4 py-2 rounded">
-          ADMIN MODE ACTIVE
-        </div>
-      )}
+      <div className="w-full min-h-screen bg-gray-100 pt-24 p-4 md:p-6">
 
       {/* Contained max-width wrapper */}
       <div className="max-w-7xl mx-auto">
@@ -183,40 +142,31 @@ export function LibraryView({
             </div>
 
             {/* Search Input with Chiseled Edge */}
-            <AnimatePresence>
-              {isSearchOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="overflow-hidden mb-4"
-                >
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search hacks by name, description, or tags..."
-                      className="w-full bg-black border-2 text-white px-4 py-3 pr-10 focus:outline-none focus:border-opacity-100 transition-all"
-                      style={{
-                        borderColor: '#FFBB00',
-                        clipPath: 'polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px)'
-                      }}
-                      autoFocus
-                    />
-                    {searchQuery && (
-                      <button
-                        onClick={() => setSearchQuery('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded"
-                      >
-                        <X className="w-5 h-5 text-gray-400" />
-                      </button>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {isSearchOpen && (
+              <div className="mb-4">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search hacks by name, description, or tags..."
+                    className="w-full bg-white border-2 text-gray-800 px-4 py-3 pr-10 rounded-lg focus:outline-none focus:border-opacity-100 transition-all placeholder:text-gray-400"
+                    style={{
+                      borderColor: '#FFBB00'
+                    }}
+                    autoFocus
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded"
+                    >
+                      <X className="w-5 h-5 text-gray-400" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="w-full h-0.5" style={{ backgroundColor: '#FFBB00' }} />
           </div>
@@ -232,25 +182,19 @@ export function LibraryView({
                 {/* Stacked cards effect - only for routines */}
                 <div
                   className={cn(
-                    "absolute top-2 left-2 right-0 bottom-0 z-10 pointer-events-none",
+                    "absolute top-2 left-2 right-0 bottom-0 z-10 pointer-events-none rounded-lg",
                     progressionClasses.bgClass,
                     progressionClasses.borderClass,
                     "opacity-50"
                   )}
-                  style={{
-                    clipPath: 'polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px)',
-                  }}
                 />
                 <div
                   className={cn(
-                    "absolute top-4 left-4 right-0 bottom-0 z-0 pointer-events-none",
+                    "absolute top-4 left-4 right-0 bottom-0 z-0 pointer-events-none rounded-lg",
                     progressionClasses.bgClass,
                     progressionClasses.borderClass,
                     "opacity-30"
                   )}
-                  style={{
-                    clipPath: 'polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px)',
-                  }}
                 />
 
                 {/* Enhanced Routine Card */}
@@ -273,7 +217,7 @@ export function LibraryView({
         <div className="pb-24">
           <div className="mb-6">
             <h2 className="text-2xl md:text-3xl font-bold uppercase tracking-wider mb-2" style={{ color: '#FFBB00' }}>
-              Hax
+              Techniques
             </h2>
             <div className="w-full h-0.5" style={{ backgroundColor: '#FFBB00' }} />
           </div>
@@ -324,21 +268,17 @@ function RoutineEnhancedCard({
   console.log(`[RoutineCard ${routine.name}] isAdmin:`, isAdmin)
 
   return (
-    <motion.div
+    <div
       onClick={onClick}
       data-type="routine"
       data-name={routine.name}
-      initial={!isModalOpen ? { opacity: 0, y: 20 } : false}
-      animate={{ opacity: 1, y: 0 }}
-      transition={!isModalOpen ? { delay: index * 0.05 } : { duration: 0 }}
       className={cn(
-        "relative z-20 overflow-hidden transition-all duration-300 hover:scale-105 group flex flex-col w-full h-full cursor-pointer",
+        "relative z-20 overflow-hidden transition-all duration-300 hover:scale-105 group flex flex-col w-full h-full cursor-pointer rounded-lg",
         progressionClasses.bgClass,
         progressionClasses.borderClass,
         progressionClasses.shadowClass
       )}
       style={{
-        clipPath: 'polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px)',
         border: `2px solid ${
           progressionColor === 'white' ? '#ffffff' :
           progressionColor === 'green' ? '#10b981' :
@@ -358,24 +298,8 @@ function RoutineEnhancedCard({
       }}
     >
 
-      {/* Enhanced Diagonal Stripes - More prominent */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage: `repeating-linear-gradient(
-            45deg,
-            transparent,
-            transparent 10px,
-            rgba(255, 255, 255, 0.1) 10px,
-            rgba(255, 255, 255, 0.1) 11px
-          )`,
-          opacity: 0.7,
-          clipPath: 'polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px)'
-        }}
-      />
-
       {/* Image section */}
-      <div className="relative h-36 bg-gray-800">
+      <div className="relative h-36 bg-gray-200">
         {routine.image_url || routine.imageUrl ? (
           <Image
             src={routine.image_url || routine.imageUrl || ''}
@@ -384,14 +308,14 @@ function RoutineEnhancedCard({
             className="object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-yellow-900/20 to-gray-800 flex items-center justify-center">
-            <Zap className="h-16 w-16 text-yellow-500/30" />
+          <div className="w-full h-full bg-gradient-to-br from-yellow-100 to-gray-200 flex items-center justify-center">
+            <Zap className="h-16 w-16 text-yellow-500/50" />
           </div>
         )}
 
-        {/* Diagonal Clipped Completion Badge - Always visible */}
+        {/* Completion Badge */}
         <div
-          className="absolute top-0 right-0 px-5 py-2.5 font-bold text-base shadow-lg"
+          className="absolute top-2 right-2 px-3 py-1.5 font-bold text-sm shadow-lg rounded-full"
           style={{
             backgroundColor: completionCount === 0 ? '#6b7280' :
                             progressionColor === 'white' ? '#ffffff' :
@@ -401,24 +325,23 @@ function RoutineEnhancedCard({
                             progressionColor === 'orange' ? '#FDB515' : '#6b7280',
             color: (completionCount === 0 || progressionColor === 'gray') ? '#ffffff' :
                    (progressionColor === 'white' || progressionColor === 'orange') ? '#000000' : '#ffffff',
-            clipPath: 'polygon(0 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px))',
             boxShadow: '0 2px 10px rgba(0,0,0,0.4)'
           }}
         >
-          {completionCount}
+          {completionCount}x
         </div>
       </div>
 
       {/* Progress bar with matching color */}
       {completionCount > 0 && (
-        <div className="px-4 py-2 bg-gray-800/50">
+        <div className="px-4 py-2 bg-gray-100">
           <div className="flex items-center gap-2">
-            <div className="flex-1 h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div className="flex-1 h-2 bg-gray-300 rounded-full overflow-hidden">
               <div
                 className="h-full transition-all rounded-full"
                 style={{
                   width: `${Math.min((completionCount / 65) * 100, 100)}%`,
-                  backgroundColor: progressionColor === 'white' ? '#ffffff' :
+                  backgroundColor: progressionColor === 'white' ? '#9ca3af' :
                                    progressionColor === 'green' ? '#10b981' :
                                    progressionColor === 'blue' ? '#3b82f6' :
                                    progressionColor === 'purple' ? '#a855f7' :
@@ -427,7 +350,7 @@ function RoutineEnhancedCard({
                 }}
               />
             </div>
-            <span className="text-xs font-medium text-gray-400 min-w-[35px] text-right">
+            <span className="text-xs font-medium text-gray-600 min-w-[35px] text-right">
               {Math.min(Math.round((completionCount / 65) * 100), 100)}%
             </span>
           </div>
@@ -435,9 +358,9 @@ function RoutineEnhancedCard({
       )}
 
       {/* Content section */}
-      <div className="p-3 flex-grow flex flex-col">
-        <h3 className="font-bold text-white mb-2">{routine.name}</h3>
-        <p className="text-xs text-gray-400 line-clamp-2 mb-3 flex-grow">
+      <div className="p-3 flex-grow flex flex-col bg-white">
+        <h3 className="font-bold text-gray-800 mb-2">{routine.name}</h3>
+        <p className="text-xs text-gray-600 line-clamp-2 mb-3 flex-grow">
           {routine.description}
         </p>
 
@@ -455,7 +378,7 @@ function RoutineEnhancedCard({
             {routine.tags?.slice(0, 2).map((tag: any) => (
               <span
                 key={tag.slug}
-                className="px-2 py-0.5 bg-yellow-900/30 border border-yellow-600/30 text-yellow-400 text-xs rounded"
+                className="px-2 py-0.5 bg-yellow-100 border border-yellow-400 text-yellow-700 text-xs rounded"
               >
                 {tag.name}
               </span>
@@ -500,7 +423,7 @@ function RoutineEnhancedCard({
           "from-gray-500/20"
         )} />
       </div>
-    </motion.div>
+    </div>
   )
 }
 
@@ -519,21 +442,17 @@ function HackEnhancedCard({
   const completionLabel = formatCompletionCount(completionCount)
 
   return (
-    <motion.div
+    <div
       onClick={onClick}
       data-type="hack"
       data-name={hack.name}
-      initial={!isModalOpen ? { opacity: 0, y: 20 } : false}
-      animate={{ opacity: 1, y: 0 }}
-      transition={!isModalOpen ? { delay: index * 0.05 } : { duration: 0 }}
       className={cn(
-        "relative z-20 overflow-hidden transition-all duration-300 hover:scale-105 group flex flex-col h-full cursor-pointer",
+        "relative z-20 overflow-hidden transition-all duration-300 hover:scale-105 group flex flex-col h-full cursor-pointer rounded-lg",
         progressionClasses.bgClass,
         progressionClasses.borderClass,
         progressionClasses.shadowClass
       )}
       style={{
-        clipPath: 'polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px)',
         border: `2px solid ${
           progressionColor === 'white' ? '#ffffff' :
           progressionColor === 'green' ? '#10b981' :
@@ -553,24 +472,8 @@ function HackEnhancedCard({
       }}
     >
 
-      {/* Enhanced Diagonal Stripes - More prominent */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage: `repeating-linear-gradient(
-            45deg,
-            transparent,
-            transparent 10px,
-            rgba(255, 255, 255, 0.1) 10px,
-            rgba(255, 255, 255, 0.1) 11px
-          )`,
-          opacity: 0.7,
-          clipPath: 'polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px)'
-        }}
-      />
-
       {/* Image section */}
-      <div className="relative h-36 bg-gray-800">
+      <div className="relative h-36 bg-gray-200">
         {hack.image_url || hack.image_path ? (
           <Image
             src={hack.image_url || hack.image_path || ''}
@@ -579,14 +482,14 @@ function HackEnhancedCard({
             className="object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-green-900/20 to-gray-800 flex items-center justify-center">
-            <Brain className="h-16 w-16 text-green-500/30" />
+          <div className="w-full h-full bg-gradient-to-br from-green-100 to-gray-200 flex items-center justify-center">
+            <Brain className="h-16 w-16 text-green-500/50" />
           </div>
         )}
 
-        {/* Diagonal Clipped Completion Badge - Always visible */}
+        {/* Completion Badge */}
         <div
-          className="absolute top-0 right-0 px-5 py-2.5 font-bold text-base shadow-lg"
+          className="absolute top-2 right-2 px-3 py-1.5 font-bold text-sm shadow-lg rounded-full"
           style={{
             backgroundColor: completionCount === 0 ? '#6b7280' :
                             progressionColor === 'white' ? '#ffffff' :
@@ -596,24 +499,23 @@ function HackEnhancedCard({
                             progressionColor === 'orange' ? '#FDB515' : '#6b7280',
             color: (completionCount === 0 || progressionColor === 'gray') ? '#ffffff' :
                    (progressionColor === 'white' || progressionColor === 'orange') ? '#000000' : '#ffffff',
-            clipPath: 'polygon(0 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px))',
             boxShadow: '0 2px 10px rgba(0,0,0,0.4)'
           }}
         >
-          {completionCount}
+          {completionCount}x
         </div>
       </div>
 
       {/* Progress bar with matching color */}
       {completionCount > 0 && (
-        <div className="px-4 py-2 bg-gray-800/50">
+        <div className="px-4 py-2 bg-gray-100">
           <div className="flex items-center gap-2">
-            <div className="flex-1 h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div className="flex-1 h-2 bg-gray-300 rounded-full overflow-hidden">
               <div
                 className="h-full transition-all rounded-full"
                 style={{
                   width: `${Math.min((completionCount / 65) * 100, 100)}%`,
-                  backgroundColor: progressionColor === 'white' ? '#ffffff' :
+                  backgroundColor: progressionColor === 'white' ? '#9ca3af' :
                                    progressionColor === 'green' ? '#10b981' :
                                    progressionColor === 'blue' ? '#3b82f6' :
                                    progressionColor === 'purple' ? '#a855f7' :
@@ -622,7 +524,7 @@ function HackEnhancedCard({
                 }}
               />
             </div>
-            <span className="text-xs font-medium text-gray-400 min-w-[35px] text-right">
+            <span className="text-xs font-medium text-gray-600 min-w-[35px] text-right">
               {Math.min(Math.round((completionCount / 65) * 100), 100)}%
             </span>
           </div>
@@ -630,9 +532,9 @@ function HackEnhancedCard({
       )}
 
       {/* Content section */}
-      <div className="p-3 flex-grow flex flex-col">
-        <h3 className="font-bold text-white mb-2">{hack.name}</h3>
-        <p className="text-xs text-gray-400 line-clamp-2 mb-3 flex-grow">
+      <div className="p-3 flex-grow flex flex-col bg-white">
+        <h3 className="font-bold text-gray-800 mb-2">{hack.name}</h3>
+        <p className="text-xs text-gray-600 line-clamp-2 mb-3 flex-grow">
           {hack.description}
         </p>
 
@@ -650,7 +552,7 @@ function HackEnhancedCard({
             {hack.tags?.slice(0, 2).map((tag: any) => (
               <span
                 key={tag.slug}
-                className="px-2 py-0.5 bg-green-900/30 border border-green-600/30 text-green-400 text-xs rounded"
+                className="px-2 py-0.5 bg-green-100 border border-green-400 text-green-700 text-xs rounded"
               >
                 {tag.name}
               </span>
@@ -694,6 +596,6 @@ function HackEnhancedCard({
           "from-gray-500/20"
         )} />
       </div>
-    </motion.div>
+    </div>
   )
 }

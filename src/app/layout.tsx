@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Oxanium } from 'next/font/google'
+import { Work_Sans } from 'next/font/google'
 import { Toaster } from '@/components/ui/toaster'
 import { FloatingNav } from '@/components/FloatingNav'
 import { Footer } from '@/components/Footer'
@@ -9,10 +9,10 @@ import { NavigationController } from '@/components/navigation/NavigationControll
 import { getCurrentUser } from '@/lib/auth/user'
 import './globals.css'
 
-const oxanium = Oxanium({
+const workSans = Work_Sans({
   subsets: ['latin'],
-  weight: ['200', '300', '400', '500', '600', '700', '800'],
-  variable: '--font-oxanium',
+  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-work-sans',
   display: 'swap',
 })
 
@@ -70,10 +70,8 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
-  modal,
 }: Readonly<{
   children: React.ReactNode
-  modal: React.ReactNode
 }>) {
   const user = await getCurrentUser()
 
@@ -82,7 +80,7 @@ export default async function RootLayout({
       <head>
         <ThemeScript />
       </head>
-      <body className={`${oxanium.variable} font-sans min-h-screen flex flex-col`}>
+      <body className={`${workSans.variable} font-sans min-h-screen flex flex-col`}>
         <ProgressMigrationProvider>
           <FloatingNav
             isAuthenticated={!!user}
@@ -92,13 +90,19 @@ export default async function RootLayout({
               image: user.avatar_url || undefined,
             } : undefined}
           />
-          <NavigationController />
+          <NavigationController
+            isAuthenticated={!!user}
+            user={user ? {
+              name: user.name || undefined,
+              email: user.email || undefined,
+              image: user.avatar_url || undefined,
+            } : undefined}
+          />
           <main className="flex-1">
             {children}
           </main>
           <Footer />
           <Toaster />
-          {modal}
         </ProgressMigrationProvider>
       </body>
     </html>

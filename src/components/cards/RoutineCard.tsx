@@ -14,8 +14,8 @@ interface RoutineCardProps {
   };
   isOwner?: boolean;
   className?: string;
-  onEdit?: (routineId: number) => void;
-  onDelete?: (routineId: number) => void;
+  onEdit?: (routineId: string) => void;
+  onDelete?: (routineId: string) => void;
 }
 
 /**
@@ -41,29 +41,17 @@ export const RoutineCard = memo(function RoutineCard({
     onDelete?.(routine.id);
   };
 
-  // Determine difficulty color
-  const getDifficultyColor = () => {
-    const difficulty = routine.routine_difficulty || 1;
-    if (difficulty <= 2) return 'text-green-500';
-    if (difficulty <= 3) return 'text-yellow-500';
-    if (difficulty <= 4) return 'text-orange-500';
-    return 'text-red-500';
-  };
-
-  // Determine energy color gradient
+  // Routines don't have difficulty or energy_level in the database schema
+  // Using default gradient
   const getEnergyGradient = () => {
-    const energy = routine.routine_energy_level || 1;
-    if (energy <= 2) return 'from-blue-500 to-cyan-500';
-    if (energy <= 3) return 'from-green-500 to-emerald-500';
-    if (energy <= 4) return 'from-yellow-500 to-orange-500';
-    return 'from-red-500 to-pink-500';
+    return 'from-yellow-500 to-orange-500';
   };
 
   return (
     <Link
       href={`/routines/${routine.id}`}
       className={`block relative group ${className}`}
-      aria-label={`View routine: ${routine.routine_name}`}
+      aria-label={`View routine: ${routine.name}`}
     >
       {/* Stacked cards effect */}
       <div className="relative">
@@ -79,10 +67,7 @@ export const RoutineCard = memo(function RoutineCard({
 
         {/* Main card */}
         <div
-          className="relative bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden transition-all duration-300 hover:border-yellow-500/50 hover:transform hover:scale-105"
-          style={{
-            clipPath: 'polygon(0 10px, 10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%)'
-          }}
+          className="relative bg-white border border-gray-200 rounded-lg overflow-hidden transition-all duration-300 hover:border-yellow-500/50 hover:transform hover:scale-105"
         >
           {/* Energy level gradient header */}
           <div className={`h-2 bg-gradient-to-r ${getEnergyGradient()}`} />
@@ -105,8 +90,8 @@ export const RoutineCard = memo(function RoutineCard({
           <div className="p-4 relative">
             {/* Header */}
             <div className="flex justify-between items-start mb-3">
-              <h3 className="font-bold text-lg text-white group-hover:text-yellow-500 transition-colors line-clamp-1 flex-1">
-                {routine.routine_name}
+              <h3 className="font-bold text-lg text-gray-800 group-hover:text-yellow-600 transition-colors line-clamp-1 flex-1">
+                {routine.name}
               </h3>
 
               {/* Owner actions */}
@@ -139,30 +124,12 @@ export const RoutineCard = memo(function RoutineCard({
             </div>
 
             {/* Description */}
-            <p className="text-zinc-400 text-sm line-clamp-2 mb-3">
-              {routine.routine_description || 'No description available'}
+            <p className="text-gray-600 text-sm line-clamp-2 mb-3">
+              {routine.description || 'No description available'}
             </p>
 
             {/* Meta info */}
-            <div className="flex items-center gap-4 text-xs text-zinc-500">
-              {/* Duration */}
-              {routine.routine_duration && (
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  <span>{routine.routine_duration}min</span>
-                </div>
-              )}
-
-              {/* Energy Level */}
-              {routine.routine_energy_level && (
-                <div className="flex items-center gap-1">
-                  <Zap className={`w-3 h-3 ${getDifficultyColor()}`} />
-                  <span className={getDifficultyColor()}>
-                    Level {routine.routine_energy_level}
-                  </span>
-                </div>
-              )}
-
+            <div className="flex items-center gap-4 text-xs text-gray-500">
               {/* Creator */}
               {routine.profile?.username && (
                 <div className="flex items-center gap-1">
@@ -173,25 +140,6 @@ export const RoutineCard = memo(function RoutineCard({
                 </div>
               )}
             </div>
-
-            {/* Tags */}
-            {routine.routine_tags && routine.routine_tags.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-1">
-                {routine.routine_tags.slice(0, 3).map((tag, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-0.5 bg-zinc-800 text-zinc-400 text-xs rounded"
-                  >
-                    {tag}
-                  </span>
-                ))}
-                {routine.routine_tags.length > 3 && (
-                  <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 text-xs rounded">
-                    +{routine.routine_tags.length - 3}
-                  </span>
-                )}
-              </div>
-            )}
           </div>
         </div>
       </div>

@@ -1,12 +1,10 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { X, Play, Pause, SkipForward, SkipBack, List, Settings, CheckCircle, Clock } from 'lucide-react'
+import { Play, Pause, SkipForward, SkipBack, List, CheckCircle, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import { formatDuration } from '@/lib/youtube'
@@ -41,15 +39,12 @@ interface RoutineModalEnhancedProps {
     creator?: { name?: string; email: string }
     is_public?: boolean
   }
-  returnPath?: string
 }
 
-type TabType = 'playlist' | 'overview' | 'settings'
+type TabType = 'playlist' | 'overview'
 
-export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhancedProps) {
-  const router = useRouter()
+export function RoutineModalEnhanced({ routine }: RoutineModalEnhancedProps) {
   const { isAuthenticated } = useAuth()
-  const [isVisible, setIsVisible] = useState(false)
   const [activeTab, setActiveTab] = useState<TabType>('playlist')
   const [currentHackIndex, setCurrentHackIndex] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -66,12 +61,6 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
 
   // Get current hack
   const currentHack = routine.hacks?.[currentHackIndex]
-
-  // Trigger entrance animation
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 10)
-    return () => clearTimeout(timer)
-  }, [])
 
   // Check cooldown status for anonymous users
   useEffect(() => {
@@ -102,47 +91,6 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
       return () => clearInterval(timer)
     }
   }, [isAuthenticated, cooldownMinutes, routine.id])
-
-  const handleClose = useCallback(() => {
-    setIsVisible(false)
-    setTimeout(() => {
-      // Check URL params first, then session storage
-      const fromParam = searchParams.get('from')
-      const savedReturnPage = sessionStorage.getItem('returnToPage')
-
-      let targetPath = '/library' // Default for routines
-
-      // Use URL parameter if available
-      if (fromParam === 'library') {
-        targetPath = '/library'
-      } else if (fromParam === 'skills') {
-        targetPath = '/skills'
-      }
-      // Fallback to session storage
-      else if (savedReturnPage === 'library') {
-        targetPath = '/library'
-      } else if (savedReturnPage === 'skills') {
-        targetPath = '/skills'
-      }
-      // Use returnPath prop if provided
-      else if (returnPath) {
-        targetPath = returnPath
-      }
-
-      router.push(targetPath)
-    }, 200)
-  }, [router, returnPath])
-
-  // Handle ESC key
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        handleClose()
-      }
-    }
-    window.addEventListener('keydown', handleEsc)
-    return () => window.removeEventListener('keydown', handleEsc)
-  }, [handleClose])
 
   const handleNext = () => {
     if (routine.hacks && currentHackIndex < routine.hacks.length - 1) {
@@ -194,51 +142,52 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
   const tabs: { id: TabType; label: string; icon?: React.ReactNode }[] = [
     { id: 'playlist', label: 'Playlist', icon: <List className="h-4 w-4" /> },
     { id: 'overview', label: 'Overview', icon: <Play className="h-4 w-4" /> },
-    { id: 'settings', label: 'Settings', icon: <Settings className="h-4 w-4" /> },
   ]
 
   // Content component - shared between embedded and modal views
   const renderModalContent = () => (
     <>
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-10 bg-gray-900/95 backdrop-blur border-b border-gray-700 px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-bold text-yellow-400">{routine.name}</h2>
-                <span className="text-sm text-gray-400">
-                  {completedHacks.size} / {routine.hacks?.length || 0} completed
-                </span>
-              </div>
-              <button
-                onClick={handleClose}
-                className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-              >
-                <X className="h-5 w-5 text-gray-400" />
-              </button>
-            </div>
-
-            {/* Tab Navigation */}
-            <div className="flex gap-2 mt-4">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={cn(
-                    "px-4 py-2 rounded-lg transition-all flex items-center gap-2",
-                    activeTab === tab.id
-                      ? "bg-yellow-400 text-black"
-                      : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-                  )}
-                >
-                  {tab.icon}
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+      <div className="absolute top-0 left-0 right-0 z-10 bg-gray-100 border-b border-gray-200 px-6 pr-16 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-bold text-yellow-600">{routine.name}</h2>
+            <span className="text-sm text-gray-500">
+              {completedHacks.size} / {routine.hacks?.length || 0} completed
+            </span>
           </div>
+          {/* Autoplay toggle */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">Autoplay</span>
+            <Switch
+              checked={autoplay}
+              onCheckedChange={setAutoplay}
+            />
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex gap-2 mt-4">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                "px-4 py-2 rounded-lg transition-all flex items-center gap-2",
+                activeTab === tab.id
+                  ? "bg-yellow-400 text-black"
+                  : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+              )}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
           {/* Content Area */}
-          <div className="pt-32 pb-24 px-6 h-full overflow-y-auto">
+          <div className="pt-32 pb-24 px-6 h-full overflow-y-auto bg-white">
             {activeTab === 'playlist' && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Video/Content Player */}
@@ -246,10 +195,10 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
                   {currentHack && (
                     <div className="space-y-4">
                       {/* Video Player or Image */}
-                      <div className="relative aspect-video bg-gray-800 rounded-lg overflow-hidden">
+                      <div className="relative aspect-video bg-gray-900 rounded-lg overflow-hidden">
                         {currentHack.video_url ? (
                           <div className="flex items-center justify-center h-full">
-                            <Play className="h-16 w-16 text-gray-600" />
+                            <Play className="h-16 w-16 text-gray-500" />
                             <span className="ml-4 text-gray-400">Video Player Placeholder</span>
                           </div>
                         ) : currentHack.image_url ? (
@@ -261,15 +210,15 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
                           />
                         ) : (
                           <div className="flex items-center justify-center h-full">
-                            <span className="text-gray-500">No media available</span>
+                            <span className="text-gray-400">No media available</span>
                           </div>
                         )}
                       </div>
 
                       {/* Current Hack Info */}
-                      <div className="bg-gray-800 rounded-lg p-4">
-                        <h3 className="text-xl font-bold text-white mb-2">{currentHack.name}</h3>
-                        <p className="text-gray-400 mb-4">{currentHack.description}</p>
+                      <div className="bg-gray-100 rounded-lg p-4">
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">{currentHack.name}</h3>
+                        <p className="text-gray-600 mb-4">{currentHack.description}</p>
 
                         {currentHack.duration_minutes && (
                           <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -284,8 +233,8 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
                           className={cn(
                             "mt-4 w-full",
                             completedHacks.has(currentHack.id)
-                              ? "bg-green-600 hover:bg-green-700"
-                              : "bg-gray-700 hover:bg-gray-600"
+                              ? "bg-green-600 hover:bg-green-700 text-white"
+                              : "bg-gray-300 hover:bg-gray-400 text-gray-700"
                           )}
                         >
                           {completedHacks.has(currentHack.id) ? (
@@ -301,9 +250,9 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
 
                       {/* Content */}
                       {currentHack.content && (
-                        <div className="bg-gray-800 rounded-lg p-4">
+                        <div className="bg-gray-100 rounded-lg p-4">
                           <div
-                            className="prose prose-invert max-w-none"
+                            className="prose prose-gray max-w-none"
                             dangerouslySetInnerHTML={{ __html: currentHack.content }}
                           />
                         </div>
@@ -313,8 +262,8 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
                 </div>
 
                 {/* Playlist */}
-                <div className="bg-gray-800 rounded-lg p-4 max-h-[600px] overflow-y-auto">
-                  <h3 className="font-bold text-white mb-4">Playlist ({routine.hacks?.length || 0} hacks)</h3>
+                <div className="bg-gray-100 rounded-lg p-4 max-h-[600px] overflow-y-auto">
+                  <h3 className="font-bold text-gray-800 mb-4">Playlist ({routine.hacks?.length || 0} hacks)</h3>
 
                   <div className="space-y-2">
                     {routine.hacks?.filter(hack => hack !== null).map((hack, index) => (
@@ -326,8 +275,8 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
                           index === currentHackIndex
                             ? "bg-yellow-400 text-black"
                             : completedHacks.has(hack.id)
-                            ? "bg-green-900/30 text-green-400 hover:bg-green-900/50"
-                            : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                            ? "bg-green-100 text-green-700 hover:bg-green-200"
+                            : "bg-white text-gray-700 hover:bg-gray-200 border border-gray-200"
                         )}
                       >
                         <div className="flex items-start gap-3">
@@ -356,31 +305,31 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
             {activeTab === 'overview' && (
               <div className="max-w-4xl mx-auto space-y-6">
                 {/* Routine Description */}
-                <div className="bg-gray-800 rounded-lg p-6">
-                  <h3 className="text-xl font-bold text-white mb-4">About this Routine</h3>
-                  <p className="text-gray-300">{routine.description}</p>
+                <div className="bg-gray-100 rounded-lg p-6">
+                  <h3 className="text-xl font-bold text-gray-800 mb-4">About this Routine</h3>
+                  <p className="text-gray-600">{routine.description}</p>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-yellow-400">
+                      <div className="text-2xl font-bold text-yellow-600">
                         {routine.hacks?.length || 0}
                       </div>
                       <div className="text-sm text-gray-500">Hacks</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-yellow-400">
+                      <div className="text-2xl font-bold text-yellow-600">
                         {totalDuration}
                       </div>
                       <div className="text-sm text-gray-500">Minutes</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-green-400">
+                      <div className="text-2xl font-bold text-green-600">
                         {completedHacks.size}
                       </div>
                       <div className="text-sm text-gray-500">Completed</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-400">
+                      <div className="text-2xl font-bold text-blue-600">
                         {Math.round((completedHacks.size / (routine.hacks?.length || 1)) * 100)}%
                       </div>
                       <div className="text-sm text-gray-500">Progress</div>
@@ -390,13 +339,13 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
 
                 {/* Tags */}
                 {routine.tags && routine.tags.length > 0 && (
-                  <div className="bg-gray-800 rounded-lg p-6">
-                    <h3 className="text-xl font-bold text-white mb-4">Tags</h3>
+                  <div className="bg-gray-100 rounded-lg p-6">
+                    <h3 className="text-xl font-bold text-gray-800 mb-4">Tags</h3>
                     <div className="flex flex-wrap gap-2">
                       {routine.tags.map(tag => (
                         <span
                           key={tag.slug}
-                          className="px-3 py-1 bg-gray-700 text-gray-300 rounded-lg text-sm"
+                          className="px-3 py-1 bg-gray-200 text-gray-700 rounded-lg text-sm"
                         >
                           {tag.name}
                         </span>
@@ -407,57 +356,19 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
 
                 {/* Creator */}
                 {routine.creator && (
-                  <div className="bg-gray-800 rounded-lg p-6">
-                    <h3 className="text-xl font-bold text-white mb-4">Created By</h3>
-                    <p className="text-gray-300">
+                  <div className="bg-gray-100 rounded-lg p-6">
+                    <h3 className="text-xl font-bold text-gray-800 mb-4">Created By</h3>
+                    <p className="text-gray-600">
                       {routine.creator.name || routine.creator.email}
                     </p>
                   </div>
                 )}
               </div>
             )}
-
-            {activeTab === 'settings' && (
-              <div className="max-w-2xl mx-auto space-y-6">
-                <div className="bg-gray-800 rounded-lg p-6">
-                  <h3 className="text-xl font-bold text-white mb-6">Playback Settings</h3>
-
-                  <div className="space-y-4">
-                    {/* Autoplay Toggle */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium text-white">Autoplay</div>
-                        <div className="text-sm text-gray-400">
-                          Automatically advance to next hack when completed
-                        </div>
-                      </div>
-                      <Switch
-                        checked={autoplay}
-                        onCheckedChange={setAutoplay}
-                      />
-                    </div>
-
-                    {/* Playing State Toggle */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium text-white">Playing</div>
-                        <div className="text-sm text-gray-400">
-                          Control playback state
-                        </div>
-                      </div>
-                      <Switch
-                        checked={isPlaying}
-                        onCheckedChange={setIsPlaying}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Playback Controls */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur border-t border-gray-700 px-6 py-4">
+          <div className="absolute bottom-0 left-0 right-0 bg-gray-100 border-t border-gray-200 px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Button
@@ -489,9 +400,9 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
 
               {/* Progress Bar */}
               <div className="flex-1 mx-8">
-                <div className="w-full bg-gray-700 rounded-full h-2">
+                <div className="w-full bg-gray-300 rounded-full h-2">
                   <div
-                    className="bg-yellow-400 h-2 rounded-full transition-all"
+                    className="bg-yellow-500 h-2 rounded-full transition-all"
                     style={{
                       width: `${((currentHackIndex + 1) / (routine.hacks?.length || 1)) * 100}%`
                     }}
@@ -499,7 +410,7 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 text-sm text-gray-400">
+              <div className="flex items-center gap-4 text-sm text-gray-600">
                 <span>
                   {currentHackIndex + 1} / {routine.hacks?.length || 0}
                 </span>
@@ -513,36 +424,11 @@ export function RoutineModalEnhanced({ routine, returnPath }: RoutineModalEnhanc
       </>
   )
 
+  // When used inside RoutineModalWrapper, just render the content directly
+  // The wrapper handles the modal chrome (backdrop, animation, close button)
   return (
-    <AnimatePresence>
-      {/* Backdrop */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isVisible ? 1 : 0 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
-        onClick={handleClose}
-      />
-
-      {/* Modal */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: isVisible ? 1 : 0, scale: isVisible ? 1 : 0.9 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        transition={{ duration: 0.2 }}
-        className="fixed inset-0 flex items-center justify-center p-4 z-50 pointer-events-none"
-      >
-        <div
-          className="relative w-full max-w-6xl max-h-[90vh] bg-gray-900 overflow-hidden pointer-events-auto"
-          style={{
-            clipPath: 'polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px)',
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {renderModalContent()}
-        </div>
-      </motion.div>
-    </AnimatePresence>
+    <div className="relative h-full">
+      {renderModalContent()}
+    </div>
   )
 }

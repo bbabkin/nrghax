@@ -4,17 +4,12 @@ import { HackModalEnhanced } from '@/components/levels/HackModalEnhanced'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth/user'
-import { headers } from 'next/headers'
 
 export default async function HackModalPage({
   params,
 }: {
   params: { slug: string; hackSlug: string }
 }) {
-  // Determine return path based on referer
-  const headersList = await headers()
-  const referer = headersList.get('referer') || ''
-  const returnPath = referer.includes('/library') ? '/library' : `/skills`
   const hack = await getHackBySlug(params.hackSlug)
 
   if (!hack) {
@@ -84,5 +79,5 @@ export default async function HackModalPage({
     prerequisites: hackPrerequisites[h.id] || [],
   }))
 
-  return <HackModalEnhanced hack={hack} levelSlug={params.slug} allLevelHacks={allLevelHacks} returnPath={returnPath} />
+  return <HackModalEnhanced hack={hack} levelSlug={params.slug} allLevelHacks={allLevelHacks} />
 }

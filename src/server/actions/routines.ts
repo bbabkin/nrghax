@@ -51,7 +51,12 @@ export async function createRoutine(formData: FormData) {
   const { data: routine, error } = await supabase
     .from('routines')
     .insert({
-      ...validated,
+      name: validated.name,
+      slug: validated.slug,
+      description: validated.description,
+      duration_minutes: validated.duration_minutes ?? null,
+      image_url: validated.image_url || null,
+      is_public: validated.is_public,
       created_by: user.id,
     })
     .select()

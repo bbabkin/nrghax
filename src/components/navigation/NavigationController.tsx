@@ -4,12 +4,21 @@ import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { LibrarySkillsNavSVG } from './LibrarySkillsNavSVG';
 
+interface NavigationControllerProps {
+  isAuthenticated?: boolean;
+  user?: {
+    name?: string;
+    email?: string;
+    image?: string;
+  };
+}
+
 /**
  * Controls the display of the LibrarySkillsNav based on the current route.
  * Shows the nav on /skills and /library pages (NOT on landing page)
  * Also hides the main navbar on these pages
  */
-export function NavigationController() {
+export function NavigationController({ isAuthenticated, user }: NavigationControllerProps) {
   const pathname = usePathname();
 
   // Determine if we should show the LibrarySkillsNav
@@ -41,5 +50,5 @@ export function NavigationController() {
   }
 
   // Tabs are part of natural document flow (NOT fixed)
-  return <LibrarySkillsNavSVG />;
+  return <LibrarySkillsNavSVG isAuthenticated={isAuthenticated} user={user} />;
 }

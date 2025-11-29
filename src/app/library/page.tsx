@@ -1,14 +1,19 @@
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/auth/user';
-import dynamic from 'next/dynamic';
+import { LibraryView } from '@/components/library/LibraryView';
 
-const CanvasLayout = dynamic(() => import('@/components/levels/CanvasLayout').then(mod => mod.CanvasLayout), {
-  ssr: false,
-  loading: () => <div className="fixed inset-0 bg-black flex items-center justify-center">Loading...</div>
-});
+// Helper to convert image_path to full URL
+function getImageUrl(supabaseUrl: string, imagePath: string | null, imageUrl: string | null): string {
+  if (imageUrl) return imageUrl;
+  if (imagePath) {
+    return `${supabaseUrl}/storage/v1/object/public/hack-images/${imagePath}`;
+  }
+  return '';
+}
 
 async function getHacks() {
   const supabase = await createClient();
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321';
 
   const { data: hacks, error } = await supabase
     .from('hacks')
@@ -34,7 +39,7 @@ async function getHacks() {
     name: hack.name,
     slug: hack.slug,
     description: hack.description,
-    image_url: hack.image_url || '',
+    image_url: getImageUrl(supabaseUrl, hack.image_path, hack.image_url),
     duration_minutes: hack.duration_minutes,
     tags: hack.hack_tags?.map((ht: any) => ht.tags).filter(Boolean) || [],
   }));
@@ -96,7 +101,7 @@ async function getUserProgress(userId: string) {
 
   routineProgress?.forEach(p => {
     progressMap[`routine-${p.routine_id}`] = {
-      completion_count: 0, // Routines don't track completion count
+      completion_count: 0,
       completed: !!p.completed_at
     };
   });
@@ -104,88 +109,22 @@ async function getUserProgress(userId: string) {
   return progressMap;
 }
 
-async function getHacksForLevel(levelId: string) {
-  const supabase = await createClient();
-
-  const { data: hacks, error } = await supabase
-    .from('hacks')
-    .select(`
-      *,
-      hack_tags (
-        tags (
-          id,
-          name,
-          slug
-        )
-      )
-    `)
-    .eq('level_id', levelId)
-    .order('position');
-
-  if (error) {
-    console.error('Error fetching hacks:', error);
-    return [];
-  }
-
-  // Get hack prerequisites
-  const hackIds = hacks.map(h => h.id);
-  const { data: hackPrereqs } = await supabase
-    .from('hack_prerequisites')
-    .select('hack_id, prerequisite_hack_id')
-    .in('hack_id', hackIds);
-
-  // Build prerequisite map
-  const hackPrerequisites: Record<string, string[]> = {};
-  if (hackPrereqs) {
-    hackPrereqs.forEach((prereq) => {
-      if (!hackPrerequisites[prereq.hack_id]) {
-        hackPrerequisites[prereq.hack_id] = [];
-      }
-      hackPrerequisites[prereq.hack_id].push(prereq.prerequisite_hack_id);
-    });
-  }
-
-  return hacks.map(hack => ({
-    id: hack.id,
-    name: hack.name,
-    slug: hack.slug,
-    description: hack.description,
-    image_url: hack.image_url || '',
-    duration_minutes: hack.duration_minutes,
-    tags: hack.hack_tags?.map((ht: any) => ht.tags).filter(Boolean) || [],
-    prerequisites: hackPrerequisites[hack.id] || [],
-  }));
+export const metadata = {
+  title: 'Library - NRGHax',
+  description: 'Browse all hacks and routines',
 }
 
 export default async function LibraryPage() {
   const user = await getCurrentUser();
 
-  // Debug logging
-  console.log('[LibraryPage] User:', user ? { id: user.id, email: user.email, is_admin: user.is_admin } : 'Not authenticated');
-
-  // Get the first level (Foundation) for skills view
-  const supabase = await createClient();
-  const { data: firstLevel } = await supabase
-    .from('levels')
-    .select('id, name, slug')
-    .order('position')
-    .limit(1)
-    .single();
-
-  if (!firstLevel) {
-    return <div>No levels found</div>;
-  }
-
-  // Get all data needed for both views
-  const [allHacks, routines, levelHacks] = await Promise.all([
+  const [allHacks, routines] = await Promise.all([
     getHacks(),
-    getRoutines(),
-    getHacksForLevel(firstLevel.id)
+    getRoutines()
   ]);
 
   const userProgress = user ? await getUserProgress(user.id) : {};
 
-  // Merge progress into library items
+  // Merge progress into items
   const hacksWithProgress = allHacks.map(hack => ({
     ...hack,
     is_completed: userProgress[`hack-${hack.id}`]?.completed || false,
@@ -198,33 +137,13 @@ export default async function LibraryPage() {
     completion_count: userProgress[`routine-${routine.id}`]?.completion_count || 0
   }));
 
-  // Merge progress into skills hacks
-  const skillsHacksWithData = levelHacks.map(hack => ({
-    ...hack,
-    level_id: firstLevel.id,
-    is_completed: userProgress[`hack-${hack.id}`]?.completed || false,
-    completion_count: userProgress[`hack-${hack.id}`]?.completion_count || 0
-  }));
-
   return (
-    <CanvasLayout
-      skillsData={{
-        hacks: skillsHacksWithData,
-        levelSlug: firstLevel.slug,
-        levelName: firstLevel.name
-      }}
-      libraryData={{
-        hacks: hacksWithProgress,
-        routines: routinesWithProgress
-      }}
+    <LibraryView
+      hacks={hacksWithProgress}
+      routines={routinesWithProgress}
       isAuthenticated={!!user}
       isAdmin={user?.is_admin || false}
-      user={user ? {
-        name: user.name || undefined,
-        email: user.email || undefined,
-        image: user.avatar_url || undefined,
-      } : undefined}
-      initialView="library"
+      currentUserId={user?.id}
     />
   );
 }

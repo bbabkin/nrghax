@@ -1,0 +1,76 @@
+
+> supabase-auth-starter@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.32
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (108kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ⚠ Compiled with warnings
+
+./node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
+A Node.js API is used (process.versions at line: 35) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
+./node_modules/@supabase/realtime-js/dist/module/index.js
+./node_modules/@supabase/supabase-js/dist/module/index.js
+./node_modules/@supabase/ssr/dist/module/createBrowserClient.js
+./node_modules/@supabase/ssr/dist/module/index.js
+./src/lib/supabase/middleware.ts
+
+./node_modules/@supabase/supabase-js/dist/module/index.js
+A Node.js API is used (process.version at line: 24) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/@supabase/supabase-js/dist/module/index.js
+./node_modules/@supabase/ssr/dist/module/createBrowserClient.js
+./node_modules/@supabase/ssr/dist/module/index.js
+./src/lib/supabase/middleware.ts
+
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+./src/components/hacks/Checklist.tsx
+33:6  Warning: React Hook useEffect has a missing dependency: 'loadChecksAndProgress'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/levels/HackModalEnhanced.tsx
+107:6  Warning: React Hook useCallback has an unnecessary dependency: 'levelSlug'. Either exclude it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/levels/HackTreeNode.tsx
+26:9  Warning: The 'prerequisites' logical expression could make the dependencies of useEffect Hook (at line 59) change on every render. To fix this, wrap the initialization of 'prerequisites' in its own useMemo() Hook.  react-hooks/exhaustive-deps
+
+./src/components/levels/UnifiedCanvas.tsx
+227:6  Warning: React Hook useEffect has a missing dependency: 'setCurrentView'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/levels/VirtualSkillsTree.tsx
+216:6  Warning: React Hook useCallback has an unnecessary dependency: 'handleHackClick'. Either exclude it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/routines/AnonymousRoutinePlayer.tsx
+258:6  Warning: React Hook useEffect has a missing dependency: 'currentHack.name'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+301:6  Warning: React Hook useEffect has missing dependencies: 'cancelAutoplay' and 'countdown'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/routines/RoutinePlayer.tsx
+351:6  Warning: React Hook useEffect has a missing dependency: 'currentHack.name'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/hooks/useScrollManager.ts
+284:6  Warning: React Hook useEffect has a missing dependency: 'scrollManager'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+291:6  Warning: React Hook useEffect has a missing dependency: 'scrollManager'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+Failed to compile.
+
+./src/components/cards/HackCard.tsx:77:17
+Type error: Property 'hack_image' does not exist on type '{ category: string; content_body: string; content_type: string; created_at: string; created_by: string; description: string; difficulty: string; duration_minutes: number; external_link: string; ... 14 more ...; updated_by: string; }'.
+
+[0m [90m 75 |[39m         {[90m/* Image Section */[39m}[0m
+[0m [90m 76 |[39m         [33m<[39m[33mdiv[39m className[33m=[39m[32m"relative h-48 overflow-hidden bg-zinc-950"[39m[33m>[39m[0m
+[0m[31m[1m>[22m[39m[90m 77 |[39m           {hack[33m.[39mhack_image [33m?[39m ([0m
+[0m [90m    |[39m                 [31m[1m^[22m[39m[0m
+[0m [90m 78 |[39m             [33m<[39m[33mImage[39m[0m
+[0m [90m 79 |[39m               src[33m=[39m{hack[33m.[39mhack_image}[0m
+[0m [90m 80 |[39m               alt[33m=[39m{hack[33m.[39mhack_name}[0m
+Next.js build worker exited with code: 1 and signal: null

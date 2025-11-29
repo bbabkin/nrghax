@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { User } from 'lucide-react'
+import { User, Zap, BookOpen } from 'lucide-react'
 import { usePathname } from 'next/navigation'
+import { cn } from '@/lib/utils'
 
 interface FloatingNavProps {
   isAuthenticated?: boolean
@@ -17,46 +18,83 @@ interface FloatingNavProps {
 export function FloatingNav({ isAuthenticated, user }: FloatingNavProps) {
   const pathname = usePathname()
 
-  // Don't show on auth, library, skills, or canvas pages (they have integrated nav)
-  if (pathname?.startsWith('/auth') || pathname === '/library' || pathname === '/skills' || pathname === '/canvas') {
+  // Don't show on auth pages, library/skills pages (they have their own nav), or detail pages (modal overlays)
+  const shouldHide =
+    pathname?.startsWith('/auth') ||
+    pathname === '/library' ||
+    pathname === '/skills' ||
+    pathname?.startsWith('/hacks/') ||
+    pathname?.startsWith('/routines/')
+
+  if (shouldHide) {
     return null
   }
 
+  const isSkillsPage = pathname === '/skills' || pathname?.startsWith('/skills/')
+  const isLibraryPage = pathname === '/library' || pathname?.startsWith('/library/')
+
   return (
-    <div className="fixed top-6 left-6 right-6 z-50 pointer-events-none">
-      <div className="flex items-center justify-between max-w-[1920px] mx-auto">
+    <div className="fixed top-0 left-0 right-0 z-[60] bg-white/90 backdrop-blur-sm border-b border-gray-200">
+      <div className="flex items-center justify-between max-w-[1920px] mx-auto px-4 py-3">
         {/* Logo - Left */}
         <Link
           href="/"
-          className="pointer-events-auto hover:scale-105 transition-transform"
+          className="hover:scale-105 transition-transform"
         >
-          <div className="w-20 h-20 flex items-center justify-center">
+          <div className="w-12 h-12 flex items-center justify-center">
             <Image
               src="/logo.svg"
               alt="NRGHAX Logo"
-              width={80}
-              height={80}
-              className="drop-shadow-[0_0_20px_rgba(253,181,21,0.5)] dark:invert"
-              style={{ filter: 'drop-shadow(0 0 20px rgba(253, 181, 21, 0.5))' }}
+              width={48}
+              height={48}
+              className="drop-shadow-[0_0_5px_rgba(253,181,21,0.3)]"
             />
           </div>
         </Link>
 
+        {/* Navigation Tabs - Center */}
+        <nav className="flex items-center gap-1">
+          <Link
+            href="/skills"
+            className={cn(
+              "flex items-center justify-center gap-2 px-6 py-3 rounded-lg transition-all min-w-[100px]",
+              isSkillsPage
+                ? "bg-yellow-500 text-black font-bold"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800"
+            )}
+          >
+            <Zap className="w-5 h-5" />
+            <span>Skills</span>
+          </Link>
+          <Link
+            href="/library"
+            className={cn(
+              "flex items-center justify-center gap-2 px-6 py-3 rounded-lg transition-all min-w-[100px]",
+              isLibraryPage
+                ? "bg-yellow-500 text-black font-bold"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800"
+            )}
+          >
+            <BookOpen className="w-5 h-5" />
+            <span>Library</span>
+          </Link>
+        </nav>
+
         {/* User Icon - Right */}
         <Link
           href={isAuthenticated ? '/dashboard' : '/auth'}
-          className="pointer-events-auto w-20 h-20 rounded-full bg-gray-800 hover:bg-gray-700 border-2 border-yellow-400 flex items-center justify-center transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(253,181,21,0.5)]"
+          className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 border-2 border-yellow-500 flex items-center justify-center transition-all hover:scale-105 hover:shadow-[0_0_10px_rgba(253,181,21,0.3)]"
         >
           {user?.image ? (
             <Image
               src={user.image}
               alt={user.name || 'User'}
-              width={76}
-              height={76}
+              width={44}
+              height={44}
               className="rounded-full"
             />
           ) : (
-            <User className="h-10 w-10 text-yellow-400" />
+            <User className="h-6 w-6 text-yellow-600" />
           )}
         </Link>
       </div>

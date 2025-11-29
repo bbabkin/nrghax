@@ -64,20 +64,17 @@ export const HackCard = memo(function HackCard({
     >
       <div
         className={`
-          relative bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden
+          relative bg-white border border-gray-200 rounded-lg overflow-hidden
           ${isCompleted ? `shadow-lg ${getGlowEffect()}` : ''}
           ${isUnlocked ? 'hover:border-yellow-500/50' : ''}
         `}
-        style={{
-          clipPath: 'polygon(0 10px, 10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%)'
-        }}
       >
         {/* Image Section */}
         <div className="relative h-48 overflow-hidden bg-zinc-950">
-          {hack.hack_image ? (
+          {(hack.image_url || hack.image_path) ? (
             <Image
-              src={hack.hack_image}
-              alt={hack.hack_name}
+              src={hack.image_url || hack.image_path || ''}
+              alt={hack.name}
               fill
               className={`object-cover ${!isUnlocked ? 'grayscale' : ''}`}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -112,35 +109,21 @@ export const HackCard = memo(function HackCard({
         {/* Content Section */}
         <div className="p-4">
           <h3 className="font-bold text-lg mb-2 text-white group-hover:text-yellow-500 transition-colors">
-            {hack.hack_name}
+            {hack.name}
           </h3>
           <p className="text-zinc-400 text-sm line-clamp-2">
-            {hack.hack_description}
+            {hack.description}
           </p>
 
-          {/* Tags */}
-          {hack.hack_tags && hack.hack_tags.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1">
-              {hack.hack_tags.slice(0, 3).map((tag, index) => (
-                <span
-                  key={index}
-                  className="px-2 py-0.5 bg-zinc-800 text-zinc-400 text-xs rounded"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-
           {/* Difficulty Indicator */}
-          {hack.hack_difficulty && (
+          {hack.difficulty && (
             <div className="mt-3 flex gap-1">
               {[...Array(5)].map((_, i) => (
                 <div
                   key={i}
                   className={`
                     h-1 w-8 rounded-full
-                    ${i < hack.hack_difficulty ? 'bg-yellow-500' : 'bg-zinc-800'}
+                    ${i < parseInt(hack.difficulty || '0') ? 'bg-yellow-500' : 'bg-zinc-800'}
                   `}
                 />
               ))}
@@ -158,7 +141,7 @@ export const HackCard = memo(function HackCard({
         href={`/hacks/${hack.id}`}
         onClick={handleClick}
         className="block"
-        aria-label={`View hack: ${hack.hack_name}`}
+        aria-label={`View hack: ${hack.name}`}
       >
         {cardContent}
       </Link>

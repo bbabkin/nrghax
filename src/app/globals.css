@@ -4,24 +4,24 @@
 
 @layer base {
   :root {
-    --background: 45 100% 50%;
-    --foreground: 0 0% 0%;
+    --background: 0 0% 96%;
+    --foreground: 0 0% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 0 0% 15%;
     --primary: 45 100% 50%;
     --primary-foreground: 0 0% 0%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --secondary: 0 0% 92%;
+    --secondary-foreground: 0 0% 20%;
+    --muted: 0 0% 92%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 92%;
+    --accent-foreground: 0 0% 20%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
     --ring: 45 100% 50%;
     --radius: 0rem;
   }
@@ -256,16 +256,16 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #ec4899, #a855f7);
+  background: linear-gradient(to bottom, #FDB515, #F59E0B);
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #db2777, #9333ea);
+  background: linear-gradient(to bottom, #F59E0B, #D97706);
 }
 
 /* Diagonal Cut - Top Right Corner */
@@ -314,7 +314,7 @@ html {
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.1);
     border-radius: 4px;
   }
 
@@ -371,7 +371,7 @@ html {
 
   /* Animated background gradient */
   .cyber-bg {
-    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+    background: linear-gradient(135deg, #f5f5f5 0%, #e5e5e5 50%, #f5f5f5 100%);
     background-size: 200% 200%;
     animation: cyberGradient 15s ease infinite;
   }
@@ -382,13 +382,55 @@ html {
     100% { background-position: 0% 50%; }
   }
 
-  /* Neon text effect */
+  /* Neon text effect - reduced for light theme */
   .neon-text {
     text-shadow:
-      0 0 10px #FDB515,
-      0 0 20px #FDB515,
-      0 0 30px #FDB515,
-      0 0 40px #FDB515;
+      0 0 5px rgba(253, 181, 21, 0.5),
+      0 0 10px rgba(253, 181, 21, 0.3);
+  }
+}
+
+/* View Transitions for pseudo-modal */
+@supports (view-transition-name: test) {
+  ::view-transition-old(detail-modal),
+  ::view-transition-new(detail-modal) {
+    animation-duration: 200ms;
+    animation-timing-function: ease-out;
+  }
+
+  ::view-transition-old(detail-modal) {
+    animation-name: modal-exit;
+  }
+
+  ::view-transition-new(detail-modal) {
+    animation-name: modal-enter;
+  }
+
+  ::view-transition-old(backdrop),
+  ::view-transition-new(backdrop) {
+    animation-duration: 150ms;
+  }
+
+  @keyframes modal-enter {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  @keyframes modal-exit {
+    from {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.95) translateY(20px);
+    }
   }
 }
 
