@@ -238,6 +238,60 @@ supabase db push      # Deploy migrations
 6. **PREFER Server Components** - Client only when needed
 7. **USE generated types** - Never hardcode DB types
 
+## 🎯 Simplicity Principles
+
+### Keep Solutions Simple
+
+**STOP and reassess if you:**
+- Spend more than 5 iterations on a simple CSS/styling issue
+- Create complex workarounds for basic features
+- Add wrapper divs, z-index hacks, or JavaScript for simple styling
+- Refactor working code without being asked
+- Debug issues that don't exist (always verify the problem first)
+
+**Simple tasks have simple solutions:**
+- **CSS Backgrounds**: Just use `background-image`, `background-position`, `background-size`
+- **Styling**: Use existing Tailwind classes before custom CSS
+- **State Management**: Use local state before context/stores
+- **Components**: Keep flat structure when possible
+
+### When to Stop Iterating
+
+**Stop immediately when:**
+1. The feature works as requested (even if not "perfect")
+2. The user says "it's fine" or "good enough"
+3. You're on iteration #10 of a simple task
+4. You're fixing problems the user hasn't mentioned
+
+**Examples of what NOT to do:**
+```css
+/* ❌ WRONG: Overcomplicating a simple background */
+background-position: center -25%;  /* Iteration 1 */
+background-position: center -50%;  /* Iteration 2 */
+background-position: center -200px; /* Iteration 3 */
+background-blend-mode: multiply;   /* Iteration 4 */
+/* ... 10 more attempts ... */
+
+/* ✅ RIGHT: Simple, direct solution */
+background-image: url(/image.svg);
+background-position: center top;  /* User said "center aligned to top" */
+background-size: 100% auto;
+```
+
+### Working with Existing Code
+
+**Before adding new solutions:**
+1. Check if the feature already exists in the codebase
+2. Follow existing patterns - don't introduce new ones
+3. Assume existing implementations work unless proven otherwise
+4. Test your changes before claiming completion
+
+**When given feedback like "I'm not seeing it":**
+- Take a screenshot first
+- Verify the actual problem
+- Don't assume and start changing random parameters
+- Ask for clarification if needed
+
 ## 🔍 Common Issues & Solutions
 
 ### Issue: Types out of sync

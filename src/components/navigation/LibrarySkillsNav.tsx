@@ -34,7 +34,7 @@ export function LibrarySkillsNav({ className }: LibrarySkillsNavProps) {
           >
             <div
               className={cn(
-                "absolute inset-0 flex items-center justify-center font-bold text-lg uppercase tracking-wider transition-all duration-300",
+                "absolute inset-0 flex items-center justify-center font-bold text-lg tracking-wider transition-all duration-300",
                 currentView === 'library'
                   ? "text-black z-20"
                   : "text-white z-10"
@@ -71,7 +71,7 @@ export function LibrarySkillsNav({ className }: LibrarySkillsNavProps) {
           >
             <div
               className={cn(
-                "absolute inset-0 flex items-center justify-center font-bold text-lg uppercase tracking-wider transition-all duration-300",
+                "absolute inset-0 flex items-center justify-center font-bold text-lg tracking-wider transition-all duration-300",
                 currentView === 'skills'
                   ? "text-black z-20"
                   : "text-white z-10"

@@ -116,7 +116,24 @@ export function LibraryView({
 
   return (
     <>
-      <div className="w-full min-h-screen bg-gray-100 pt-24 p-4 md:p-6">
+      <style jsx global>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .fade-in-up {
+          animation: fadeInUp 0.6s ease-out forwards;
+        }
+      `}</style>
+
+      <div className="w-full min-h-screen pt-48 p-4 md:p-6 fade-in-up">
 
       {/* Contained max-width wrapper */}
       <div className="max-w-7xl mx-auto">
@@ -125,7 +142,7 @@ export function LibraryView({
           <div className="mb-6">
             {/* Title with Search Icon */}
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-2xl md:text-3xl font-bold uppercase tracking-wider" style={{ color: '#FFBB00' }}>
+              <h2 className="text-2xl md:text-3xl font-bold tracking-wider" style={{ color: '#808080' }}>
                 Routines
               </h2>
               <button
@@ -168,7 +185,7 @@ export function LibraryView({
               </div>
             )}
 
-            <div className="w-full h-0.5" style={{ backgroundColor: '#FFBB00' }} />
+            <div className="w-full h-0.5" style={{ backgroundColor: '#808080' }} />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -214,12 +231,12 @@ export function LibraryView({
       </div>
 
         {/* Hax Section */}
-        <div className="pb-24">
+        <div className="pb-48">
           <div className="mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold uppercase tracking-wider mb-2" style={{ color: '#FFBB00' }}>
+            <h2 className="text-2xl md:text-3xl font-bold tracking-wider mb-2" style={{ color: '#808080' }}>
               Techniques
             </h2>
-            <div className="w-full h-0.5" style={{ backgroundColor: '#FFBB00' }} />
+            <div className="w-full h-0.5" style={{ backgroundColor: '#808080' }} />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">

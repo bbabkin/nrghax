@@ -1,18 +1,16 @@
 import type { Metadata } from 'next'
-import { Work_Sans } from 'next/font/google'
+import { Questrial } from 'next/font/google'
 import { Toaster } from '@/components/ui/toaster'
-import { FloatingNav } from '@/components/FloatingNav'
-import { Footer } from '@/components/Footer'
+import { NavigationWrapper } from '@/components/navigation/NavigationWrapper'
 import { ThemeScript } from '@/components/theme-script'
 import { ProgressMigrationProvider } from '@/components/ProgressMigrationProvider'
-import { NavigationController } from '@/components/navigation/NavigationController'
 import { getCurrentUser } from '@/lib/auth/user'
 import './globals.css'
 
-const workSans = Work_Sans({
+const questrial = Questrial({
   subsets: ['latin'],
-  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
-  variable: '--font-work-sans',
+  weight: ['400'],
+  variable: '--font-questrial',
   display: 'swap',
 })
 
@@ -80,28 +78,18 @@ export default async function RootLayout({
       <head>
         <ThemeScript />
       </head>
-      <body className={`${workSans.variable} font-sans min-h-screen flex flex-col`}>
+      <body className={`${questrial.variable} font-sans min-h-screen flex flex-col`}>
         <ProgressMigrationProvider>
-          <FloatingNav
+          <NavigationWrapper
             isAuthenticated={!!user}
             user={user ? {
               name: user.name || undefined,
               email: user.email || undefined,
               image: user.avatar_url || undefined,
             } : undefined}
-          />
-          <NavigationController
-            isAuthenticated={!!user}
-            user={user ? {
-              name: user.name || undefined,
-              email: user.email || undefined,
-              image: user.avatar_url || undefined,
-            } : undefined}
-          />
-          <main className="flex-1">
+          >
             {children}
-          </main>
-          <Footer />
+          </NavigationWrapper>
           <Toaster />
         </ProgressMigrationProvider>
       </body>

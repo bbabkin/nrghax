@@ -175,8 +175,7 @@ export function RoutineCard({
             rgba(255, 255, 255, 0.1) 10px,
             rgba(255, 255, 255, 0.1) 11px
           )`,
-          opacity: 0.7,
-          clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)'
+          opacity: 0.7
         }}
       />
       <div className="relative aspect-video w-full overflow-hidden rounded-t-lg">
@@ -207,7 +206,6 @@ export function RoutineCard({
           <div
             className="absolute top-0 right-0 bg-purple-600 text-white shadow-lg px-3 py-1 flex items-center gap-1 text-xs font-bold"
             style={{
-              clipPath: 'polygon(0 0, 100% 0, 100% 100%, 15px 100%, 0 calc(100% - 15px))',
               boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
             }}
           >
@@ -355,8 +353,8 @@ export function RoutineCard({
             progressionClasses.borderClass
           )}
           style={{
-            clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)',
-            opacity: 0.3
+            opacity: 0.3,
+            borderRadius: '0.5rem'
           }}
         />
         <div

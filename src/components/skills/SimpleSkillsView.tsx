@@ -52,7 +52,25 @@ export function SimpleSkillsView({
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 pt-24 pb-8 px-4">
+    <>
+      <style jsx global>{`
+        @keyframes fadeInDown {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .fade-in-down {
+          animation: fadeInDown 0.6s ease-out forwards;
+        }
+      `}</style>
+
+      <div className="min-h-screen pt-8 pb-48 px-4 fade-in-down">
       <div className="max-w-4xl mx-auto">
         {/* Page Header */}
         <div className="text-center mb-12">
@@ -171,5 +189,6 @@ export function SimpleSkillsView({
         </div>
       </div>
     </div>
+    </>
   )
 }

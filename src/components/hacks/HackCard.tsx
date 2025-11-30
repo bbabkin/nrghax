@@ -156,8 +156,7 @@ export function HackCard({
             rgba(255, 255, 255, 0.1) 10px,
             rgba(255, 255, 255, 0.1) 11px
           )`,
-          opacity: 0.7,
-          clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)'
+          opacity: 0.7
         }}
       />
       <div className="relative aspect-video w-full overflow-hidden rounded-t-lg">
@@ -183,7 +182,6 @@ export function HackCard({
                               progressionColor === 'purple' ? '#a855f7' :
                               progressionColor === 'orange' ? '#f97316' : '#6b7280',
               color: 'white',
-              clipPath: 'polygon(0 0, 100% 0, 100% 100%, 15px 100%, 0 calc(100% - 15px))',
               boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
             }}
           >
@@ -341,9 +339,9 @@ export function HackCard({
             "overflow-hidden cursor-pointer transition-all duration-500 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]",
             progressionClasses.borderClass
           )} style={{
-            clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)',
             borderWidth: '2px',
             borderStyle: 'solid',
+            borderRadius: '0.5rem',
             borderColor: progressionColor === 'green' ? '#10b981' :
                          progressionColor === 'blue' ? '#3b82f6' :
                          progressionColor === 'purple' ? '#a855f7' :
@@ -379,9 +377,9 @@ export function HackCard({
             "overflow-hidden cursor-pointer transition-all duration-500 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]",
             progressionClasses.borderClass
           )} style={{
-            clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)',
             borderWidth: '2px',
             borderStyle: 'solid',
+            borderRadius: '0.5rem',
             borderColor: progressionColor === 'green' ? '#10b981' :
                          progressionColor === 'blue' ? '#3b82f6' :
                          progressionColor === 'purple' ? '#a855f7' :
@@ -417,9 +415,9 @@ export function HackCard({
             "overflow-hidden cursor-pointer transition-all duration-500 md:[clip-path:polygon(25px_0,100%_0,100%_calc(100%-25px),calc(100%-25px)_100%,0_100%,0_25px)] xl:[clip-path:polygon(35px_0,100%_0,100%_calc(100%-35px),calc(100%-35px)_100%,0_100%,0_35px)]",
             progressionClasses.borderClass
           )} style={{
-            clipPath: 'polygon(35px 0, 100% 0, 100% calc(100% - 35px), calc(100% - 35px) 100%, 0 100%, 0 35px)',
             borderWidth: '2px',
             borderStyle: 'solid',
+            borderRadius: '0.5rem',
             borderColor: progressionColor === 'green' ? '#10b981' :
                          progressionColor === 'blue' ? '#3b82f6' :
                          progressionColor === 'purple' ? '#a855f7' :

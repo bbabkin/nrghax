@@ -51,16 +51,15 @@ export function DetailModalFrame({ children }: DetailModalFrameProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white/80 backdrop-blur-sm"
       onClick={handleBackdropClick}
       style={{ viewTransitionName: 'backdrop' }}
     >
       <div
-        className="relative w-full max-w-5xl h-[85vh] bg-white overflow-hidden"
+        className="relative w-full max-w-5xl h-[85vh] bg-white overflow-hidden rounded-lg"
         style={{
           viewTransitionName: 'detail-modal',
-          clipPath: 'polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px)',
-          boxShadow: '0 0 50px rgba(253, 181, 21, 0.2), 0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+          boxShadow: '0 0 50px rgba(128, 128, 128, 0.2), 0 25px 50px -12px rgba(0, 0, 0, 0.25)'
         }}
         onClick={(e) => e.stopPropagation()}
       >

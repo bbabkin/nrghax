@@ -122,10 +122,10 @@ export function CustomSkillsTree({
       <div className="max-w-6xl mx-auto w-full p-4 md:p-8">
         {/* Main Title */}
         <div className="mb-16 text-center pt-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-yellow-400 uppercase tracking-wider mb-2">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-500 tracking-wider mb-2">
             Skills Tree
           </h1>
-          <div className="w-48 h-1 bg-yellow-400 mx-auto" />
+          <div className="w-48 h-1 bg-gray-500 mx-auto" />
         </div>
 
         {/* Render all levels stacked vertically */}
@@ -142,10 +142,10 @@ export function CustomSkillsTree({
 
                 {/* Level Header */}
                 <div className="mb-8 text-center">
-                  <h2 className="text-2xl md:text-3xl font-bold text-yellow-400 uppercase tracking-wider mb-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-500 tracking-wider mb-2">
                     {level.name}
                   </h2>
-                  <div className="w-24 h-0.5 bg-yellow-400 mx-auto" />
+                  <div className="w-24 h-0.5 bg-gray-500 mx-auto" />
                 </div>
 
                 {/* Skills Tree - Linear Progression */}
