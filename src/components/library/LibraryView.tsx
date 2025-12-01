@@ -8,6 +8,7 @@ import Image from 'next/image'
 import { formatDuration } from '@/lib/youtube'
 import { getProgressionColor, getProgressionClasses, formatCompletionCount } from '@/lib/progression'
 import { useAnonymousProgress } from '@/hooks/useAnonymousProgress'
+import { useNavbarHeight } from '@/hooks/useNavbarHeight'
 import { DeleteRoutineButton } from '@/components/admin/DeleteRoutineButton'
 
 interface Hack {
@@ -74,10 +75,26 @@ export function LibraryView({
   scrollContainerRef
 }: LibraryViewProps) {
   const router = useRouter()
+  const navbarHeight = useNavbarHeight()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [hasAnimated, setHasAnimated] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [shouldAnimate, setShouldAnimate] = useState(true)
+
+  // Check if we're returning from a modal and disable animations
+  useEffect(() => {
+    const isFromModal = sessionStorage.getItem('fromModal') === 'true'
+    if (isFromModal) {
+      setShouldAnimate(false)
+      sessionStorage.removeItem('fromModal')
+      // Re-enable animations after a short delay
+      const timer = setTimeout(() => {
+        setShouldAnimate(true)
+      }, 50)
+      return () => clearTimeout(timer)
+    }
+  }, [])
 
   // Debug logging
   console.log('[LibraryView] isAdmin:', isAdmin, 'isAuthenticated:', isAuthenticated)
@@ -104,6 +121,9 @@ export function LibraryView({
   // Handle card click to navigate
   const handleCardClick = (item: Hack | Routine, type: 'hack' | 'routine') => {
     console.log(`[CLICK] Navigating to ${type}: ${item.name} (${item.slug})`)
+
+    // Set flag to indicate we're opening a modal
+    sessionStorage.setItem('openingModal', 'true')
 
     // Navigate to the detail page (pseudo-modal in (detail) route group)
     if (type === 'routine') {
@@ -133,7 +153,13 @@ export function LibraryView({
         }
       `}</style>
 
-      <div className="w-full min-h-screen pt-48 p-4 md:p-6 fade-in-up">
+      <div
+        className={cn(
+          "w-full min-h-screen p-4 md:p-6",
+          shouldAnimate && "fade-in-up"
+        )}
+        style={{ paddingTop: `calc(${navbarHeight} + 1rem)` }}
+      >
 
       {/* Contained max-width wrapper */}
       <div className="max-w-7xl mx-auto">
@@ -166,7 +192,7 @@ export function LibraryView({
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search hacks by name, description, or tags..."
+                    placeholder="Search resources by name, description, or tags..."
                     className="w-full bg-white border-2 text-gray-800 px-4 py-3 pr-10 rounded-lg focus:outline-none focus:border-opacity-100 transition-all placeholder:text-gray-400"
                     style={{
                       borderColor: '#FFBB00'

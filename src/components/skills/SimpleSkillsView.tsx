@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { Clock, Lock, CheckCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatDuration } from '@/lib/youtube'
+import { useNavbarHeight } from '@/hooks/useNavbarHeight'
 
 interface Hack {
   id: string
@@ -40,6 +41,8 @@ export function SimpleSkillsView({
   userCompletions = {},
   isAuthenticated = false
 }: SimpleSkillsViewProps) {
+  const navbarHeight = useNavbarHeight()
+
   // Check if hack is unlocked based on prerequisites
   const isHackUnlocked = (hack: Level['hacks'][0]) => {
     if (!hack.prerequisites || hack.prerequisites.length === 0) {
@@ -70,7 +73,10 @@ export function SimpleSkillsView({
         }
       `}</style>
 
-      <div className="min-h-screen pt-8 pb-48 px-4 fade-in-down">
+      <div
+        className="min-h-screen pt-8 px-4 fade-in-down"
+        style={{ paddingBottom: `calc(${navbarHeight} + 1rem)` }}
+      >
       <div className="max-w-4xl mx-auto">
         {/* Page Header */}
         <div className="text-center mb-12">

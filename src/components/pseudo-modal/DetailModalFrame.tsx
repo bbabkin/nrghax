@@ -15,6 +15,9 @@ export function DetailModalFrame({ children }: DetailModalFrameProps) {
     if (hasNavigated.current) return
     hasNavigated.current = true
 
+    // Set flag to indicate we're closing a modal
+    sessionStorage.setItem('fromModal', 'true')
+
     const navigate = () => {
       // Check if we have history to go back to
       if (window.history.length > 2) {

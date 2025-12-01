@@ -21,8 +21,8 @@ export function NavigationWrapper({ isAuthenticated, user, children }: Navigatio
 
   // Apply styles directly to body element
   useEffect(() => {
-    // Add smooth transitions for background changes
-    document.body.style.transition = 'background-position 0.5s ease-in-out, background-color 0.3s ease-in-out'
+    // Add smooth transitions for background changes with ease-in-out
+    document.body.style.transition = 'background-position 0.8s ease-in-out, background-color 0.4s ease-in-out'
 
     const updateBackgroundPosition = () => {
       const aspectRatio = 1050 / 2000
